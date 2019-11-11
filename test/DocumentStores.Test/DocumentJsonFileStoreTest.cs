@@ -27,8 +27,8 @@ namespace DocumentStores.Test
 
         private static IDocumentStore GetService()
         {
-            var logger = new Moq.Mock<ILogger<DocumentJsonFileStore>>().Object;
-            var service = new DocumentJsonFileStore(testDir, logger);
+            var logger = new Moq.Mock<ILogger<JsonFileDocumentStore>>().Object;
+            var service = new JsonFileDocumentStore(testDir, logger);
             return service;
             //var cache = new DocumentCacheService(service);
             //return cache;

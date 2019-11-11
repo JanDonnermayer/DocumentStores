@@ -17,6 +17,7 @@
             "label": "pack.arrk",
             "command": "dotnet",
             "type": "process",
+            "dependsOn" : "test",
             "args": [
                 "pack",
                 "${workspaceFolder}/src/DocumentStores/DocumentStores.csproj",
@@ -26,7 +27,19 @@
                 //"--include-source:true",
                 //"--include-symbols:true",
                 "-p:PackageVersion=${input:packageVersion}",
-                "-o://mucfs/project/TOOLS/Mupe/Private/Development/.NuGet; out"
+                "-o://mucfs/project/TOOLS/Mupe/Private/Development/.NuGet"
+            ],
+            "problemMatcher": "$msCompile"
+        },        
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/test/DocumentStores.Test/DocumentStores.Test.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
         },

@@ -13,13 +13,13 @@ using DocumentStores.Abstractions;
 
 namespace DocumentStores
 {
-    public class DocumentJsonFileStore : IDocumentStore
+    public class JsonFileDocumentStore : IDocumentStore
     {
 
         private ImmutableDictionary<string, SemaphoreSlim> locks =
             ImmutableDictionary<string, SemaphoreSlim>.Empty;
 
-        private ILogger<DocumentJsonFileStore> Logger { get; }
+        private ILogger<JsonFileDocumentStore> Logger { get; }
         private string RootDirectory { get; }
         private JsonSerializerOptions SerializerSettings { get; }
 
@@ -59,7 +59,7 @@ namespace DocumentStores
 
         #region Constructor
 
-        public DocumentJsonFileStore(string directory, ILogger<DocumentJsonFileStore> logger = default)
+        public JsonFileDocumentStore(string directory, ILogger<JsonFileDocumentStore> logger = default)
         {
             this.RootDirectory = directory ?? throw new ArgumentNullException(nameof(directory));
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
