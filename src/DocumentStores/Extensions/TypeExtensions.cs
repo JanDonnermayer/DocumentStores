@@ -5,8 +5,7 @@ using System.Text;
 
 namespace System
 {
-
-    public static class TypeExtensions
+    internal static class TypeExtensions
     {
 
         /// <summary>
@@ -65,3 +64,5 @@ namespace System
 
     }
 }
+
+

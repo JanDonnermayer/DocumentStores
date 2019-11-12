@@ -1,15 +1,13 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using DocumentStores.Abstractions;
 using System;
 using System.Linq;
 
 namespace DocumentStores.Test
 {
     [TestFixture]
-    public class DocumentJsonFileStoreTest
+    public class JsonFileDocumentStoreTest
     {
         private static readonly string testDir = Path.Combine(Path.GetTempPath(), "ArrkTaskTracker.Tests");
 
@@ -25,17 +23,17 @@ namespace DocumentStores.Test
         }
 
 
-        private static IDocumentStore GetService()
+        private static JsonFileDocumentStore GetService()
         {
-            var logger = new Moq.Mock<ILogger<JsonFileDocumentStore>>().Object;
-            var service = new JsonFileDocumentStore(testDir, logger);
+            var service = new JsonFileDocumentStore(testDir);
             return service;
-            //var cache = new DocumentCacheService(service);
-            //return cache;
         }
 
+
+
+
         [Test]
-        public async Task ParallelInputTest()
+        public async Task AddOrUpdateDocumentAsyncTest()
         {
 
             var service = GetService();
@@ -44,9 +42,11 @@ namespace DocumentStores.Test
 
             var counter = ImmutableCounter.Default;
             var key = Guid.NewGuid().ToString();
-            await service.PutDocumentAsync(key, counter);
 
-            const int COUNT = 10;
+            if (!(await service.PutDocumentAsync(key, counter)).Try(out var ex))
+                throw new Exception("Put document failed!", ex);
+
+            const int COUNT = 100;
             const int WORKER_COUNT = 10;
 
             await Task
@@ -54,15 +54,17 @@ namespace DocumentStores.Test
                     .Range(1, WORKER_COUNT)
                     .Select(i => Task.Run(async () => await Task
                         .WhenAll(Enumerable.Range(1, COUNT)
-                        .Select(async i => await service.TransformDocumentAsync<ImmutableCounter>(key, c => c.Increment()))))));
+                        .Select(async i => await service.AddOrUpdateDocumentAsync(
+                            key,
+                            _ => Task.FromResult(ImmutableCounter.Default),
+                            (_, c) => Task.FromResult(c.Increment())))))));
 
-            var finalCounter = await service.GetDocumentAsync<ImmutableCounter>(key);
-            Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Data.Count);
+
+            ImmutableCounter finalCounter = await service.GetDocumentAsync<ImmutableCounter>(key);
+            Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
 
             Directory.Delete(testDir, true);
         }
-
-
 
 
     }

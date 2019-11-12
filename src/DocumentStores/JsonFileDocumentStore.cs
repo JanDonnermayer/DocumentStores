@@ -4,26 +4,44 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Newtonsoft.Json;
 using System.Collections.Immutable;
 using DocumentStores.Primitives;
 using DocumentStores.Abstractions;
+using System.Collections.Concurrent;
 
 namespace DocumentStores
 {
+
+
     public class JsonFileDocumentStore : IDocumentStore
     {
 
         private ImmutableDictionary<string, SemaphoreSlim> locks =
             ImmutableDictionary<string, SemaphoreSlim>.Empty;
-
-        private ILogger<JsonFileDocumentStore> Logger { get; }
         private string RootDirectory { get; }
         private JsonSerializerOptions SerializerSettings { get; }
 
+
         #region Private Members
+
+        private static bool AllowsResult(Exception ex) =>
+            ex is Newtonsoft.Json.JsonException
+            || ex is DocumentException
+            || ex is IOException;
+
+        private static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
+
+        private static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        }
 
         private async Task<IDisposable> GetLockAsync(string key)
         {
@@ -38,16 +56,16 @@ namespace DocumentStores
             $".{typeof(T).ShortName(true).Replace(">", "]").Replace("<", "[")}.json";
 
         private string GetFileName<T>(string key) =>
-            this.FilePrefix + key + FileSuffix<T>();
+            this.FilePrefix + Base64Encode(key) + FileSuffix<T>();
 
         private string GetKey<T>(string file)
         {
             var subs1 = file.Substring(this.FilePrefix.Length);
             var subs2 = subs1.Substring(0, subs1.Length - FileSuffix<T>().Length);
-            return subs2;
+            return Base64Decode(subs2);
         }
 
-        private static async Task<OperationResult<T>> Deserialize<T>(StreamReader SR) =>
+        private static async Task<Result<T>> Deserialize<T>(StreamReader SR) where T : class =>
             JsonConvert.DeserializeObject<T>(await SR.ReadToEndAsync());
         // JsonSerializer.Deserialize<T>(await SR.ReadToEndAsync(), this.SerializerSettings);
 
@@ -57,12 +75,12 @@ namespace DocumentStores
 
         #endregion
 
+
         #region Constructor
 
-        public JsonFileDocumentStore(string directory, ILogger<JsonFileDocumentStore> logger = default)
+        public JsonFileDocumentStore(string directory)
         {
             this.RootDirectory = directory ?? throw new ArgumentNullException(nameof(directory));
-            this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.SerializerSettings = new JsonSerializerOptions
             {
@@ -74,117 +92,127 @@ namespace DocumentStores
             if (!new DirectoryInfo(directory).Exists)
             {
                 Directory.CreateDirectory(directory);
-                Logger.LogInformation($"Created directory '{directory}'");
             }
         }
 
         #endregion
 
+
         #region Implementation of IDocumentStore
 
         public Task<IEnumerable<string>> GetKeysAsync<T>() =>
-           Task.Run(() => Directory.EnumerateFiles(this.RootDirectory, "*" + FileSuffix<T>(), SearchOption.TopDirectoryOnly).Select(GetKey<T>));
+           Task.Run(() => Directory.EnumerateFiles(
+               this.RootDirectory, "*" + FileSuffix<T>(),
+               SearchOption.TopDirectoryOnly).Select(GetKey<T>));
 
-        public async Task<OperationResult<T>> GetDocumentAsync<T>(string key)
+        public async Task<Result<T>> GetDocumentAsync<T>(string key) where T : class
         {
             if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
 
             var file = GetFileName<T>(key);
-            if (!File.Exists(file)) return "No such document";
+            using var @lock = await GetLockAsync(file);
 
-            using (await GetLockAsync(file))
+            try
             {
-                try
-                {
-                    using FileStream FS = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    using StreamReader SR = new StreamReader(FS);
-                    return await Deserialize<T>(SR);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex.ToString());
-                    return ex.Message;
-                }
+                if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
+
+                using FileStream FS = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using StreamReader SR = new StreamReader(FS);
+
+                var data = await Deserialize<T>(SR);
+
+                return data;
             }
+            catch (Exception _) when (AllowsResult(_))
+            {
+                return _;
+            }
+
         }
 
-
-        public async Task<OperationResult> PutDocumentAsync<T>(string key, T data)
+        public async Task<Result> PutDocumentAsync<T>(string key, T data) where T : class
         {
             if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
             if (data == null) throw new ArgumentNullException(nameof(data));
 
             var file = GetFileName<T>(key);
+            using var @lock = await GetLockAsync(file);
 
-            using (await GetLockAsync(file))
+            try
             {
-                try
-                {
-                    using FileStream FS = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read);
-                    using StreamWriter SW = new StreamWriter(FS);
+                using FileStream FS = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read);
+                using StreamWriter SW = new StreamWriter(FS);
 
-                    await Serialize(data, SW);
+                await Serialize(data, SW);
+                SW.Flush();
+                FS.SetLength(FS.Position);
 
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex.ToString());
-                    return ex.Message;
-                }
+                return Result.Ok();
             }
+            catch (Exception _) when (AllowsResult(_))
+            {
+                return _;
+            }
+
         }
 
-        public async Task<OperationResult> TransformDocumentAsync<T>(string key, Func<T, T> transfomer)
+        public async Task<Result<T>> AddOrUpdateDocumentAsync<T>(
+            string key,
+            Func<string, Task<T>> addDataAsync,
+            Func<string, T, Task<T>> updateDataAsync) where T : class
         {
             if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
+            if (updateDataAsync is null) throw new ArgumentNullException(nameof(updateDataAsync));
 
             var file = GetFileName<T>(key);
+            using var @lock = await GetLockAsync(file);
 
-            using (await GetLockAsync(file))
+            try
             {
-                try
+                using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+                using StreamReader SR = new StreamReader(FS);
+                using StreamWriter SW = new StreamWriter(FS);
+
+                async Task<T> getDataAsync() => File.Exists(file) switch
                 {
-                    using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-                    using StreamReader SR = new StreamReader(FS);
-                    using StreamWriter SW = new StreamWriter(FS);
+                    true => await updateDataAsync(key, await Deserialize<T>(SR))
+                        ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
+                    false => await addDataAsync(key)
+                        ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
+                };
 
-                    var json = await SR.ReadToEndAsync();
-                    var originalContent = string.IsNullOrEmpty(json) ? default : JsonConvert.DeserializeObject<T>(json);
-                    FS.Position = 0;
+                var data = await getDataAsync();
 
-                    var transformedContent = transfomer(originalContent) ?? throw new Exception("Transformer returned null!");
-                    await SW.WriteAsync(JsonConvert.SerializeObject(transformedContent, Formatting.Indented));
-                    SW.Flush();
+                FS.Position = 0;
+                await Serialize(data, SW);
+                SW.Flush();
+                FS.SetLength(FS.Position);
 
-                    FS.SetLength(FS.Position);
-
-                    return true;
-
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex.ToString());
-                    return ex.Message;
-                }
+                return data;
+            }
+            catch (Exception _) when (AllowsResult(_))
+            {
+                return _;
             }
         }
 
-        public async Task<OperationResult> DeleteDocumentAsync<T>(string key)
+        public async Task<Result> DeleteDocumentAsync<T>(string key) where T : class
         {
-            using (await GetLockAsync(key))
+            var file = GetFileName<T>(key);
+            using var @lock = await GetLockAsync(file);
+
+            try
             {
+                if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
 
-                try
-                {
-                    File.Delete(GetFileName<T>(key));
-                    return true;
-                }
-                catch (Exception ex)
-                {
+                File.Delete(file);
 
-                    return ex.Message;
-                }
+                return Result.Ok();
+            }
+            catch (Exception _) when (AllowsResult(_))
+            {
+                return _;
             }
         }
 
