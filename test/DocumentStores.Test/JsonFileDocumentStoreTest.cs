@@ -45,7 +45,7 @@ namespace DocumentStores.Test
 
            (await service.PutDocumentAsync(key, counter)).PassOrThrow();
 
-            const int COUNT = 100;
+            const int COUNT = 10;
             const int WORKER_COUNT = 20;
 
             await Task
