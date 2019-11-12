@@ -11,6 +11,9 @@ namespace DocumentStores.Abstractions
             string key,
             Func<string, Task<TData>> addDataAsync,
             Func<string, TData, Task<TData>> updateDataAsync) where TData : class;
+        Task<Result<TData>> GetOrAddDocumentAsync<TData>(
+            string key,
+            Func<string, Task<TData>> addDataAsync) where TData : class;
         Task<Result> DeleteDocumentAsync<TData>(string key) where TData : class;
         Task<Result<TData>> GetDocumentAsync<TData>(string key) where TData : class;
         Task<IEnumerable<string>> GetKeysAsync<TData>();
@@ -22,7 +25,10 @@ namespace DocumentStores.Abstractions
         Task<Result<TData>> AddOrUpdateDocumentAsync(
             string key,
             Func<string, Task<TData>> addDataAsync,
-            Func<string, TData, Task<TData>> updateDataAsync);
+            Func<string, TData, Task<TData>> updateDataAsync);            
+        Task<Result<TData>> GetOrAddDocumentAsync(
+            string key,
+            Func<string, Task<TData>> addDataAsync);
         Task<Result> DeleteDocumentAsync(string key);
         Task<Result<TData>> GetDocumentAsync(string key);
         Task<IEnumerable<string>> GetKeysAsync();

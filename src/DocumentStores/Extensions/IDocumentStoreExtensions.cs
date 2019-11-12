@@ -25,6 +25,11 @@ namespace DocumentStores.Abstractions
                 Func<string, TData, Task<TData>> updateDataAsync) =>
                 source.AddOrUpdateDocumentAsync(key, addDataAsync, updateDataAsync);
 
+            Task<Result<TData>> IDocumentStore<TData>.GetOrAddDocumentAsync(
+                string key,
+                Func<string, Task<TData>> addDataAsync) =>
+                source.GetOrAddDocumentAsync(key, addDataAsync);
+
             Task<Result> IDocumentStore<TData>.DeleteDocumentAsync(string key) => 
                 source.DeleteDocumentAsync<TData>(key);
 

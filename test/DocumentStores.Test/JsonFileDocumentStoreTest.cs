@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using DocumentStores.Abstractions;
 
 namespace DocumentStores.Test
 {
@@ -36,18 +37,18 @@ namespace DocumentStores.Test
         public async Task AddOrUpdateDocumentAsyncTest()
         {
 
-            var service = GetService();
+            var service = GetService().AsTypedDocumentStore<ImmutableCounter>();
 
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
             var key = Guid.NewGuid().ToString();
 
-            if (!(await service.PutDocumentAsync(key, counter)).Try(out var ex))
-                throw new Exception("Put document failed!", ex);
+            if (!(await service.PutDocumentAsync(key, counter)).Try(out var ex1))
+                throw new Exception($"{nameof(service.GetOrAddDocumentAsync)} failed!", ex1);
 
             const int COUNT = 100;
-            const int WORKER_COUNT = 10;
+            const int WORKER_COUNT = 20;
 
             await Task
                 .WhenAll(Enumerable
@@ -60,7 +61,11 @@ namespace DocumentStores.Test
                             (_, c) => Task.FromResult(c.Increment())))))));
 
 
-            ImmutableCounter finalCounter = await service.GetDocumentAsync<ImmutableCounter>(key);
+            ImmutableCounter finalCounter = await service.GetDocumentAsync(key);
+
+            if (!(await service.DeleteDocumentAsync(key)).Try(out var ex2))
+                throw new Exception($"{nameof(service.DeleteDocumentAsync)} failed!", ex2);
+
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
 
             Directory.Delete(testDir, true);

@@ -26,7 +26,7 @@ namespace DocumentStores
 
         #region Private Members
 
-        private static bool AllowsResult(Exception ex) =>
+        private static bool IsCatchable(Exception ex) =>
             ex is Newtonsoft.Json.JsonException
             || ex is DocumentException
             || ex is IOException;
@@ -123,7 +123,7 @@ namespace DocumentStores
 
                 return data;
             }
-            catch (Exception _) when (AllowsResult(_))
+            catch (Exception _) when (IsCatchable(_))
             {
                 return _;
             }
@@ -149,7 +149,7 @@ namespace DocumentStores
 
                 return Result.Ok();
             }
-            catch (Exception _) when (AllowsResult(_))
+            catch (Exception _) when (IsCatchable(_))
             {
                 return _;
             }
@@ -191,7 +191,45 @@ namespace DocumentStores
 
                 return data;
             }
-            catch (Exception _) when (AllowsResult(_))
+            catch (Exception _) when (IsCatchable(_))
+            {
+                return _;
+            }
+        }
+
+        public async Task<Result<T>> GetOrAddDocumentAsync<T>(
+            string key,
+            Func<string, Task<T>> addDataAsync) where T : class
+        {
+            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
+
+            var file = GetFileName<T>(key);
+            using var @lock = await GetLockAsync(file);
+
+            try
+            {
+                using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+                using StreamReader SR = new StreamReader(FS);
+                using StreamWriter SW = new StreamWriter(FS);
+
+                async Task<T> getDataAsync() => File.Exists(file) switch
+                {
+                    true => await Deserialize<T>(SR),
+                    false => await addDataAsync(key)
+                        ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
+                };
+
+                var data = await getDataAsync();
+
+                FS.Position = 0;
+                await Serialize(data, SW);
+                SW.Flush();
+                FS.SetLength(FS.Position);
+
+                return data;
+            }
+            catch (Exception _) when (IsCatchable(_))
             {
                 return _;
             }
@@ -212,7 +250,7 @@ namespace DocumentStores
 
                 return Result.Ok();
             }
-            catch (Exception _) when (AllowsResult(_))
+            catch (Exception _) when (IsCatchable(_))
             {
                 return _;
             }
