@@ -43,7 +43,7 @@ namespace DocumentStores.Test
             var counter = ImmutableCounter.Default;
             var key = Guid.NewGuid().ToString();
 
-            bool _ = await service.PutDocumentAsync(key, counter);
+           (await service.PutDocumentAsync(key, counter)).PassOrThrow();
 
             const int COUNT = 100;
             const int WORKER_COUNT = 20;
@@ -59,9 +59,9 @@ namespace DocumentStores.Test
                             (_, c) => Task.FromResult(c.Increment())))))));
 
 
-            ImmutableCounter finalCounter = await service.GetDocumentAsync(key);
+            var finalCounter = (await service.GetDocumentAsync(key)).PassOrThrow();
 
-            bool __ = await service.DeleteDocumentAsync(key);
+            (await service.DeleteDocumentAsync(key)).PassOrThrow();
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
 

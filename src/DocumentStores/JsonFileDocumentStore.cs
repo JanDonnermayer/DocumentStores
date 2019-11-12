@@ -64,7 +64,7 @@ namespace DocumentStores
             return Base64Decode(subs2);
         }
 
-        private static async Task<Result<T>> Deserialize<T>(StreamReader SR) where T : class =>
+        private static async Task<T> Deserialize<T>(StreamReader SR) where T : class =>
             JsonConvert.DeserializeObject<T>(await SR.ReadToEndAsync());
         // JsonSerializer.Deserialize<T>(await SR.ReadToEndAsync(), this.SerializerSettings);
 
