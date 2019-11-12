@@ -199,6 +199,8 @@ namespace DocumentStores
 
         public async Task<Result> DeleteDocumentAsync<T>(string key) where T : class
         {
+            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+
             var file = GetFileName<T>(key);
             using var @lock = await GetLockAsync(file);
 
