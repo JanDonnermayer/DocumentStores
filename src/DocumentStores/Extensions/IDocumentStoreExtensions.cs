@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DocumentStores.Primitives;
 
-namespace DocumentStores.Abstractions
+namespace DocumentStores
 {
     public static class IDocumentStoreExtensions
     {

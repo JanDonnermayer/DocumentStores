@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System;
 using System.Linq;
-using DocumentStores.Abstractions;
 
 namespace DocumentStores.Test
 {
@@ -34,7 +33,7 @@ namespace DocumentStores.Test
 
 
         [Test]
-        public async Task AddOrUpdateDocumentAsyncTest()
+        public async Task ParallelInputTest()
         {
 
             var service = GetService().AsTypedDocumentStore<ImmutableCounter>();
@@ -44,8 +43,7 @@ namespace DocumentStores.Test
             var counter = ImmutableCounter.Default;
             var key = Guid.NewGuid().ToString();
 
-            if (!(await service.PutDocumentAsync(key, counter)).Try(out var ex1))
-                throw new Exception($"{nameof(service.GetOrAddDocumentAsync)} failed!", ex1);
+            bool _ = await service.PutDocumentAsync(key, counter);
 
             const int COUNT = 100;
             const int WORKER_COUNT = 20;
@@ -63,8 +61,7 @@ namespace DocumentStores.Test
 
             ImmutableCounter finalCounter = await service.GetDocumentAsync(key);
 
-            if (!(await service.DeleteDocumentAsync(key)).Try(out var ex2))
-                throw new Exception($"{nameof(service.DeleteDocumentAsync)} failed!", ex2);
+            bool __ = await service.DeleteDocumentAsync(key);
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
 

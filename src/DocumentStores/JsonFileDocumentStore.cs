@@ -8,7 +8,6 @@ using System.Text.Json;
 using Newtonsoft.Json;
 using System.Collections.Immutable;
 using DocumentStores.Primitives;
-using DocumentStores.Abstractions;
 using System.Collections.Concurrent;
 
 namespace DocumentStores

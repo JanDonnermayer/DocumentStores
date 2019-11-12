@@ -62,8 +62,6 @@ namespace DocumentStores.Primitives
 
         public bool Try(out TData? data) => Try(out data, out _);
 
-        public bool Try(out Exception? exception) => Try(out _, out exception);
-
         public bool Try(out TData? data, out Exception? exception)
         {
             data = this.data;
