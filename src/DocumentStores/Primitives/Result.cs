@@ -23,18 +23,22 @@ namespace DocumentStores.Primitives
             return exception == null;
         }
 
-        public static Result Ok() => new Result(exception : null);
+#nullable restore
+
+        public void PassOrThrow()
+        { 
+            if (!this.Try(out var ex)) throw new ResultException(ex);
+        }
+
+#nullable enable
+
+        public static Result Ok() => new Result(exception: null);
 
         public static Result Error(Exception exception) =>
             new Result(exception ?? throw new ArgumentNullException(nameof(exception)));
 
         public static implicit operator Result(Exception ex) => Error(ex);
 
-#nullable restore //suppress exception might be null
-        public static implicit operator bool(Result result) =>
-            result.exception == null ? true : throw new ResultException(result.exception);
-
-#nullable enable
     }
 
 
@@ -70,6 +74,16 @@ namespace DocumentStores.Primitives
         }
 
 
+#nullable restore
+
+        public TData PassOrThrow()
+        { 
+            if (!this.Try(out var res, out var ex)) throw new ResultException(ex);
+            return res;
+        }
+        
+#nullable enable
+
         public static Result<TData> Ok(TData data) =>
             new Result<TData>(data ?? throw new ArgumentNullException(nameof(data)), null);
 
@@ -79,12 +93,6 @@ namespace DocumentStores.Primitives
         public static implicit operator Result<TData>(TData data) => Ok(data);
 
         public static implicit operator Result<TData>(Exception ex) => Error(ex);
-
-#nullable restore //suppress exception might be null
-        public static implicit operator TData(Result<TData> result) =>
-            result.data ?? throw new ResultException(result.exception);
-
-#nullable enable
 
     }
 
