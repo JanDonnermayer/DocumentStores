@@ -43,7 +43,8 @@ namespace DocumentStores.Test
             var counter = ImmutableCounter.Default;
             var key = Guid.NewGuid().ToString();
 
-           (await service.PutDocumentAsync(key, counter)).PassOrThrow();
+            (await service.GetOrAddDocumentAsync(key, _ => Task.FromResult(counter))).PassOrThrow();
+            //(await service.PutDocumentAsync(key, counter)).PassOrThrow();
 
             const int COUNT = 10;
             const int WORKER_COUNT = 20;

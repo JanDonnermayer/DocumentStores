@@ -173,11 +173,11 @@ namespace DocumentStores
                 using StreamReader SR = new StreamReader(FS);
                 using StreamWriter SW = new StreamWriter(FS);
 
-                async Task<T> getDataAsync() => File.Exists(file) switch
+                async Task<T> getDataAsync() => await Deserialize<T>(SR) switch
                 {
-                    true => await updateDataAsync(key, await Deserialize<T>(SR))
-                        ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
-                    false => await addDataAsync(key)
+                    T data => await updateDataAsync(key, data)
+                       ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
+                    null => await addDataAsync(key)
                         ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
                 };
 
@@ -212,14 +212,9 @@ namespace DocumentStores
                 using StreamReader SR = new StreamReader(FS);
                 using StreamWriter SW = new StreamWriter(FS);
 
-                async Task<T> getDataAsync() => File.Exists(file) switch
-                {
-                    true => await Deserialize<T>(SR),
-                    false => await addDataAsync(key)
-                        ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
-                };
-
-                var data = await getDataAsync();
+                var data = await Deserialize<T>(SR) 
+                    ?? await addDataAsync(key)
+                    ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
                 FS.Position = 0;
                 await Serialize(data, SW);
