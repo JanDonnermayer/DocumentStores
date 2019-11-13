@@ -32,19 +32,20 @@ namespace DocumentStores
             || ex is DocumentException
             || ex is IOException;
 
-        private static ImmutableDictionary<char, char> encodingMap =
-            new Dictionary<char, char>() {
-                {'/', '\u201D'},
-                {'\'', '\u2019'},
-                {'"', '\u2004'}
-            }
-            .ToImmutableDictionary();
-        private static IImmutableDictionary<char, char> decodingMap =
-            encodingMap.Reverse().ToImmutableDictionary();
+        // Map invalid filename chars with to some weird unicode
+        private static readonly ImmutableDictionary<char, char> encodingMap =
+            Path
+                .GetInvalidFileNameChars()
+                .Select((_, i) => new KeyValuePair<char, char>(_, (char)(i + 2000)))
+                .ToImmutableDictionary();
+        private static  readonly IImmutableDictionary<char, char> decodingMap =
+            encodingMap
+                .Select(kvp => new KeyValuePair<char, char>(kvp.Value, kvp.Key))
+                .ToImmutableDictionary();
         private static string EncodeKey(string key) =>
             new string(key.Select(_ => encodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
-        private static string DecodeKey(string encodedKey) =>        
-            new string(encodedKey.Select(_ => decodingMap.TryGetValue(_, out var v) ? v : _).ToArray());        
+        private static string DecodeKey(string encodedKey) =>
+            new string(encodedKey.Select(_ => decodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
 
         private async Task<IDisposable> GetLockAsync(string key)
         {
@@ -104,9 +105,19 @@ namespace DocumentStores
         #region Implementation of IDocumentStore
 
         public Task<IEnumerable<string>> GetKeysAsync<T>() =>
-           Task.Run(() => Directory.EnumerateFiles(
-               this.RootDirectory, "*" + FileSuffix<T>(),
-               SearchOption.TopDirectoryOnly).Select(GetKey<T>));
+            Task.Run(() =>
+            {
+                try
+                {
+                    return Directory.EnumerateFiles(
+                        this.RootDirectory, "*" + FileSuffix<T>(),
+                        SearchOption.TopDirectoryOnly).Select(GetKey<T>);
+                }
+                catch (Exception _) when (IsCatchable(_))
+                {
+                    return Enumerable.Empty<string>();
+                }
+            });
 
         public async Task<Result<T>> GetDocumentAsync<T>(string key) where T : class
         {

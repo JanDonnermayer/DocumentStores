@@ -69,9 +69,9 @@ namespace DocumentStores.Test
             Directory.Delete(testDir, true);
         }
 
-        
+
         [Test]
-        public async Task AddAndDeleteTest()
+        public async Task AddForbiddenFileNamedDocs()
         {
 
             var service = GetService().AsTypedDocumentStore<ImmutableCounter>();
@@ -79,15 +79,20 @@ namespace DocumentStores.Test
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
-            var key = Guid.NewGuid().ToString();
 
-            (await service.GetOrAddDocumentAsync(key, _ => Task.FromResult(counter))).PassOrThrow();
+            var keys = Path.GetInvalidFileNameChars().Select(_ => $"{_}");
 
-            var finalCounter = (await service.GetDocumentAsync(key)).PassOrThrow();
+            var results = await Task.WhenAll(keys                
+                .Select(_ => service.PutDocumentAsync(_, counter)));         
 
-            (await service.DeleteDocumentAsync(key)).PassOrThrow();
+            foreach (var res in results)
+            {
+                res.PassOrThrow();
+            }
 
-            Assert.AreEqual(0, finalCounter.Count);
+            var actualKeys = await service.GetKeysAsync();
+
+            Assert.IsTrue(Enumerable.SequenceEqual(keys, actualKeys), "Keys differ after writing documents!");
 
             Directory.Delete(testDir, true);
         }
