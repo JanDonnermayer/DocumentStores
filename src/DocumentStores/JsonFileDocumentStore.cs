@@ -32,13 +32,13 @@ namespace DocumentStores
             || ex is DocumentException
             || ex is IOException;
 
-        // Map invalid filename chars with to some weird unicode
+        // Map invalid filename chars to some weird unicode
         private static readonly ImmutableDictionary<char, char> encodingMap =
             Path
                 .GetInvalidFileNameChars()
                 .Select((_, i) => new KeyValuePair<char, char>(_, (char)(i + 2000)))
                 .ToImmutableDictionary();
-        private static  readonly IImmutableDictionary<char, char> decodingMap =
+        private static readonly IImmutableDictionary<char, char> decodingMap =
             encodingMap
                 .Select(kvp => new KeyValuePair<char, char>(kvp.Value, kvp.Key))
                 .ToImmutableDictionary();
