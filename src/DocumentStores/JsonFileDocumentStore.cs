@@ -19,8 +19,10 @@ namespace DocumentStores
 
         private ImmutableDictionary<string, SemaphoreSlim> locks =
             ImmutableDictionary<string, SemaphoreSlim>.Empty;
+
         private string RootDirectory { get; }
-        private JsonSerializerOptions SerializerSettings { get; }
+
+        //private JsonSerializerOptions SerializerSettings { get; }
 
 
         #region Private Members
@@ -30,17 +32,19 @@ namespace DocumentStores
             || ex is DocumentException
             || ex is IOException;
 
-        private static string Base64Encode(string plainText)
-        {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return System.Convert.ToBase64String(plainTextBytes);
-        }
-
-        private static string Base64Decode(string base64EncodedData)
-        {
-            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
-            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
-        }
+        private static ImmutableDictionary<char, char> encodingMap =
+            new Dictionary<char, char>() {
+                {'/', '\u201D'},
+                {'\'', '\u2019'},
+                {'"', '\u2004'}
+            }
+            .ToImmutableDictionary();
+        private static IImmutableDictionary<char, char> decodingMap =
+            encodingMap.Reverse().ToImmutableDictionary();
+        private static string EncodeKey(string key) =>
+            new string(key.Select(_ => encodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
+        private static string DecodeKey(string encodedKey) =>        
+            new string(encodedKey.Select(_ => decodingMap.TryGetValue(_, out var v) ? v : _).ToArray());        
 
         private async Task<IDisposable> GetLockAsync(string key)
         {
@@ -55,13 +59,13 @@ namespace DocumentStores
             $".{typeof(T).ShortName(true).Replace(">", "]").Replace("<", "[")}.json";
 
         private string GetFileName<T>(string key) =>
-            this.FilePrefix + Base64Encode(key) + FileSuffix<T>();
+            this.FilePrefix + EncodeKey(key) + FileSuffix<T>();
 
         private string GetKey<T>(string file)
         {
             var subs1 = file.Substring(this.FilePrefix.Length);
             var subs2 = subs1.Substring(0, subs1.Length - FileSuffix<T>().Length);
-            return Base64Decode(subs2);
+            return DecodeKey(subs2);
         }
 
         private static async Task<T> Deserialize<T>(StreamReader SR) where T : class =>
@@ -81,12 +85,12 @@ namespace DocumentStores
         {
             this.RootDirectory = directory ?? throw new ArgumentNullException(nameof(directory));
 
-            this.SerializerSettings = new JsonSerializerOptions
-            {
-                IgnoreNullValues = true,
-                WriteIndented = true,
-                PropertyNameCaseInsensitive = true
-            };
+            //this.SerializerSettings = new JsonSerializerOptions
+            //{
+            //    IgnoreNullValues = true,
+            //    WriteIndented = true,
+            //    PropertyNameCaseInsensitive = true
+            //};
 
             if (!new DirectoryInfo(directory).Exists)
             {
@@ -175,10 +179,10 @@ namespace DocumentStores
 
                 async Task<T> getDataAsync() => await Deserialize<T>(SR) switch
                 {
-                    T data => await updateDataAsync(key, data)
-                       ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
                     null => await addDataAsync(key)
                         ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
+                    T data => await updateDataAsync(key, data)
+                       ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
                 };
 
                 var data = await getDataAsync();
@@ -212,7 +216,7 @@ namespace DocumentStores
                 using StreamReader SR = new StreamReader(FS);
                 using StreamWriter SW = new StreamWriter(FS);
 
-                var data = await Deserialize<T>(SR) 
+                var data = await Deserialize<T>(SR)
                     ?? await addDataAsync(key)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 

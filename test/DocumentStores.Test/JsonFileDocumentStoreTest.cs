@@ -43,8 +43,8 @@ namespace DocumentStores.Test
             var counter = ImmutableCounter.Default;
             var key = Guid.NewGuid().ToString();
 
-            (await service.GetOrAddDocumentAsync(key, _ => Task.FromResult(counter))).PassOrThrow();
-            //(await service.PutDocumentAsync(key, counter)).PassOrThrow();
+            // (await service.GetOrAddDocumentAsync(key, _ => Task.FromResult(counter))).PassOrThrow();
+            // (await service.PutDocumentAsync(key, counter)).PassOrThrow();
 
             const int COUNT = 10;
             const int WORKER_COUNT = 20;
@@ -56,7 +56,7 @@ namespace DocumentStores.Test
                         .WhenAll(Enumerable.Range(1, COUNT)
                         .Select(async i => await service.AddOrUpdateDocumentAsync(
                             key,
-                            _ => Task.FromResult(ImmutableCounter.Default),
+                            _ => Task.FromResult(ImmutableCounter.Default.Increment()),
                             (_, c) => Task.FromResult(c.Increment())))))));
 
 
@@ -65,6 +65,29 @@ namespace DocumentStores.Test
             (await service.DeleteDocumentAsync(key)).PassOrThrow();
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
+
+            Directory.Delete(testDir, true);
+        }
+
+        
+        [Test]
+        public async Task AddAndDeleteTest()
+        {
+
+            var service = GetService().AsTypedDocumentStore<ImmutableCounter>();
+
+            if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
+
+            var counter = ImmutableCounter.Default;
+            var key = Guid.NewGuid().ToString();
+
+            (await service.GetOrAddDocumentAsync(key, _ => Task.FromResult(counter))).PassOrThrow();
+
+            var finalCounter = (await service.GetDocumentAsync(key)).PassOrThrow();
+
+            (await service.DeleteDocumentAsync(key)).PassOrThrow();
+
+            Assert.AreEqual(0, finalCounter.Count);
 
             Directory.Delete(testDir, true);
         }
