@@ -9,7 +9,7 @@ namespace DocumentStores.Test
     [TestFixture]
     public class JsonFileDocumentStoreTest
     {
-        private static readonly string testDir = Path.Combine(Path.GetTempPath(), "ArrkTaskTracker.Tests");
+        private static readonly string testDir = Path.Combine(Path.GetTempPath(), "DocumentStore.Tests");
 
         private class ImmutableCounter
         {
@@ -92,7 +92,12 @@ namespace DocumentStores.Test
 
             var actualKeys = await service.GetKeysAsync();
 
-            Assert.IsTrue(Enumerable.SequenceEqual(keys, actualKeys), "Keys differ after writing documents!");
+            Assert.IsTrue(
+                condition: Enumerable.SequenceEqual(
+                    first: keys,
+                    second: actualKeys,
+                    comparer: StringComparer.OrdinalIgnoreCase),
+                message: "Keys differ after writing documents!");
 
             Directory.Delete(testDir, true);
         }
