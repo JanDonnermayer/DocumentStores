@@ -46,6 +46,9 @@ namespace DocumentStores
             new string(key.Select(_ => encodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
         private static string DecodeKey(string encodedKey) =>
             new string(encodedKey.Select(_ => decodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
+
+        // Check whether key is null,
+        // or contains anything from decoding map which would lead to collisions
         private static void CheckKey(string key)
         {
             if (string.IsNullOrEmpty(key))
