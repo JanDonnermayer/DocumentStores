@@ -3,7 +3,7 @@ using System;
 namespace DocumentStores.Internal
 {
     /// <summary>
-    /// Used to hide the identy of an IObservable<T>
+    /// Used to hide the identy of an <see cref="IObservable{T}"/>
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal class ObservableWrapper<T> : IObservable<T>

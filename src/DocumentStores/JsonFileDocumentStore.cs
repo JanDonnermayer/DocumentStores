@@ -12,7 +12,11 @@ using System.Collections.Concurrent;
 
 namespace DocumentStores
 {
-      public class JsonFileDocumentStore : IDocumentStore
+    /// <summary>
+    /// An <see cref="IDocumentStore"/>-Implementation,
+    /// that uses json-files, to store serializable data.
+    /// </summary>
+    public class JsonFileDocumentStore : IDocumentStore
     {
 
         private ImmutableDictionary<string, SemaphoreSlim> locks =
@@ -62,19 +66,36 @@ namespace DocumentStores
             return new Disposable(() => sem.Release());
         }
 
-        private string FilePrefix => @$"{RootDirectory}\";
+        private static string FileExtension = ".json";
 
-        private string FileSuffix<T>() =>
-            $".{typeof(T).ShortName(true).Replace(">", "]").Replace("<", "[")}.json";
+        private ImmutableDictionary<Type, string> Subdirectories =
+            ImmutableDictionary<Type, string>.Empty;
+
+        private string SubDirectory<T>() =>
+            ImmutableInterlocked.GetOrAdd(
+                ref Subdirectories,
+                typeof(T), //Subdirectory name is typename
+                typeof(T).ShortName(true).Replace(">", "]").Replace("<", "["));
 
         private string GetFileName<T>(string key) =>
-            this.FilePrefix + EncodeKey(key) + FileSuffix<T>();
+           Path.Combine(this.RootDirectory, this.SubDirectory<T>(), EncodeKey(key) + FileExtension);
+
+        private async Task CreateDirectoryIfMissingAsync(string file)
+        {
+            var directory = new FileInfo(file).Directory;
+            using var @lock = await GetLockAsync(directory.FullName);
+            if (!directory.Exists) directory.Create();
+        }
 
         private string GetKey<T>(string file)
         {
-            var subs1 = file.Substring(this.FilePrefix.Length);
-            var subs2 = subs1.Substring(0, subs1.Length - FileSuffix<T>().Length);
-            return DecodeKey(subs2);
+            var subs1 = file.Substring(
+                startIndex: RootDirectory.Length + @"\\".Length + SubDirectory<T>().Length);
+            var name = subs1.Substring(
+                startIndex: 0,
+                length: subs1.Length - FileExtension.Length);
+
+            return DecodeKey(name);
         }
 
         private static async Task<T> Deserialize<T>(StreamReader SR) where T : class =>
@@ -90,22 +111,8 @@ namespace DocumentStores
 
         #region Constructor
 
-        public JsonFileDocumentStore(string directory)
-        {
+        public JsonFileDocumentStore(string directory) =>
             this.RootDirectory = directory ?? throw new ArgumentNullException(nameof(directory));
-
-            //this.SerializerSettings = new JsonSerializerOptions
-            //{
-            //    IgnoreNullValues = true,
-            //    WriteIndented = true,
-            //    PropertyNameCaseInsensitive = true
-            //};
-
-            if (!new DirectoryInfo(directory).Exists)
-            {
-                Directory.CreateDirectory(directory);
-            }
-        }
 
         #endregion
 
@@ -117,8 +124,12 @@ namespace DocumentStores
             {
                 try
                 {
+                    var directory = Path.Combine(RootDirectory, SubDirectory<T>());
+                    if (!Directory.Exists(directory)) return Enumerable.Empty<string>();
+
                     return Directory.EnumerateFiles(
-                        this.RootDirectory, "*" + FileSuffix<T>(),
+                        directory,
+                        "*" + FileExtension,
                         SearchOption.TopDirectoryOnly).Select(GetKey<T>);
                 }
                 catch (Exception _) when (IsCatchable(_))
@@ -163,6 +174,8 @@ namespace DocumentStores
 
             try
             {
+                await CreateDirectoryIfMissingAsync(file);
+
                 using FileStream FS = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read);
                 using StreamWriter SW = new StreamWriter(FS);
 
@@ -179,6 +192,8 @@ namespace DocumentStores
 
         }
 
+
+
         public async Task<Result<T>> AddOrUpdateDocumentAsync<T>(
             string key,
             Func<string, Task<T>> addDataAsync,
@@ -193,6 +208,8 @@ namespace DocumentStores
 
             try
             {
+                await CreateDirectoryIfMissingAsync(file);
+
                 using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
                 using StreamReader SR = new StreamReader(FS);
                 using StreamWriter SW = new StreamWriter(FS);
@@ -232,6 +249,8 @@ namespace DocumentStores
 
             try
             {
+                await CreateDirectoryIfMissingAsync(file);
+
                 using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
                 using StreamReader SR = new StreamReader(FS);
                 using StreamWriter SW = new StreamWriter(FS);
