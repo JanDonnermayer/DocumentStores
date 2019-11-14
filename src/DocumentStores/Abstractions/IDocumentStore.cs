@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DocumentStores.Primitives;
 
@@ -16,7 +17,7 @@ namespace DocumentStores
             Func<string, Task<TData>> addDataAsync) where TData : class;
         Task<Result> DeleteDocumentAsync<TData>(string key) where TData : class;
         Task<Result<TData>> GetDocumentAsync<TData>(string key) where TData : class;
-        Task<IEnumerable<string>> GetKeysAsync<TData>();
+        Task<IEnumerable<string>> GetKeysAsync<TData>(CancellationToken ct = default);
         Task<Result> PutDocumentAsync<TData>(string key, TData data) where TData : class;
     }
 }

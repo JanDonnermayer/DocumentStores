@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using DocumentStores.Primitives;
@@ -9,11 +9,16 @@ namespace DocumentStores.Internal
     /// A Subject<T> that enqueues notifictaions on the taskpool.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class TaskPoolSubject<T>
+    internal class TaskPoolBehaviourSubject<T>
         : IObservable<T>, IObserver<T>, IDisposable
     {
         private ImmutableHashSet<IObserver<T>> observers =
             ImmutableHashSet<IObserver<T>>.Empty;
+
+        public TaskPoolBehaviourSubject(T initial) =>
+            Latest = initial;
+
+        private T Latest { get; set; }
 
         private void ReleaseObservers() =>
             ImmutableInterlocked.Update(ref observers, _ => _.Clear());
@@ -30,13 +35,14 @@ namespace DocumentStores.Internal
         void IObserver<T>.OnError(Exception error)
         {
             if (error is null) throw new ArgumentNullException(nameof(error));
-            
+
             PostForEachObserver(_ => _.OnError(error));
             ReleaseObservers();
         }
 
         void IObserver<T>.OnNext(T value)
         {
+            Latest = value;
             PostForEachObserver(_ => _.OnNext(value));
         }
 
@@ -45,6 +51,7 @@ namespace DocumentStores.Internal
             if (observer is null) throw new ArgumentNullException(nameof(observer));
 
             ImmutableInterlocked.Update(ref observers, _ => _.Add(observer));
+            observer.OnNext(Latest);
             return Disposable.Create(() => ImmutableInterlocked.Update(ref observers, _ => _.Remove(observer)));
         }
         public void Dispose() => ReleaseObservers();

@@ -35,14 +35,14 @@ namespace DocumentStores.Primitives
         /// that performs the specified <paramref name="disposeAction"/> on disposal.
         /// </summary>
         /// <param name="disposeAction"></param>
-        public static IDisposable Create(Action disposeAction) =>
+        public static Disposable Create(Action disposeAction) =>
             new Disposable(disposeAction);
 
         /// <summary>
         /// Returns an IDisposable,
         /// that performs no action on disposal.
         /// </summary>
-        public static IDisposable Empty => new Disposable();
+        public static Disposable Empty => new Disposable();
 
         public void Dispose()
         {

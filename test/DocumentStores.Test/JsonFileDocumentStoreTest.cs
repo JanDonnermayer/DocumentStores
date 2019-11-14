@@ -113,10 +113,16 @@ namespace DocumentStores.Test
             static async Task TestAdd(IObservableDocumentStore<ImmutableCounter> service, string key)
             {
                 var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
+                await service.PutDocumentAsync(key, ImmutableCounter.Default); // Subscribe after add
                 var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
-                await service.PutDocumentAsync(key, ImmutableCounter.Default);
                 var keys = await tcs.Task;
                 Assert.AreEqual(key, keys.First());
+
+                var tcs2 = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
+                var obs2 = service.GetKeysObservable().Subscribe(_ => tcs2.TrySetResult(_));
+                var keys2 = await tcs2.Task;
+                Assert.AreEqual(key, keys2.First());
+
             }
 
             static async Task TestRemove(IObservableDocumentStore<ImmutableCounter> service, string key)

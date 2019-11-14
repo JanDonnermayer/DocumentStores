@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DocumentStores;
 using DocumentStores.Primitives;
@@ -20,7 +21,8 @@ namespace DocumentStores.Internal
         public ObservableDocumentStore(IDocumentStore source)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
-            var subject = new TaskPoolSubject<IEnumerable<string>>();
+            var subject = new TaskPoolBehaviourSubject<IEnumerable<string>>(initial :
+                source.GetKeysAsync<TData>(new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token).Result);
             observer = subject;
             observable = subject;
             disposeHandle = subject;
