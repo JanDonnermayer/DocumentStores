@@ -46,6 +46,13 @@ namespace DocumentStores
             new string(key.Select(_ => encodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
         private static string DecodeKey(string encodedKey) =>
             new string(encodedKey.Select(_ => decodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
+        private static void CheckKey(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+            if (key.Any(decodingMap.Keys.Contains))
+                throw new ArgumentException("Key contains invalid chars!", nameof(key));
+        }
 
         private async Task<IDisposable> GetLockAsync(string key)
         {
@@ -121,7 +128,7 @@ namespace DocumentStores
 
         public async Task<Result<T>> GetDocumentAsync<T>(string key) where T : class
         {
-            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            CheckKey(key);
 
             var file = GetFileName<T>(key);
             using var @lock = await GetLockAsync(file);
@@ -144,9 +151,10 @@ namespace DocumentStores
 
         }
 
+
         public async Task<Result> PutDocumentAsync<T>(string key, T data) where T : class
         {
-            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            CheckKey(key);
             if (data == null) throw new ArgumentNullException(nameof(data));
 
             var file = GetFileName<T>(key);
@@ -175,7 +183,7 @@ namespace DocumentStores
             Func<string, Task<T>> addDataAsync,
             Func<string, T, Task<T>> updateDataAsync) where T : class
         {
-            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            CheckKey(key);
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
             if (updateDataAsync is null) throw new ArgumentNullException(nameof(updateDataAsync));
 
@@ -215,7 +223,7 @@ namespace DocumentStores
             string key,
             Func<string, Task<T>> addDataAsync) where T : class
         {
-            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            CheckKey(key);
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
 
             var file = GetFileName<T>(key);
@@ -246,7 +254,7 @@ namespace DocumentStores
 
         public async Task<Result> DeleteDocumentAsync<T>(string key) where T : class
         {
-            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
+            CheckKey(key);
 
             var file = GetFileName<T>(key);
             using var @lock = await GetLockAsync(file);

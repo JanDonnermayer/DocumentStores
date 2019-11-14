@@ -80,7 +80,7 @@ namespace DocumentStores.Test
 
             var counter = ImmutableCounter.Default;
 
-            var keys = Path.GetInvalidFileNameChars().Select(_ => $"{_}");
+            var keys = Path.GetInvalidFileNameChars().Select(_ => $"{_}.LOL");
 
             var results = await Task.WhenAll(keys                
                 .Select(_ => service.PutDocumentAsync(_, counter)));         
