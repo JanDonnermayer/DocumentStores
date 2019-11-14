@@ -12,9 +12,7 @@ using System.Collections.Concurrent;
 
 namespace DocumentStores
 {
-
-
-    public class JsonFileDocumentStore : IDocumentStore
+      public class JsonFileDocumentStore : IDocumentStore
     {
 
         private ImmutableDictionary<string, SemaphoreSlim> locks =

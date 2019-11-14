@@ -9,7 +9,7 @@ namespace DocumentStores.Test
     [TestFixture]
     public class JsonFileDocumentStoreTest
     {
-        private static readonly string testDir = Path.Combine(Path.GetTempPath(), "DocumentStore.Tests");
+        private static string getTestDir() => Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "DocumentStore.Tests");
 
         private class ImmutableCounter
         {
@@ -25,10 +25,9 @@ namespace DocumentStores.Test
 
         private static JsonFileDocumentStore GetService()
         {
-            var service = new JsonFileDocumentStore(testDir);
+            var service = new JsonFileDocumentStore(getTestDir());
             return service;
         }
-
 
 
 
@@ -36,8 +35,9 @@ namespace DocumentStores.Test
         public async Task ParallelInputTest()
         {
 
-            var service = GetService().AsTypedDocumentStore<ImmutableCounter>();
+            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
 
+            var testDir = getTestDir();
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
@@ -74,8 +74,9 @@ namespace DocumentStores.Test
         public async Task AddForbiddenFileNamedDocs()
         {
 
-            var service = GetService().AsTypedDocumentStore<ImmutableCounter>();
+            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
 
+            var testDir = getTestDir();
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
