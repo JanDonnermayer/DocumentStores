@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace DocumentStores.Test
 {
@@ -83,8 +84,8 @@ namespace DocumentStores.Test
 
             var keys = Path.GetInvalidFileNameChars().Select(_ => $"{_}");
 
-            var results = await Task.WhenAll(keys                
-                .Select(_ => service.PutDocumentAsync(_, counter)));         
+            var results = await Task.WhenAll(keys
+                .Select(_ => service.PutDocumentAsync(_, counter)));
 
             foreach (var res in results)
             {
@@ -101,6 +102,34 @@ namespace DocumentStores.Test
                 message: "Keys differ after writing documents!");
 
             Directory.Delete(testDir, true);
+        }
+
+        [Test]
+        public async Task TestObserving()
+        {
+            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
+            const string key = "Xbuben";
+
+            static async Task TestAdd(IObservableDocumentStore<ImmutableCounter> service, string key)
+            {
+                var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
+                var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
+                await service.PutDocumentAsync(key, ImmutableCounter.Default);
+                var keys = await tcs.Task;
+                Assert.AreEqual(key, keys.First());
+            }
+
+            static async Task TestRemove(IObservableDocumentStore<ImmutableCounter> service, string key)
+            {
+                var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
+                var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
+                await service.DeleteDocumentAsync(key);
+                var keys = await tcs.Task;
+                Assert.IsEmpty(keys);
+            }
+
+            await TestAdd(service, key);
+            await TestRemove(service, key);
         }
 
 
