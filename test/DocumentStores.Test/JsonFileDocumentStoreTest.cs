@@ -3,13 +3,14 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace DocumentStores.Test
 {
     [TestFixture]
     public class JsonFileDocumentStoreTest
     {
-        private static readonly string testDir = Path.Combine(Path.GetTempPath(), "DocumentStore.Tests");
+        private static string getTestDir() => Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "DocumentStore.Tests");
 
         private class ImmutableCounter
         {
@@ -25,10 +26,9 @@ namespace DocumentStores.Test
 
         private static JsonFileDocumentStore GetService()
         {
-            var service = new JsonFileDocumentStore(testDir);
+            var service = new JsonFileDocumentStore(getTestDir());
             return service;
         }
-
 
 
 
@@ -36,8 +36,9 @@ namespace DocumentStores.Test
         public async Task ParallelInputTest()
         {
 
-            var service = GetService().AsTypedDocumentStore<ImmutableCounter>();
+            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
 
+            var testDir = getTestDir();
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
@@ -74,16 +75,17 @@ namespace DocumentStores.Test
         public async Task AddForbiddenFileNamedDocs()
         {
 
-            var service = GetService().AsTypedDocumentStore<ImmutableCounter>();
+            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
 
+            var testDir = getTestDir();
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
 
             var keys = Path.GetInvalidFileNameChars().Select(_ => $"{_}.LOL");
 
-            var results = await Task.WhenAll(keys                
-                .Select(_ => service.PutDocumentAsync(_, counter)));         
+            var results = await Task.WhenAll(keys
+                .Select(_ => service.PutDocumentAsync(_, counter)));
 
             foreach (var res in results)
             {
@@ -100,6 +102,40 @@ namespace DocumentStores.Test
                 message: "Keys differ after writing documents!");
 
             Directory.Delete(testDir, true);
+        }
+
+        [Test]
+        public async Task TestObserving()
+        {
+            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
+            const string key = "Xbuben";
+
+            static async Task TestAdd(IObservableDocumentStore<ImmutableCounter> service, string key)
+            {
+                var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
+                await service.PutDocumentAsync(key, ImmutableCounter.Default); // Subscribe after add
+                var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
+                var keys = await tcs.Task;
+                Assert.AreEqual(key, keys.First());
+
+                var tcs2 = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
+                var obs2 = service.GetKeysObservable().Subscribe(_ => tcs2.TrySetResult(_));
+                var keys2 = await tcs2.Task;
+                Assert.AreEqual(key, keys2.First());
+
+            }
+
+            static async Task TestRemove(IObservableDocumentStore<ImmutableCounter> service, string key)
+            {
+                var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
+                var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
+                await service.DeleteDocumentAsync(key);
+                var keys = await tcs.Task;
+                Assert.IsEmpty(keys);
+            }
+
+            await TestAdd(service, key);
+            await TestRemove(service, key);
         }
 
 

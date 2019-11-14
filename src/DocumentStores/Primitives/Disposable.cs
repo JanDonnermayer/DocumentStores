@@ -24,17 +24,25 @@ namespace DocumentStores.Primitives
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Disposable"/> class,
-        /// that performs the specified <paramref name="DisposeAction"/> on disposal.
+        /// that performs the specified <paramref name="disposeAction"/> on disposal.
         /// </summary>
-        /// <param name="DisposeAction"></param>
-        public Disposable(Action DisposeAction) =>
-            _disposeAction = DisposeAction ?? throw new ArgumentNullException(nameof(DisposeAction));
+        /// <param name="disposeAction"></param>
+        public Disposable(Action disposeAction) =>
+            _disposeAction = disposeAction ?? throw new ArgumentNullException(nameof(disposeAction));
                
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Disposable"/> class,
+        /// that performs the specified <paramref name="disposeAction"/> on disposal.
+        /// </summary>
+        /// <param name="disposeAction"></param>
+        public static Disposable Create(Action disposeAction) =>
+            new Disposable(disposeAction);
+
         /// <summary>
         /// Returns an IDisposable,
         /// that performs no action on disposal.
         /// </summary>
-        public static IDisposable Empty => new Disposable();
+        public static Disposable Empty => new Disposable();
 
         public void Dispose()
         {

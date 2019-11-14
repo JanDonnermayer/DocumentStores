@@ -12,9 +12,7 @@ using System.Collections.Concurrent;
 
 namespace DocumentStores
 {
-
-
-    public class JsonFileDocumentStore : IDocumentStore
+      public class JsonFileDocumentStore : IDocumentStore
     {
 
         private ImmutableDictionary<string, SemaphoreSlim> locks =
@@ -114,7 +112,7 @@ namespace DocumentStores
 
         #region Implementation of IDocumentStore
 
-        public Task<IEnumerable<string>> GetKeysAsync<T>() =>
+        public Task<IEnumerable<string>> GetKeysAsync<T>(CancellationToken ct = default) =>
             Task.Run(() =>
             {
                 try
@@ -127,7 +125,7 @@ namespace DocumentStores
                 {
                     return Enumerable.Empty<string>();
                 }
-            });
+            }, ct);
 
         public async Task<Result<T>> GetDocumentAsync<T>(string key) where T : class
         {
