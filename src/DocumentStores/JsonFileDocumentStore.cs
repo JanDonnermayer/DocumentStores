@@ -164,7 +164,6 @@ namespace DocumentStores
 
         }
 
-
         public async Task<Result> PutDocumentAsync<T>(string key, T data) where T : class
         {
             CheckKey(key);
@@ -192,8 +191,6 @@ namespace DocumentStores
             }
 
         }
-
-
 
         public async Task<Result<T>> AddOrUpdateDocumentAsync<T>(
             string key,

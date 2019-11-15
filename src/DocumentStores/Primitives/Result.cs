@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 #nullable enable
 
@@ -9,10 +11,13 @@ namespace DocumentStores.Primitives
     /// </summary>
     public class Result
     {
-        private Result(Exception? exception) =>
+        private Result(Exception? exception)
+        {
             this.exception = exception;
+        }
 
         private readonly Exception? exception;
+
 
         /// <summary>
         /// Tests the result for success.
@@ -36,19 +41,17 @@ namespace DocumentStores.Primitives
         /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
         /// </summary>
         public void PassOrThrow()
-        { 
+        {
             if (!this.Try(out var ex)) throw new ResultException(ex);
         }
 
 #nullable enable
 
-        public static Result Ok() => new Result(exception: null);
+        internal static Result Ok() =>
+            new Result(exception: null);
 
-        public static Result Error(Exception exception) =>
-            new Result(exception ?? throw new ArgumentNullException(nameof(exception)));
-
-        public static implicit operator Result(Exception ex) => Error(ex);
-
+        internal static Result Error(Exception exception) =>
+            new Result(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
     }
 
 
@@ -102,23 +105,53 @@ namespace DocumentStores.Primitives
         /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
         /// </summary>
         public TData PassOrThrow()
-        { 
+        {
             if (!this.Try(out var res, out var ex)) throw new ResultException(ex);
             return res;
         }
-        
+
 #nullable enable
 
-        public static Result<TData> Ok(TData data) =>
+        internal static Result<TData> Ok(TData data) =>
             new Result<TData>(data ?? throw new ArgumentNullException(nameof(data)), null);
 
-        public static Result<TData> Error(Exception exception) =>
+        internal static Result<TData> Error(Exception exception) =>
             new Result<TData>(null, exception ?? throw new ArgumentNullException(nameof(exception)));
 
-        public static implicit operator Result<TData>(TData data) => Ok(data);
+    }
 
-        public static implicit operator Result<TData>(Exception ex) => Error(ex);
 
+    static class ResultBuilder
+    {
+        public static async Task<Result> BuildResultAsync<TData>(
+            Func<Task> @function,
+            Func<Exception, bool> exceptionFilter,
+            IEnumerable<TimeSpan> retrySpanProvider)
+        {
+            async Task<Result> GetResultAsync()
+            {
+                try
+                {
+                    await @function.Invoke();
+                    return Result.Ok();
+                }
+                catch (Exception _) when (exceptionFilter(_))
+                {
+                    return Result.Error(_);
+                }
+            }
+
+            var result = await GetResultAsync();
+            foreach (var retrySpan in retrySpanProvider)
+            {
+                if (result.Try()) return result;
+                await Task.Delay(retrySpan);
+                result = await GetResultAsync();
+            }
+            return result;
+        }
+
+    
     }
 
 }
