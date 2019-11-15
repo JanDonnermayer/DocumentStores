@@ -1,3 +1,4 @@
+using DocumentStores.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,9 +6,12 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores.Internal
 {
-    
+    /// <summary>
+    /// Build results over async functions using try-catch-blocks.
+    /// Allows to retry functions accoridng to retry policies.
+    /// </summary>
     internal static class ResultBuilder
     {
         public static async Task<Result> BuildResultAsync(
