@@ -18,16 +18,12 @@ namespace DocumentStores
     /// </summary>
     public class JsonFileDocumentStore : IDocumentStore
     {
+        #region Private 
 
         private ImmutableDictionary<string, SemaphoreSlim> locks =
             ImmutableDictionary<string, SemaphoreSlim>.Empty;
 
         private string RootDirectory { get; }
-
-        //private JsonSerializerOptions SerializerSettings { get; }
-
-
-        #region Private Members
 
         private static bool IsCatchable(Exception ex) =>
             ex is Newtonsoft.Json.JsonException
@@ -40,12 +36,15 @@ namespace DocumentStores
                 .GetInvalidFileNameChars()
                 .Select((_, i) => new KeyValuePair<char, char>(_, (char)(i + 2000)))
                 .ToImmutableDictionary();
+
         private static readonly IImmutableDictionary<char, char> decodingMap =
             encodingMap
                 .Select(kvp => new KeyValuePair<char, char>(kvp.Value, kvp.Key))
                 .ToImmutableDictionary();
+
         private static string EncodeKey(string key) =>
             new string(key.Select(_ => encodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
+
         private static string DecodeKey(string encodedKey) =>
             new string(encodedKey.Select(_ => decodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
 
@@ -101,11 +100,9 @@ namespace DocumentStores
 
         private static async Task<T> Deserialize<T>(StreamReader SR) where T : class =>
             JsonConvert.DeserializeObject<T>(await SR.ReadToEndAsync());
-        // JsonSerializer.Deserialize<T>(await SR.ReadToEndAsync(), this.SerializerSettings);
 
         private static async Task Serialize<T>(T data, StreamWriter SW) =>
             await SW.WriteAsync(JsonConvert.SerializeObject(data, Formatting.Indented));
-        //await SW.WriteAsync(JsonSerializer.Serialize(data, this.SerializerSettings));
 
         #endregion
 
@@ -118,53 +115,25 @@ namespace DocumentStores
         #endregion
 
 
-        #region Implementation of IDocumentStore
+        #region Internal 
 
-        public Task<IEnumerable<string>> GetKeysAsync<T>(CancellationToken ct = default) =>
-            Task.Run(() =>
-            {
-                try
-                {
-                    var directory = Path.Combine(RootDirectory, SubDirectory<T>());
-                    if (!Directory.Exists(directory)) return Enumerable.Empty<string>();
-
-                    return Directory.EnumerateFiles(
-                        directory,
-                        "*" + FileExtension,
-                        SearchOption.TopDirectoryOnly).Select(GetKey<T>);
-                }
-                catch (Exception _) when (IsCatchable(_))
-                {
-                    return Enumerable.Empty<string>();
-                }
-            }, ct);
-
-        public async Task<Result<T>> GetDocumentAsync<T>(string key) where T : class
+        internal async Task<T> GetDocumentInternalAsync<T>(string key) where T : class
         {
             CheckKey(key);
 
             var file = GetFileName<T>(key);
             using var @lock = await GetLockAsync(file);
 
-            try
-            {
-                if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
+            if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
 
-                using FileStream FS = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-                using StreamReader SR = new StreamReader(FS);
+            using FileStream FS = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using StreamReader SR = new StreamReader(FS);
 
-                var data = await Deserialize<T>(SR);
-
-                return data;
-            }
-            catch (Exception _) when (IsCatchable(_))
-            {
-                return _;
-            }
-
+            var data = await Deserialize<T>(SR);
+            return data;
         }
 
-        public async Task<Result> PutDocumentAsync<T>(string key, T data) where T : class
+        internal async Task PutDocumentInternalAsync<T>(string key, T data) where T : class
         {
             CheckKey(key);
             if (data == null) throw new ArgumentNullException(nameof(data));
@@ -172,27 +141,17 @@ namespace DocumentStores
             var file = GetFileName<T>(key);
             using var @lock = await GetLockAsync(file);
 
-            try
-            {
-                await CreateDirectoryIfMissingAsync(file);
+            await CreateDirectoryIfMissingAsync(file);
 
-                using FileStream FS = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read);
-                using StreamWriter SW = new StreamWriter(FS);
+            using FileStream FS = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read);
+            using StreamWriter SW = new StreamWriter(FS);
 
-                await Serialize(data, SW);
-                SW.Flush();
-                FS.SetLength(FS.Position);
-
-                return Result.Ok();
-            }
-            catch (Exception _) when (IsCatchable(_))
-            {
-                return _;
-            }
-
+            await Serialize(data, SW);
+            SW.Flush();
+            FS.SetLength(FS.Position);
         }
 
-        public async Task<Result<T>> AddOrUpdateDocumentAsync<T>(
+        internal async Task<T> AddOrUpdateDocumentInternalAsync<T>(
             string key,
             Func<string, Task<T>> addDataAsync,
             Func<string, T, Task<T>> updateDataAsync) where T : class
@@ -204,38 +163,31 @@ namespace DocumentStores
             var file = GetFileName<T>(key);
             using var @lock = await GetLockAsync(file);
 
-            try
+            await CreateDirectoryIfMissingAsync(file);
+
+            using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            using StreamReader SR = new StreamReader(FS);
+            using StreamWriter SW = new StreamWriter(FS);
+
+            async Task<T> getDataAsync() => await Deserialize<T>(SR) switch
             {
-                await CreateDirectoryIfMissingAsync(file);
+                null => await addDataAsync(key)
+                    ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
+                T data => await updateDataAsync(key, data)
+                   ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
+            };
 
-                using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-                using StreamReader SR = new StreamReader(FS);
-                using StreamWriter SW = new StreamWriter(FS);
+            var data = await getDataAsync();
 
-                async Task<T> getDataAsync() => await Deserialize<T>(SR) switch
-                {
-                    null => await addDataAsync(key)
-                        ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
-                    T data => await updateDataAsync(key, data)
-                       ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
-                };
+            FS.Position = 0;
+            await Serialize(data, SW);
+            SW.Flush();
+            FS.SetLength(FS.Position);
 
-                var data = await getDataAsync();
-
-                FS.Position = 0;
-                await Serialize(data, SW);
-                SW.Flush();
-                FS.SetLength(FS.Position);
-
-                return data;
-            }
-            catch (Exception _) when (IsCatchable(_))
-            {
-                return _;
-            }
+            return data;
         }
 
-        public async Task<Result<T>> GetOrAddDocumentAsync<T>(
+        internal async Task<T> GetOrAddDocumentInternalAsync<T>(
             string key,
             Func<string, Task<T>> addDataAsync) where T : class
         {
@@ -245,55 +197,95 @@ namespace DocumentStores
             var file = GetFileName<T>(key);
             using var @lock = await GetLockAsync(file);
 
-            try
-            {
-                await CreateDirectoryIfMissingAsync(file);
+            await CreateDirectoryIfMissingAsync(file);
 
-                using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-                using StreamReader SR = new StreamReader(FS);
-                using StreamWriter SW = new StreamWriter(FS);
+            using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            using StreamReader SR = new StreamReader(FS);
+            using StreamWriter SW = new StreamWriter(FS);
 
-                var data = await Deserialize<T>(SR)
-                    ?? await addDataAsync(key)
-                    ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
+            var data = await Deserialize<T>(SR)
+                ?? await addDataAsync(key)
+                ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
-                FS.Position = 0;
-                await Serialize(data, SW);
-                SW.Flush();
-                FS.SetLength(FS.Position);
+            FS.Position = 0;
+            await Serialize(data, SW);
+            SW.Flush();
+            FS.SetLength(FS.Position);
 
-                return data;
-            }
-            catch (Exception _) when (IsCatchable(_))
-            {
-                return _;
-            }
+            return data;
         }
 
-        public async Task<Result> DeleteDocumentAsync<T>(string key) where T : class
+        internal async Task DeleteDocumentInternalAsync<T>(string key) where T : class
         {
             CheckKey(key);
 
             var file = GetFileName<T>(key);
             using var @lock = await GetLockAsync(file);
 
-            try
-            {
-                if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
+            if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
 
-                File.Delete(file);
-
-                return Result.Ok();
-            }
-            catch (Exception _) when (IsCatchable(_))
-            {
-                return _;
-            }
+            File.Delete(file);
         }
 
         #endregion
 
 
+        #region Implementation of IDocumentStore
+
+        public Task<IEnumerable<string>> GetKeysAsync<T>(CancellationToken ct = default) =>
+                  Task.Run(() =>
+                  {
+                      try
+                      {
+                          var directory = Path.Combine(RootDirectory, SubDirectory<T>());
+                          if (!Directory.Exists(directory)) return Enumerable.Empty<string>();
+
+                          return Directory.EnumerateFiles(
+                              directory,
+                              "*" + FileExtension,
+                              SearchOption.TopDirectoryOnly).Select(GetKey<T>);
+                      }
+                      catch (Exception _) when (IsCatchable(_))
+                      {
+                          return Enumerable.Empty<string>();
+                      }
+                  }, ct);
+
+        public Task<Result<T>> AddOrUpdateDocumentAsync<T>(
+            string key,
+            Func<string, Task<T>> addDataAsync,
+            Func<string, T, Task<T>> updateDataAsync) where T : class =>
+                ResultBuilder.BuildResultAsync(() =>
+                    AddOrUpdateDocumentInternalAsync(key, addDataAsync, updateDataAsync),
+                    IsCatchable,
+                    ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(100), 10));
+        public Task<Result<T>> GetOrAddDocumentAsync<T>(
+            string key,
+            Func<string, Task<T>> addDataAsync) where T : class =>
+            ResultBuilder.BuildResultAsync(() =>
+                GetOrAddDocumentInternalAsync<T>(key, addDataAsync),
+                IsCatchable,
+                ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(50), 5));
+
+        public Task<Result<T>> GetDocumentAsync<T>(string key) where T : class =>
+            ResultBuilder.BuildResultAsync(() =>
+                GetDocumentInternalAsync<T>(key),
+                IsCatchable,
+                ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(50), 5));
+
+        public Task<Result> DeleteDocumentAsync<T>(string key) where T : class =>
+            ResultBuilder.BuildResultAsync(() =>
+                DeleteDocumentInternalAsync<T>(key),
+                IsCatchable,
+                ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(50), 5));
+
+        public Task<Result> PutDocumentAsync<T>(string key, T data) where T : class =>
+            ResultBuilder.BuildResultAsync(() =>
+                PutDocumentInternalAsync<T>(key, data),
+                IsCatchable,
+                ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(50), 5));
+
+        #endregion
     }
 
 }

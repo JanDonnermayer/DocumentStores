@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 #nullable enable
 
@@ -52,6 +50,9 @@ namespace DocumentStores.Primitives
 
         internal static Result Error(Exception exception) =>
             new Result(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
+
+        public static implicit operator Result(Exception ex) => Error(ex);
+
     }
 
 
@@ -118,40 +119,9 @@ namespace DocumentStores.Primitives
         internal static Result<TData> Error(Exception exception) =>
             new Result<TData>(null, exception ?? throw new ArgumentNullException(nameof(exception)));
 
-    }
+        public static implicit operator Result<TData>(TData data) => Ok(data);
+        public static implicit operator Result<TData>(Exception ex) => Error(ex);
 
-
-    static class ResultBuilder
-    {
-        public static async Task<Result> BuildResultAsync<TData>(
-            Func<Task> @function,
-            Func<Exception, bool> exceptionFilter,
-            IEnumerable<TimeSpan> retrySpanProvider)
-        {
-            async Task<Result> GetResultAsync()
-            {
-                try
-                {
-                    await @function.Invoke();
-                    return Result.Ok();
-                }
-                catch (Exception _) when (exceptionFilter(_))
-                {
-                    return Result.Error(_);
-                }
-            }
-
-            var result = await GetResultAsync();
-            foreach (var retrySpan in retrySpanProvider)
-            {
-                if (result.Try()) return result;
-                await Task.Delay(retrySpan);
-                result = await GetResultAsync();
-            }
-            return result;
-        }
-
-    
     }
 
 }
