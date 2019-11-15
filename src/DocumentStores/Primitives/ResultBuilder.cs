@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DocumentStores.Primitives
 {
+    
     internal static class ResultBuilder
     {
         public static async Task<Result> BuildResultAsync(
