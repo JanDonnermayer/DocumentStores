@@ -66,16 +66,17 @@ namespace DocumentStores
             return new Disposable(() => sem.Release());
         }
 
-        private static string FileExtension = ".json";
+        private static readonly string FileExtension = ".json";
 
+        //Subdirectory name is typename
         private ImmutableDictionary<Type, string> Subdirectories =
             ImmutableDictionary<Type, string>.Empty;
 
         private string SubDirectory<T>() =>
             ImmutableInterlocked.GetOrAdd(
                 ref Subdirectories,
-                typeof(T), //Subdirectory name is typename
-                typeof(T).ShortName(true).Replace(">", "]").Replace("<", "["));
+                typeof(T),
+                typeof(T).ShortName(true).Replace(">", "}").Replace("<", "{"));
 
         private string GetFileName<T>(string key) =>
            Path.Combine(this.RootDirectory, this.SubDirectory<T>(), EncodeKey(key) + FileExtension);

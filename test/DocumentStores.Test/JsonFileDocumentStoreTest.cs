@@ -4,13 +4,18 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Collections.Immutable;
 
 namespace DocumentStores.Test
 {
     [TestFixture]
     public class JsonFileDocumentStoreTest
     {
-        private static string getTestDir() => Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "DocumentStore.Tests");
+        private static string GetTestDir() => Path.Combine(
+            Path.GetTempPath(),
+            "DocumentStore.Tests",
+            Guid.NewGuid().ToString());
 
         private class ImmutableCounter
         {
@@ -24,9 +29,9 @@ namespace DocumentStores.Test
         }
 
 
-        private static JsonFileDocumentStore GetService()
+        private static JsonFileDocumentStore GetService(string directory)
         {
-            var service = new JsonFileDocumentStore(getTestDir());
+            var service = new JsonFileDocumentStore(directory);
             return service;
         }
 
@@ -36,16 +41,13 @@ namespace DocumentStores.Test
         public async Task ParallelInputTest()
         {
 
-            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
+            var testDir = GetTestDir();
+            var service = GetService(testDir).AsObservableDocumentStore<ImmutableCounter>();
 
-            var testDir = getTestDir();
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
             var key = Guid.NewGuid().ToString();
-
-            // (await service.GetOrAddDocumentAsync(key, _ => Task.FromResult(counter))).PassOrThrow();
-            // (await service.PutDocumentAsync(key, counter)).PassOrThrow();
 
             const int COUNT = 10;
             const int WORKER_COUNT = 20;
@@ -75,14 +77,16 @@ namespace DocumentStores.Test
         public async Task AddForbiddenFileNamedDocs()
         {
 
-            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
+            var testDir = GetTestDir();
+            var service = GetService(testDir).AsObservableDocumentStore<ImmutableCounter>();
 
-            var testDir = getTestDir();
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
-
-            var keys = Path.GetInvalidFileNameChars().Select(_ => $"{_}.LOL");
+            
+            // Create worst key imaginable. You can use anything!
+            string jsonKey = JsonConvert.SerializeObject(new {Name = "X", Value = "Buben" });
+            var keys = Path.GetInvalidFileNameChars().Select(_ => $@"{_}.LOL.lel\{jsonKey}/''");
 
             var results = await Task.WhenAll(keys
                 .Select(_ => service.PutDocumentAsync(_, counter)));
@@ -107,13 +111,15 @@ namespace DocumentStores.Test
         [Test]
         public async Task TestObserving()
         {
-            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
+            var testDir = GetTestDir(); 
+            var service = GetService(testDir)
+                .AsObservableDocumentStore<ImmutableList<ImmutableCounter>>(); //Random long name type
             const string key = "Xbuben";
 
-            static async Task TestAdd(IObservableDocumentStore<ImmutableCounter> service, string key)
+            static async Task TestAdd(IObservableDocumentStore<ImmutableList<ImmutableCounter>> service, string key)
             {
                 var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
-                await service.PutDocumentAsync(key, ImmutableCounter.Default); // Subscribe after add
+                await service.PutDocumentAsync(key, ImmutableList<ImmutableCounter>.Empty); // Subscribe after add
                 var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
                 var keys = await tcs.Task;
                 Assert.AreEqual(key, keys.First());
@@ -125,17 +131,20 @@ namespace DocumentStores.Test
 
             }
 
-            static async Task TestRemove(IObservableDocumentStore<ImmutableCounter> service, string key)
+            static async Task TestRemove(IObservableDocumentStore<ImmutableList<ImmutableCounter>> service, string key)
             {
                 var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
-                var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
                 await service.DeleteDocumentAsync(key);
+                var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
                 var keys = await tcs.Task;
                 Assert.IsEmpty(keys);
             }
 
             await TestAdd(service, key);
             await TestRemove(service, key);
+
+           Directory.Delete(testDir, true);
+
         }
 
 
