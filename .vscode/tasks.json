@@ -30,7 +30,25 @@
                 "-o://mucfs/project/TOOLS/Mupe/Private/Development/.NuGet"
             ],
             "problemMatcher": "$msCompile"
-        },        
+        },       
+        {
+            "label": "pack.out",
+            "command": "dotnet",
+            "type": "process",
+            "dependsOn" : "test",
+            "args": [
+                "pack",
+                "${workspaceFolder}/src/DocumentStores/DocumentStores.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary",
+                "-c:Release",
+                //"--include-source:true",
+                //"--include-symbols:true",
+                "-p:PackageVersion=${input:packageVersion}",
+                "-o:out"
+            ],
+            "problemMatcher": "$msCompile"
+        },   
         {
             "label": "test",
             "command": "dotnet",
