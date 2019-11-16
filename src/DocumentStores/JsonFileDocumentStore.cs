@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System.Collections.Immutable;
 using DocumentStores.Primitives;
 using System.Collections.Concurrent;
+using DocumentStores.Internal;
 
 namespace DocumentStores
 {
@@ -251,39 +252,32 @@ namespace DocumentStores
                       }
                   }, ct);
 
-        public Task<Result<T>> AddOrUpdateDocumentAsync<T>(
-            string key,
-            Func<string, Task<T>> addDataAsync,
-            Func<string, T, Task<T>> updateDataAsync) where T : class =>
-                ResultBuilder.BuildResultAsync(() =>
-                    AddOrUpdateDocumentInternalAsync(key, addDataAsync, updateDataAsync),
-                    IsCatchable,
-                    ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(100), 10));
-        public Task<Result<T>> GetOrAddDocumentAsync<T>(
-            string key,
+        public Task<Result<T>> AddOrUpdateDocumentAsync<T>(string key,
+            Func<string, Task<T>> addDataAsync, Func<string, T, Task<T>> updateDataAsync) where T : class =>
+                Function.Apply(AddOrUpdateDocumentInternalAsync, key, addDataAsync, updateDataAsync)
+                        .WithTryCatch(IsCatchable)
+                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
+
+        public Task<Result<T>> GetOrAddDocumentAsync<T>(string key,
             Func<string, Task<T>> addDataAsync) where T : class =>
-            ResultBuilder.BuildResultAsync(() =>
-                GetOrAddDocumentInternalAsync<T>(key, addDataAsync),
-                IsCatchable,
-                ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(50), 5));
+                Function.Apply(GetOrAddDocumentInternalAsync, key, addDataAsync)
+                        .WithTryCatch(IsCatchable)
+                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
 
         public Task<Result<T>> GetDocumentAsync<T>(string key) where T : class =>
-            ResultBuilder.BuildResultAsync(() =>
-                GetDocumentInternalAsync<T>(key),
-                IsCatchable,
-                ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(50), 5));
+            Function.Apply(GetOrAddDocumentInternalAsync, key, addDataAsync)
+                        .WithTryCatch(IsCatchable)
+                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
 
         public Task<Result> DeleteDocumentAsync<T>(string key) where T : class =>
-            ResultBuilder.BuildResultAsync(() =>
-                DeleteDocumentInternalAsync<T>(key),
-                IsCatchable,
-                ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(50), 5));
+            Function.Apply(DeleteDocumentInternalAsync, key)
+                        .WithTryCatch(IsCatchable)
+                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
 
         public Task<Result> PutDocumentAsync<T>(string key, T data) where T : class =>
-            ResultBuilder.BuildResultAsync(() =>
-                PutDocumentInternalAsync<T>(key, data),
-                IsCatchable,
-                ResultBuilder.GetIncrementalTimeSpans(TimeSpan.FromMilliseconds(50), 5));
+            Function.Apply(GetOrAddDocumentInternalAsync, key, addDataAsync)
+                    .WithTryCatch(IsCatchable)
+                    .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
 
         #endregion
     }

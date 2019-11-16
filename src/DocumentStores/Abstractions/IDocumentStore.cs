@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using DocumentStores.Primitives;
+using DocumentStores;
 
 namespace DocumentStores
 {

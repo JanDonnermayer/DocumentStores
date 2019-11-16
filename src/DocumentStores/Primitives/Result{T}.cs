@@ -12,10 +12,9 @@ namespace DocumentStores.Primitives
     /// var result = Result<Foo>.Ok(foo1);
     /// var success = result.Try(out Foo data);
     /// </usage>
-    public class Result<TData>
-        where TData : class
+    public class Result<TData> where TData : class
     {
-        private Result(TData? data, Exception? exception)
+        private Result(TData? data = null, Exception? exception = null)
         {
             this.data = data;
             this.exception = exception;
@@ -34,6 +33,16 @@ namespace DocumentStores.Primitives
         /// If the result is successful: Yields the contained data.
         /// </summary>
         public bool Try(out TData? data) => Try(out data, out _);
+
+        /// <summary>
+        /// Tests the result for success.
+        /// If the result is not successful: Yields the contained <see cref="Exception"/> (otherwise <see cref="null"/>).
+        /// </summary>
+        public bool Try(out Exception? ex)
+        {
+            ex = this.exception;
+            return exception == null;
+        }
 
         /// <summary>
         /// Tests the result for success.
@@ -60,16 +69,25 @@ namespace DocumentStores.Primitives
             return res;
         }
 
+        /// <summary>
+        /// If the result is successful: Does nothing;
+        /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
+        /// </summary>
+        /// void PassOrThrow() => _ = PassOrThrow();
+
 #nullable enable
 
         internal static Result<TData> Ok(TData data) =>
             new Result<TData>(data ?? throw new ArgumentNullException(nameof(data)), null);
 
+        internal static Result<Unit> Ok() =>
+            new Result<Unit>(Unit.Default);
+
         internal static Result<TData> Error(Exception exception) =>
-            new Result<TData>(null, exception ?? throw new ArgumentNullException(nameof(exception)));
+            new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
 
         public static implicit operator Result<TData>(TData data) => Ok(data);
-        public static implicit operator Result<TData>(Exception ex) => Error(ex);
+        public static implicit operator Result<TData>(Exception exception) => Error(exception);        
 
     }
 
