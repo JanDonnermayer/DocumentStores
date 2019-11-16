@@ -16,10 +16,10 @@ namespace DocumentStores
         Task<Result<TData>> GetOrAddDocumentAsync(
             string key,
             Func<string, Task<TData>> addDataAsync);
-        Task<Result> DeleteDocumentAsync(string key);
+        Task<Result<Unit>> DeleteDocumentAsync(string key);
         Task<Result<TData>> GetDocumentAsync(string key);
         Task<IEnumerable<string>> GetKeysAsync();
-        Task<Result> PutDocumentAsync(string key, TData data);
+        Task<Result<Unit>> PutDocumentAsync(string key, TData data);
     }
 
 }

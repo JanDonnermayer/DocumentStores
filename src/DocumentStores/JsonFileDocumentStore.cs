@@ -134,7 +134,7 @@ namespace DocumentStores
             return data;
         }
 
-        internal async Task PutDocumentInternalAsync<T>(string key, T data) where T : class
+        internal async Task<Unit> PutDocumentInternalAsync<T>(string key, T data) where T : class
         {
             CheckKey(key);
             if (data == null) throw new ArgumentNullException(nameof(data));
@@ -150,6 +150,8 @@ namespace DocumentStores
             await Serialize(data, SW);
             SW.Flush();
             FS.SetLength(FS.Position);
+
+            return Unit.Default;
         }
 
         internal async Task<T> AddOrUpdateDocumentInternalAsync<T>(
@@ -216,7 +218,7 @@ namespace DocumentStores
             return data;
         }
 
-        internal async Task DeleteDocumentInternalAsync<T>(string key) where T : class
+        internal async Task<Unit> DeleteDocumentInternalAsync<T>(string key) where T : class
         {
             CheckKey(key);
 
@@ -226,6 +228,7 @@ namespace DocumentStores
             if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
 
             File.Delete(file);
+            return Unit.Default;
         }
 
         #endregion
@@ -256,28 +259,29 @@ namespace DocumentStores
             Func<string, Task<T>> addDataAsync, Func<string, T, Task<T>> updateDataAsync) where T : class =>
                 Function.Apply(AddOrUpdateDocumentInternalAsync, key, addDataAsync, updateDataAsync)
                         .WithTryCatch(IsCatchable)
-                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
+                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)();
 
         public Task<Result<T>> GetOrAddDocumentAsync<T>(string key,
             Func<string, Task<T>> addDataAsync) where T : class =>
                 Function.Apply(GetOrAddDocumentInternalAsync, key, addDataAsync)
                         .WithTryCatch(IsCatchable)
-                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
+                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)();
 
         public Task<Result<T>> GetDocumentAsync<T>(string key) where T : class =>
-            Function.Apply(GetOrAddDocumentInternalAsync, key, addDataAsync)
-                        .WithTryCatch(IsCatchable)
-                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
-
-        public Task<Result> DeleteDocumentAsync<T>(string key) where T : class =>
-            Function.Apply(DeleteDocumentInternalAsync, key)
-                        .WithTryCatch(IsCatchable)
-                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
-
-        public Task<Result> PutDocumentAsync<T>(string key, T data) where T : class =>
-            Function.Apply(GetOrAddDocumentInternalAsync, key, addDataAsync)
+            Function.Apply(GetDocumentInternalAsync<T>, key)
                     .WithTryCatch(IsCatchable)
-                    .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5);
+                    .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)();
+
+        public Task<Result<Unit>> DeleteDocumentAsync<T>(string key) where T : class =>
+            Function.Apply(DeleteDocumentInternalAsync<T>, key)
+                    .WithTryCatch(IsCatchable)
+                    .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)
+                    .Do(_ => { }, _ => { })();
+
+        public Task<Result<Unit>> PutDocumentAsync<T>(string key, T data) where T : class =>
+            Function.Apply(PutDocumentInternalAsync<T>, key, data)
+                    .WithTryCatch(IsCatchable)
+                    .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)();
 
         #endregion
     }

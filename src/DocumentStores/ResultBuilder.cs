@@ -10,10 +10,17 @@ namespace DocumentStores
 {
     /// <summary>
     /// Build results over async functions using try-catch-blocks.
-    /// Allows to retry functions accoridng to retry policies.
+    /// Allows to retry functions according to retry policies.
     /// </summary>
     static class ResultBuilder
     {
+        public static Func<Task<Result<Unit>>> WithTryCatch(this Func<Task> source,
+            Func<Exception, bool> exceptionFilter) =>
+            WithTryCatch(async () => { await source(); return Unit.Default; }, exceptionFilter);
+
+        public static Func<Task<Result<Unit>>> WithTryCatch(this Func<Task> source) =>
+            WithTryCatch(async () => { await source(); return Unit.Default; }, _ => true);
+
         public static Func<Task<Result<T>>> WithTryCatch<T>(this Func<Task<T>> source) where T : class =>
             WithTryCatch(source, _ => true);
 
@@ -36,29 +43,34 @@ namespace DocumentStores
             return () => GetResultAsync();
         }
 
-        public static async Task<Result<T>> WithRetryBehaviour<T>(
-            this Func<Task<Result<T>>> producer,
+        public static Func<Task<Result<T>>> WithRetryBehaviour<T>(
+            this Func<Task<Result<T>>> source,
             IEnumerable<TimeSpan> retrySpansProvider) where T : class
         {
-            var res = await producer.Invoke();
-            if (res.Try()) return res;
-
-            foreach (var retrySpan in retrySpansProvider)
+            async Task<Result<T>> GetResultAsync()
             {
-                var nextRes = await producer.Invoke();
-                if (nextRes.Try()) return nextRes;
-                await Task.Delay(retrySpan);
+                var res = await source.Invoke();
+                if (res.Try()) return res;
+
+                foreach (var retrySpan in retrySpansProvider)
+                {
+                    var nextRes = await source.Invoke();
+                    if (nextRes.Try()) return nextRes;
+                    await Task.Delay(retrySpan);
+                }
+
+                return res;
             }
 
-            return res;
+            return () => GetResultAsync();
         }
 
-        public static Task<Result<T>> WithIncrementalRetryBehaviour<T>(
+        public static Func<Task<Result<T>>> WithIncrementalRetryBehaviour<T>(
             this Func<Task<Result<T>>> producer,
             TimeSpan frequencySeed, uint count) where T : class =>
                 WithRetryBehaviour(producer, GetIncrementalTimeSpans(frequencySeed, count));
 
-        public static Task<Result<T>> WithConstantRetryBehaviour<T>(
+        public static Func<Task<Result<T>>> WithEquitemporalRetryBehaviour<T>(
             this Func<Task<Result<T>>> producer,
             TimeSpan frequency, uint count) where T : class =>
                 WithRetryBehaviour(producer, GetConstantTimeSpans(frequency, count));
@@ -73,28 +85,38 @@ namespace DocumentStores
                 .Range(0, (int)count)
                 .Select(_ => seed);
 
-
-        public static async Task<Result<V>> Map<U, V>(
-            this Task<Result<U>> source,
+        public static Func<Task<Result<V>>> Map<U, V>(
+            this Func<Task<Result<U>>> source,
             Func<U, Task<Result<V>>> continuation) where U : class where V : class
 
         {
-            if (!(await source).Try(out var val, out var ex)) return ex!;
-            return await continuation(val!);
+            async Task<Result<V>> GetResultAsync()
+            {
+                if (!(await source()).Try(out var val, out var ex)) return ex!;
+                return await continuation(val!);
+            }
+
+            return GetResultAsync;
         }
 
-        public static async Task<Result<U>> Do<U>(
-            this Task<Result<U>> source,
-            Func<U, Task<Result<Unit>>> monad) where U : class
+        public static Func<Task<Result<U>>> Do<U>(
+            this Func<Task<Result<U>>> source,
+            Action<U> onOk,
+            Action<Exception> onError) where U : class
 
         {
-            if (!(await source).Try(out var val, out var ex)) return ex!;
-            await monad(val!);
-            return val!;
+            async Task<Result<U>> GetResultAsync()
+            {
+                var res = await source();
+                if(res.Try(out var val, out var ex))
+                    onOk(val!);
+                else
+                    onError(ex!);                
+                return res;
+            }
+
+            return GetResultAsync;
         }
 
-
     }
-
-
 }
