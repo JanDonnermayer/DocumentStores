@@ -12,7 +12,7 @@ namespace DocumentStores
     /// Build results over async functions using try-catch-blocks.
     /// Allows to retry functions according to retry policies.
     /// </summary>
-    static class ResultBuilder
+    static class AsyncResultBuilder
     {
         public static Func<Task<Result<Unit>>> WithTryCatch(this Func<Task> source,
             Func<Exception, bool> exceptionFilter) =>
@@ -40,7 +40,7 @@ namespace DocumentStores
                 }
             }
 
-            return () => GetResultAsync();
+            return GetResultAsync;
         }
 
         public static Func<Task<Result<T>>> WithRetryBehaviour<T>(
@@ -62,7 +62,7 @@ namespace DocumentStores
                 return res;
             }
 
-            return () => GetResultAsync();
+            return GetResultAsync;
         }
 
         public static Func<Task<Result<T>>> WithIncrementalRetryBehaviour<T>(
@@ -75,22 +75,12 @@ namespace DocumentStores
             TimeSpan frequency, uint count) where T : class =>
                 WithRetryBehaviour(producer, GetConstantTimeSpans(frequency, count));
 
-        private static IEnumerable<TimeSpan> GetIncrementalTimeSpans(TimeSpan seed, uint count) =>
-            Enumerable
-                .Range(0, (int)count)
-                .Select(i => TimeSpan.FromMilliseconds(seed.TotalMilliseconds * Math.Pow(2, i)));
-
-        private static IEnumerable<TimeSpan> GetConstantTimeSpans(TimeSpan seed, uint count) =>
-            Enumerable
-                .Range(0, (int)count)
-                .Select(_ => seed);
-
-        public static Func<Task<Result<V>>> Map<U, V>(
-            this Func<Task<Result<U>>> source,
-            Func<U, Task<Result<V>>> continuation) where U : class where V : class
+        public static Func<Task<Result<T>>> Map<V, T>(
+            this Func<Task<Result<V>>> source,
+            Func<V, Task<Result<T>>> continuation) where V : class where T : class
 
         {
-            async Task<Result<V>> GetResultAsync()
+            async Task<Result<T>> GetResultAsync()
             {
                 if (!(await source()).Try(out var val, out var ex)) return ex!;
                 return await continuation(val!);
@@ -99,24 +89,37 @@ namespace DocumentStores
             return GetResultAsync;
         }
 
-        public static Func<Task<Result<U>>> Do<U>(
-            this Func<Task<Result<U>>> source,
-            Action<U> onOk,
-            Action<Exception> onError) where U : class
+        public static Func<Task<Result<T>>> Do<T>(
+            this Func<Task<Result<T>>> source,
+            Action<T> onOk,
+            Action<Exception> onError) where T : class
 
         {
-            async Task<Result<U>> GetResultAsync()
+            async Task<Result<T>> GetResultAsync()
             {
                 var res = await source();
-                if(res.Try(out var val, out var ex))
+                if (res.Try(out var val, out var ex))
                     onOk(val!);
                 else
-                    onError(ex!);                
+                    onError(ex!);
                 return res;
             }
 
             return GetResultAsync;
         }
 
+        #region Private
+        
+        private static IEnumerable<TimeSpan> GetConstantTimeSpans(TimeSpan seed, uint count) =>
+            Enumerable
+                .Range(0, (int)count)
+                .Select(_ => seed);
+
+        private static IEnumerable<TimeSpan> GetIncrementalTimeSpans(TimeSpan seed, uint count) =>
+            Enumerable
+            .Range(0, (int)count)
+            .Select(i => TimeSpan.FromMilliseconds(seed.TotalMilliseconds * Math.Pow(2, i)));
+
+        #endregion
     }
 }
