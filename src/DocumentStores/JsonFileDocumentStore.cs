@@ -229,6 +229,7 @@ namespace DocumentStores
 
             File.Delete(file);
             return Unit.Default;
+
         }
 
         #endregion

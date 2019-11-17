@@ -83,9 +83,9 @@ namespace DocumentStores.Test
             if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
 
             var counter = ImmutableCounter.Default;
-            
+
             // Create worst key imaginable. You can use anything!
-            string jsonKey = JsonConvert.SerializeObject(new {Name = "X", Value = "Buben" });
+            string jsonKey = JsonConvert.SerializeObject(new { Name = "X", Value = "Buben" });
             var keys = Path.GetInvalidFileNameChars().Select(_ => $@"{_}.LOL.lel\{jsonKey}/''");
 
             var results = await Task.WhenAll(keys
@@ -111,7 +111,7 @@ namespace DocumentStores.Test
         [Test]
         public async Task TestObserving()
         {
-            var testDir = GetTestDir(); 
+            var testDir = GetTestDir();
             var service = GetService(testDir)
                 .AsObservableDocumentStore<ImmutableList<ImmutableCounter>>(); //Random long name type
             const string key = "Xbuben";
@@ -128,7 +128,6 @@ namespace DocumentStores.Test
                 var obs2 = service.GetKeysObservable().Subscribe(_ => tcs2.TrySetResult(_));
                 var keys2 = await tcs2.Task;
                 Assert.AreEqual(key, keys2.First());
-
             }
 
             static async Task TestRemove(IObservableDocumentStore<ImmutableList<ImmutableCounter>> service, string key)
@@ -143,12 +142,8 @@ namespace DocumentStores.Test
             await TestAdd(service, key);
             await TestRemove(service, key);
 
-           Directory.Delete(testDir, true);
-
+            Directory.Delete(testDir, true);
         }
-
-        
-
 
     }
 }

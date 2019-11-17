@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 #nullable enable
 
@@ -12,6 +13,7 @@ namespace DocumentStores.Primitives
     /// var result = Result<Foo>.Ok(foo1);
     /// var success = result.Try(out Foo data);
     /// </usage>
+    [DebuggerStepThrough]
     public class Result<TData> where TData : class
     {
         private Result(TData? data = null, Exception? exception = null)
@@ -68,12 +70,6 @@ namespace DocumentStores.Primitives
             if (!this.Try(out var res, out var ex)) throw new ResultException(ex);
             return res;
         }
-
-        /// <summary>
-        /// If the result is successful: Does nothing;
-        /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
-        /// </summary>
-        /// void PassOrThrow() => _ = PassOrThrow();
 
 #nullable enable
 

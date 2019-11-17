@@ -1,17 +1,18 @@
 ﻿using DocumentStores.Primitives;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
 #nullable enable
 
-namespace DocumentStores
+namespace DocumentStores.Internal
 {
     /// <summary>
-    /// Provides methods for working with async results,
-    /// that is <see cref="Task{Result{T}}"/>
+    /// Provides methods for working with async results.
     /// </summary>
+    [DebuggerStepThrough]
     static class AsyncResultBuilder
     {
         /// <summary>
