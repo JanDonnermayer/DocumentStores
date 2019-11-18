@@ -68,7 +68,7 @@ namespace DocumentStores.Internal
 
                 foreach (var retrySpanProvider in retrySpanProviders)
                 {
-                    if (retrySpanProvider(ex!).IsSome(out var span)) return res;
+                    if (!retrySpanProvider(ex!).IsSome(out var span)) return res;
                     await Task.Delay(span);
                     var nextRes = await source.Invoke();
                     if (nextRes.Try(out ex)) return nextRes;
