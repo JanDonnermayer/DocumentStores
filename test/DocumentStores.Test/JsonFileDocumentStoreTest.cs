@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 namespace DocumentStores.Test
 {
     [TestFixture]
-    public class JsonFileDocumentStoreTest
+    class JsonFileDocumentStoreTest
     {
         private static string GetTestDir() => Path.Combine(
             Path.GetTempPath(),
@@ -143,7 +143,9 @@ namespace DocumentStores.Test
             await TestRemove(service, key);
 
             Directory.Delete(testDir, true);
+
         }
 
     }
+    
 }

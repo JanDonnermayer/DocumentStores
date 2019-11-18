@@ -15,45 +15,6 @@ namespace DocumentStores.Internal
     [DebuggerStepThrough]
     static class AsyncResultBuilder
     {
-        /// <summary>
-        /// Executes the provided function within a try-catch-block,
-        /// that catches exceptions for which the specified <paramref name="exceptionFilter"/> returns true.
-        /// If an exception occurs, an error-result is returned, containg the exception.
-        /// Else: an ok-result is returned.
-        /// </summary>
-        public static Func<Task<Result<Unit>>> WithTryCatch(this Func<Task> source,
-            Func<Exception, bool> exceptionFilter)
-        {
-            if (source is null)
-                throw new ArgumentNullException(nameof(source));
-            if (exceptionFilter is null)
-                throw new ArgumentNullException(nameof(exceptionFilter));
-
-            return WithTryCatch(async () => { await source(); return Unit.Default; }, exceptionFilter);
-        }
-
-        /// <summary>
-        /// Executes the provided function within a try-catch-block,
-        /// that catches exceptions.
-        /// If an exception occurs, an error-result is returned, containg the exception.
-        /// Else: an ok-result is returned.
-        /// </summary>
-        public static Func<Task<Result<Unit>>> WithTryCatch(this Func<Task> source)
-        {
-            if (source is null)
-                throw new ArgumentNullException(nameof(source));
-
-            return WithTryCatch(async () => { await source(); return Unit.Default; }, _ => true);
-        }
-
-        /// <summary>
-        /// Executes the provided function within a try-catch-block,
-        /// that catches exceptions.
-        /// If an exception occurs, an error-result is returned, containg the exception.
-        /// Else: an ok-result is returned, containing <typeparamref name="T"/> data.
-        /// </summary>
-        public static Func<Task<Result<T>>> WithTryCatch<T>(this Func<Task<T>> source) where T : class =>
-            WithTryCatch(source, _ => true);
 
         /// <summary>
         /// Executes the provided function within a try-catch-block,
@@ -61,7 +22,7 @@ namespace DocumentStores.Internal
         /// If an exception occurs, an error-result is returned, containg the exception.
         /// Else: an ok-result is returned, containing <typeparamref name="T"/> data.
         /// </summary>
-        public static Func<Task<Result<T>>> WithTryCatch<T>(this Func<Task<T>> source,
+        public static Func<Task<Result<T>>> Catch<T>(this Func<Task<T>> source,
             Func<Exception, bool> exceptionFilter) where T : class
         {
             if (source is null)
@@ -90,7 +51,7 @@ namespace DocumentStores.Internal
         /// Else: Retries the operation within intervals prvided by the specified <paramref name="retrySpanProviders"/>
         /// until the result is successful or the sequence is exhausted.
         /// </summary>
-        public static Func<Task<Result<T>>> WithRetryBehaviour<T>(
+        public static Func<Task<Result<T>>> Retry<T>(
             this Func<Task<Result<T>>> source,
             IEnumerable<Func<Exception, Option<TimeSpan>>> retrySpanProviders) where T : class
         {
@@ -98,7 +59,7 @@ namespace DocumentStores.Internal
                 throw new ArgumentNullException(nameof(source));
             if (retrySpanProviders is null)
                 throw new ArgumentNullException(nameof(retrySpanProviders));
-            
+
 
             async Task<Result<T>> GetResultAsync()
             {
@@ -107,7 +68,7 @@ namespace DocumentStores.Internal
 
                 foreach (var retrySpanProvider in retrySpanProviders)
                 {
-                    if (retrySpanProvider(ex!).IsSome(out var span)) return res;    
+                    if (retrySpanProvider(ex!).IsSome(out var span)) return res;
                     await Task.Delay(span);
                     var nextRes = await source.Invoke();
                     if (nextRes.Try(out ex)) return nextRes;
@@ -119,26 +80,26 @@ namespace DocumentStores.Internal
             return GetResultAsync;
         }
 
-    
+
         /// <summary>
         /// If the specified async result is successful, returns it.
         /// Else: Retries the operation within increasing intervals of length <paramref name="frequency"/> * 2^[tryCount],
         /// until the result is successful or <paramref name="count"/> is reached.
         /// </summary>
-        public static Func<Task<Result<T>>> WithIncrementalRetryBehaviour<T>(
+        public static Func<Task<Result<T>>> RetryIncrementally<T>(
             this Func<Task<Result<T>>> producer,
-            TimeSpan frequencySeed, uint count) where T : class =>
-                producer.WithRetryBehaviour(GetIncrementalTimeSpans(frequencySeed, count));
+            TimeSpan frequencySeed, uint count, Func<Exception, bool> exceptionFilter) where T : class =>
+                producer.Retry(GetIncrementalTimeSpans(frequencySeed, count, exceptionFilter));
 
         /// <summary>
         /// If the specified async result is successful, returns it.
         /// Else: Retries the operation within constant intervals of length <paramref name="frequency"/>,
         /// until the result is successful or <paramref name="count"/> is reached.
         /// </summary>
-        public static Func<Task<Result<T>>> WithEquitemporalRetryBehaviour<T>(
+        public static Func<Task<Result<T>>> RetryEquitemporal<T>(
             this Func<Task<Result<T>>> producer,
-            TimeSpan frequency, uint count) where T : class =>
-                producer.WithRetryBehaviour(GetConstantTimeSpans(frequency, count));
+            TimeSpan frequency, uint count, Func<Exception, bool> exceptionFilter) where T : class =>
+                producer.Retry(GetConstantTimeSpans(frequency, count, exceptionFilter));
 
         /// <summary>
         /// If the specified async result is successful, passes the specified <paramref name="continuation"/>;
@@ -198,19 +159,28 @@ namespace DocumentStores.Internal
 
         #region Private
 
-        private static IEnumerable<Func<Exception, Option<TimeSpan>>> GetConstantTimeSpans(TimeSpan seed, uint count) =>
+        private static IEnumerable<Func<Exception, Option<TimeSpan>>> GetConstantTimeSpans(
+            TimeSpan seed, uint count, Func<Exception, bool> exceptionFilter) =>
             Enumerable
                 .Range(0, (int)count)
                 .Select(_ => seed)
-                .Select<TimeSpan ,Func<Exception, Option<TimeSpan>>>(_ => (Exception ex) => Option<TimeSpan>.Some(_));
+                .Select(t => new Func<Exception, Option<TimeSpan>>((Exception ex) =>
+                   (exceptionFilter ?? throw new ArgumentNullException(nameof(exceptionFilter))).Invoke(ex)
+                    ? Option<TimeSpan>.Some(t)
+                    : Option<TimeSpan>.None()));
 
-        private static IEnumerable<Func<Exception, Option<TimeSpan>>> GetIncrementalTimeSpans(TimeSpan seed, uint count) =>
+        private static IEnumerable<Func<Exception, Option<TimeSpan>>> GetIncrementalTimeSpans(
+            TimeSpan seed, uint count, Func<Exception, bool> exceptionFilter) =>
             Enumerable
-            .Range(0, (int)count)
-            .Select(i => TimeSpan.FromMilliseconds(seed.TotalMilliseconds * Math.Pow(2, i)))
-            .Select<TimeSpan ,Func<Exception, Option<TimeSpan>>>(_ => (Exception ex) => Option<TimeSpan>.Some(_));
+                .Range(0, (int)count)
+                .Select(i => TimeSpan.FromMilliseconds(seed.TotalMilliseconds * Math.Pow(2, i)))
+                .Select(t => new Func<Exception, Option<TimeSpan>>(ex =>
+                    (exceptionFilter ?? throw new ArgumentNullException(nameof(exceptionFilter))).Invoke(ex)
+                    ? Option<TimeSpan>.Some(t)
+                    : Option<TimeSpan>.None()));
 
 
         #endregion
     }
 }
+

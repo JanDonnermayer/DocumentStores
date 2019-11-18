@@ -25,7 +25,7 @@ namespace DocumentStores.Primitives
             new Option<T>(true, value ?? throw new ArgumentNullException(nameof(value)));
 
         public static Option<T> None() =>
-            new Option<T>(false, default);
+            new Option<T>(false, default!);
     }
 
 }

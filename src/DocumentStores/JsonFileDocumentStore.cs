@@ -25,12 +25,13 @@ namespace DocumentStores
         private ImmutableDictionary<string, SemaphoreSlim> locks =
             ImmutableDictionary<string, SemaphoreSlim>.Empty;
 
-        private string RootDirectory { get; }
-
-        private static bool IsCatchable(Exception ex) =>
+        private static bool ShouldCatch(Exception ex) =>
             ex is Newtonsoft.Json.JsonException
             || ex is DocumentException
             || ex is IOException;
+
+        private static bool ShouldRetry(Exception ex) =>
+            ex is IOException;
 
         // Map invalid filename chars to some weird unicode
         private static readonly ImmutableDictionary<char, char> encodingMap =
@@ -67,6 +68,8 @@ namespace DocumentStores
             return new Disposable(() => sem.Release());
         }
 
+        private string RootDirectory { get; }
+
         private static readonly string FileExtension = ".json";
 
         //Subdirectory name is typename
@@ -85,7 +88,7 @@ namespace DocumentStores
             using var @lock = await GetLockAsync(directory.FullName);
             if (!directory.Exists) directory.Create();
         }
- 
+
         private string GetFile<T>(string key) =>
            Path.Combine(this.RootDirectory, this.SubDirectory<T>(), EncodeKey(key) + FileExtension);
 
@@ -230,7 +233,6 @@ namespace DocumentStores
 
             File.Delete(file);
             return Unit.Default;
-
         }
 
         #endregion
@@ -251,7 +253,7 @@ namespace DocumentStores
                               "*" + FileExtension,
                               SearchOption.TopDirectoryOnly).Select(GetKey<T>);
                       }
-                      catch (Exception _) when (IsCatchable(_))
+                      catch (Exception _) when (ShouldCatch(_))
                       {
                           return Enumerable.Empty<string>();
                       }
@@ -260,33 +262,48 @@ namespace DocumentStores
         public Task<Result<T>> AddOrUpdateDocumentAsync<T>(string key,
             Func<string, Task<T>> addDataAsync, Func<string, T, Task<T>> updateDataAsync) where T : class =>
                 Function.ApplyArgs(AddOrUpdateDocumentInternalAsync, key, addDataAsync, updateDataAsync)
-                        .WithTryCatch(IsCatchable)
-                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)
+                        .Catch(ShouldCatch)
+                        .RetryIncrementally(
+                            frequencySeed: TimeSpan.FromMilliseconds(50),
+                            count: 5,
+                            exceptionFilter: ShouldRetry)
                         .Invoke();
 
         public Task<Result<T>> GetOrAddDocumentAsync<T>(string key,
             Func<string, Task<T>> addDataAsync) where T : class =>
                 Function.ApplyArgs(GetOrAddDocumentInternalAsync, key, addDataAsync)
-                        .WithTryCatch(IsCatchable)
-                        .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)
+                        .Catch(ShouldCatch)
+                        .RetryIncrementally(
+                            frequencySeed: TimeSpan.FromMilliseconds(50),
+                            count: 5,
+                            exceptionFilter: ShouldRetry)
                         .Invoke();
 
         public Task<Result<T>> GetDocumentAsync<T>(string key) where T : class =>
             Function.ApplyArgs(GetDocumentInternalAsync<T>, key)
-                    .WithTryCatch(IsCatchable)
-                    .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)
+                    .Catch(ShouldCatch)
+                    .RetryIncrementally(
+                        frequencySeed: TimeSpan.FromMilliseconds(50),
+                        count: 5,
+                        exceptionFilter: ShouldRetry)
                     .Invoke();
 
         public Task<Result<Unit>> DeleteDocumentAsync<T>(string key) where T : class =>
             Function.ApplyArgs(DeleteDocumentInternalAsync<T>, key)
-                    .WithTryCatch(IsCatchable)            
-                    .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)
+                    .Catch(ShouldCatch)
+                    .RetryIncrementally(
+                        frequencySeed: TimeSpan.FromMilliseconds(50),
+                        count: 5,
+                        exceptionFilter: ShouldRetry)
                     .Invoke();
 
         public Task<Result<Unit>> PutDocumentAsync<T>(string key, T data) where T : class =>
             Function.ApplyArgs(PutDocumentInternalAsync<T>, key, data)
-                    .WithTryCatch(IsCatchable)
-                    .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)
+                    .Catch(ShouldCatch)
+                    .RetryIncrementally(
+                        frequencySeed: TimeSpan.FromMilliseconds(50),
+                        count: 5,
+                        exceptionFilter: ShouldRetry)
                     .Invoke();
 
         #endregion
