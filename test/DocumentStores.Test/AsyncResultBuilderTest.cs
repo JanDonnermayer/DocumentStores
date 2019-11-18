@@ -53,7 +53,7 @@ namespace DocumentStores.Test
 
             Assert.That(!res.Try(out Exception ex));
             Assert.That(ex is TestException);
-            Assert.AreEqual(TRY_COUNT_EQ * TRY_COUNT_INCR, ((TestException)ex).V);
+            Assert.AreEqual((TRY_COUNT_EQ + 1) * (TRY_COUNT_INCR + 1) - 1, ((TestException)ex).V);
 
             Assert.Pass();
         }
