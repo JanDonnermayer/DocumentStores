@@ -160,8 +160,6 @@ namespace DocumentStores
             Func<string, Task<T>> addDataAsync,
             Func<string, T, Task<T>> updateDataAsync) where T : class
         {
-            throw new Exception("lol");
-
             CheckKey(key);
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
             if (updateDataAsync is null) throw new ArgumentNullException(nameof(updateDataAsync));
@@ -281,7 +279,7 @@ namespace DocumentStores
 
         public Task<Result<Unit>> DeleteDocumentAsync<T>(string key) where T : class =>
             Function.ApplyArgs(DeleteDocumentInternalAsync<T>, key)
-                    .WithTryCatch(IsCatchable)
+                    .WithTryCatch(IsCatchable)            
                     .WithIncrementalRetryBehaviour(TimeSpan.FromMilliseconds(50), 5)
                     .Invoke();
 

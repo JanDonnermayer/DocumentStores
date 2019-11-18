@@ -24,10 +24,10 @@ namespace DocumentStores.Internal
         public static Func<Task<Result<Unit>>> WithTryCatch(this Func<Task> source,
             Func<Exception, bool> exceptionFilter)
         {
-            if (source is null)       
-                throw new ArgumentNullException(nameof(source));      
-            if (exceptionFilter is null)      
-                throw new ArgumentNullException(nameof(exceptionFilter));       
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
+            if (exceptionFilter is null)
+                throw new ArgumentNullException(nameof(exceptionFilter));
 
             return WithTryCatch(async () => { await source(); return Unit.Default; }, exceptionFilter);
         }
@@ -40,8 +40,8 @@ namespace DocumentStores.Internal
         /// </summary>
         public static Func<Task<Result<Unit>>> WithTryCatch(this Func<Task> source)
         {
-            if (source is null)         
-                throw new ArgumentNullException(nameof(source));       
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
 
             return WithTryCatch(async () => { await source(); return Unit.Default; }, _ => true);
         }
@@ -65,10 +65,10 @@ namespace DocumentStores.Internal
             Func<Exception, bool> exceptionFilter) where T : class
         {
             if (source is null)
-                throw new ArgumentNullException(nameof(source));        
+                throw new ArgumentNullException(nameof(source));
             if (exceptionFilter is null)
                 throw new ArgumentNullException(nameof(exceptionFilter));
-    
+
             async Task<Result<T>> GetResultAsync()
             {
                 try
@@ -106,9 +106,9 @@ namespace DocumentStores.Internal
 
                 foreach (var retrySpan in retrySpansProvider)
                 {
+                    await Task.Delay(retrySpan);
                     var nextRes = await source.Invoke();
                     if (nextRes.Try()) return nextRes;
-                    await Task.Delay(retrySpan);
                 }
 
                 return res;
@@ -117,6 +117,7 @@ namespace DocumentStores.Internal
             return GetResultAsync;
         }
 
+    
         /// <summary>
         /// If the specified async result is successful, returns it.
         /// Else: Retries the operation within increasing intervals of length <paramref name="frequency"/> * 2^[tryCount],
@@ -141,17 +142,17 @@ namespace DocumentStores.Internal
         /// If the specified async result is successful, passes the specified <paramref name="continuation"/>;
         /// Else: Returns a result containg the Error.
         /// </summary>
-        public static Func<Task<Result<T>>> Map<V, T>(
-            this Func<Task<Result<V>>> source,
-            Func<V, Task<Result<T>>> continuation) where V : class where T : class
+        public static Func<Task<Result<V>>> Map<T, V>(
+            this Func<Task<Result<T>>> source,
+            Func<T, Task<Result<V>>> continuation) where T : class where V : class
 
         {
-            if (source is null) 
-                throw new ArgumentNullException(nameof(source));        
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
             if (continuation is null)
                 throw new ArgumentNullException(nameof(continuation));
-        
-            async Task<Result<T>> GetResultAsync()
+
+            async Task<Result<V>> GetResultAsync()
             {
                 if (!(await source()).Try(out var val, out var ex)) return ex!;
                 return await continuation(val!);
@@ -171,12 +172,12 @@ namespace DocumentStores.Internal
             Action<Exception> onError) where T : class
 
         {
-            if (source is null)      
+            if (source is null)
                 throw new ArgumentNullException(nameof(source));
-            if (onOk is null)       
-                throw new ArgumentNullException(nameof(onOk));        
-            if (onError is null)        
-                throw new ArgumentNullException(nameof(onError));    
+            if (onOk is null)
+                throw new ArgumentNullException(nameof(onOk));
+            if (onError is null)
+                throw new ArgumentNullException(nameof(onError));
 
             async Task<Result<T>> GetResultAsync()
             {
