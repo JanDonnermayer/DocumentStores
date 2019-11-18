@@ -87,28 +87,30 @@ namespace DocumentStores.Internal
 
         /// <summary>
         /// If the specified async result is successful, returns it.
-        /// Else: Retries the operation within intervals prvided by the specified <paramref name="retrySpansProvider"/>
+        /// Else: Retries the operation within intervals prvided by the specified <paramref name="retrySpanProviders"/>
         /// until the result is successful or the sequence is exhausted.
         /// </summary>
         public static Func<Task<Result<T>>> WithRetryBehaviour<T>(
             this Func<Task<Result<T>>> source,
-            IEnumerable<TimeSpan> retrySpansProvider) where T : class
+            IEnumerable<Func<Exception, Option<TimeSpan>>> retrySpanProviders) where T : class
         {
             if (source is null)
                 throw new ArgumentNullException(nameof(source));
-            if (retrySpansProvider is null)
-                throw new ArgumentNullException(nameof(retrySpansProvider));
+            if (retrySpanProviders is null)
+                throw new ArgumentNullException(nameof(retrySpanProviders));
+            
 
             async Task<Result<T>> GetResultAsync()
             {
                 var res = await source.Invoke();
-                if (res.Try()) return res;
+                if (res.Try(out Exception? ex)) return res;
 
-                foreach (var retrySpan in retrySpansProvider)
+                foreach (var retrySpanProvider in retrySpanProviders)
                 {
-                    await Task.Delay(retrySpan);
+                    if (retrySpanProvider(ex!).IsSome(out var span)) return res;    
+                    await Task.Delay(span);
                     var nextRes = await source.Invoke();
-                    if (nextRes.Try()) return nextRes;
+                    if (nextRes.Try(out ex)) return nextRes;
                 }
 
                 return res;
@@ -196,15 +198,17 @@ namespace DocumentStores.Internal
 
         #region Private
 
-        private static IEnumerable<TimeSpan> GetConstantTimeSpans(TimeSpan seed, uint count) =>
+        private static IEnumerable<Func<Exception, Option<TimeSpan>>> GetConstantTimeSpans(TimeSpan seed, uint count) =>
             Enumerable
                 .Range(0, (int)count)
-                .Select(_ => seed);
+                .Select(_ => seed)
+                .Select<TimeSpan ,Func<Exception, Option<TimeSpan>>>(_ => (Exception ex) => Option<TimeSpan>.Some(_));
 
-        private static IEnumerable<TimeSpan> GetIncrementalTimeSpans(TimeSpan seed, uint count) =>
+        private static IEnumerable<Func<Exception, Option<TimeSpan>>> GetIncrementalTimeSpans(TimeSpan seed, uint count) =>
             Enumerable
             .Range(0, (int)count)
-            .Select(i => TimeSpan.FromMilliseconds(seed.TotalMilliseconds * Math.Pow(2, i)));
+            .Select(i => TimeSpan.FromMilliseconds(seed.TotalMilliseconds * Math.Pow(2, i)))
+            .Select<TimeSpan ,Func<Exception, Option<TimeSpan>>>(_ => (Exception ex) => Option<TimeSpan>.Some(_));
 
 
         #endregion

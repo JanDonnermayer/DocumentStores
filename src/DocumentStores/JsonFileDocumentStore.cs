@@ -79,15 +79,15 @@ namespace DocumentStores
                 typeof(T),
                 typeof(T).ShortName(true).Replace(">", "}").Replace("<", "{"));
 
-        private string GetFileName<T>(string key) =>
-           Path.Combine(this.RootDirectory, this.SubDirectory<T>(), EncodeKey(key) + FileExtension);
-
         private async Task CreateDirectoryIfMissingAsync(string file)
         {
             var directory = new FileInfo(file).Directory;
             using var @lock = await GetLockAsync(directory.FullName);
             if (!directory.Exists) directory.Create();
         }
+ 
+        private string GetFile<T>(string key) =>
+           Path.Combine(this.RootDirectory, this.SubDirectory<T>(), EncodeKey(key) + FileExtension);
 
         private string GetKey<T>(string file)
         {
@@ -123,7 +123,7 @@ namespace DocumentStores
         {
             CheckKey(key);
 
-            var file = GetFileName<T>(key);
+            var file = GetFile<T>(key);
             using var @lock = await GetLockAsync(file);
 
             if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
@@ -140,7 +140,7 @@ namespace DocumentStores
             CheckKey(key);
             if (data == null) throw new ArgumentNullException(nameof(data));
 
-            var file = GetFileName<T>(key);
+            var file = GetFile<T>(key);
             using var @lock = await GetLockAsync(file);
 
             await CreateDirectoryIfMissingAsync(file);
@@ -164,7 +164,7 @@ namespace DocumentStores
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
             if (updateDataAsync is null) throw new ArgumentNullException(nameof(updateDataAsync));
 
-            var file = GetFileName<T>(key);
+            var file = GetFile<T>(key);
             using var @lock = await GetLockAsync(file);
 
             await CreateDirectoryIfMissingAsync(file);
@@ -178,7 +178,7 @@ namespace DocumentStores
                 null => await addDataAsync(key)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
                 T data => await updateDataAsync(key, data)
-                   ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
+                    ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
             };
 
             var data = await getDataAsync();
@@ -198,7 +198,7 @@ namespace DocumentStores
             CheckKey(key);
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
 
-            var file = GetFileName<T>(key);
+            var file = GetFile<T>(key);
             using var @lock = await GetLockAsync(file);
 
             await CreateDirectoryIfMissingAsync(file);
@@ -223,7 +223,7 @@ namespace DocumentStores
         {
             CheckKey(key);
 
-            var file = GetFileName<T>(key);
+            var file = GetFile<T>(key);
             using var @lock = await GetLockAsync(file);
 
             if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
