@@ -9,19 +9,28 @@ namespace DocumentStores.Test
     [TestFixture]
     class AsyncResultBuilderTest
     {
-        private class TestException : Exception { }
+        private class TestException : Exception
+        {
+            public TestException(int v)
+            {
+                this.V = v;
+            }
+
+            public int V { get; }
+        }
 
 
         [Test]
         public async Task SimplePipelineExecutesCorrectly()
         {
-            static async Task<Unit> ThrowTestExceptionAsync()
+            int mut_exceptionCount = 0;
+            async Task<Unit> ThrowTestExceptionAsync()
             {
                 await Task.Yield();
-                throw new TestException();
+                throw new TestException(mut_exceptionCount ++);
             }
 
-            static Func<Task<Unit>> GetSourceFunction() =>
+            Func<Task<Unit>> GetSourceFunction() =>
                 ThrowTestExceptionAsync;
 
             static bool ShouldCatch(Exception ex) => ex is TestException;
@@ -31,13 +40,20 @@ namespace DocumentStores.Test
             static Task<Result<string>> Map(object o) =>
                 Task.FromResult(Result<string>.Ok(o.ToString()));
 
-            await GetSourceFunction()
+            const int TRY_COUNT_EQ = 5;
+            const int TRY_COUNT_INCR = 5;
+
+            var res = await GetSourceFunction()
                 .Catch(ShouldCatch)
-                .RetryEquitemporal(TimeSpan.FromMilliseconds(1000), 5, ShouldRetry)
-                .RetryIncrementally(TimeSpan.FromMilliseconds(50), 5, ShouldRetry)
+                .RetryEquitemporal(TimeSpan.FromMilliseconds(50), TRY_COUNT_EQ, ShouldRetry)
+                .RetryIncrementally(TimeSpan.FromMilliseconds(50), TRY_COUNT_INCR, ShouldRetry)
                 .Map(Map)
                 .Do(TestContext.Progress.WriteLine, TestContext.Error.WriteLine)
                 .Invoke();
+
+            Assert.That(!res.Try(out Exception ex));
+            Assert.That(ex is TestException);
+            Assert.AreEqual(TRY_COUNT_EQ * TRY_COUNT_INCR, ((TestException)ex).V);
 
             Assert.Pass();
         }

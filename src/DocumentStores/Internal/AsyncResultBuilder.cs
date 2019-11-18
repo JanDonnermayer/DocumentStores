@@ -63,18 +63,18 @@ namespace DocumentStores.Internal
 
             async Task<Result<T>> GetResultAsync()
             {
-                var res = await source.Invoke();
-                if (res.Try(out Exception? ex)) return res;
+                var mut_res = await source.Invoke();
+                if (mut_res.Try(out Exception? mut_ex)) return mut_res;
 
                 foreach (var retrySpanProvider in retrySpanProviders)
                 {
-                    if (!retrySpanProvider(ex!).IsSome(out var span)) return res;
+                    if (!retrySpanProvider(mut_ex!).IsSome(out var span)) return mut_res;
                     await Task.Delay(span);
-                    var nextRes = await source.Invoke();
-                    if (nextRes.Try(out ex)) return nextRes;
+                    mut_res = await source.Invoke();
+                    if (mut_res.Try(out mut_ex)) return mut_res;
                 }
 
-                return res;
+                return mut_res;
             }
 
             return GetResultAsync;
