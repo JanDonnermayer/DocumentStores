@@ -11,12 +11,9 @@ namespace DocumentStores.Test
     {
         private class TestException : Exception
         {
-            public TestException(int v)
-            {
-                this.V = v;
-            }
-
-            public int V { get; }
+            public TestException(int count) => 
+                this.Count = count;
+            public int Count { get; }
         }
 
 
@@ -33,6 +30,8 @@ namespace DocumentStores.Test
             Func<Task<Unit>> GetSourceFunction() =>
                 ThrowTestExceptionAsync;
 
+            var tcsError = new TaskCompletionSource<Exception>();
+
             static bool ShouldCatch(Exception ex) => ex is TestException;
 
             static bool ShouldRetry(Exception ex) => ex is TestException;
@@ -40,20 +39,29 @@ namespace DocumentStores.Test
             static Task<Result<string>> Map(object o) =>
                 Task.FromResult(Result<string>.Ok(o.ToString()));
 
-            const int TRY_COUNT_EQ = 5;
-            const int TRY_COUNT_INCR = 5;
+            const int TRY_COUNT_EQ = 3;
+            const int TRY_COUNT_INCR = 3;
 
             var res = await GetSourceFunction()
                 .Catch(ShouldCatch)
                 .RetryEquitemporal(TimeSpan.FromMilliseconds(50), TRY_COUNT_EQ, ShouldRetry)
                 .RetryIncrementally(TimeSpan.FromMilliseconds(50), TRY_COUNT_INCR, ShouldRetry)
                 .Map(Map)
-                .Do(TestContext.Progress.WriteLine, TestContext.Error.WriteLine)
+                .Do(
+                    onOk: _ => { },
+                    onError: tcsError.SetResult
+                )
                 .Invoke();
 
-            Assert.That(!res.Try(out Exception ex));
-            Assert.That(ex is TestException);
-            Assert.AreEqual((TRY_COUNT_EQ + 1) * (TRY_COUNT_INCR + 1) - 1, ((TestException)ex).V);
+            var error = await tcsError.Task;
+
+            Assert.IsInstanceOf<TestException>(error);
+            Assert.IsFalse(res.Try(out Exception ex));
+            Assert.IsInstanceOf<TestException>(ex);
+            Assert.AreEqual(
+                expected: (TRY_COUNT_EQ + 1) * (TRY_COUNT_INCR + 1) - 1,
+                actual: ((TestException)ex).Count
+            );
 
             Assert.Pass();
         }
