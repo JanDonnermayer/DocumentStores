@@ -10,8 +10,6 @@ namespace DocumentStores.Internal
     internal class ObservableDocumentStore<TData>
         : IDisposable,
         IObservableDocumentStore<TData> where TData : class
-
-
     {
         private readonly IDocumentStore source;
         private readonly IObserver<IEnumerable<string>> observer;
@@ -65,7 +63,7 @@ namespace DocumentStores.Internal
                 key,
                 (s) => WithNotification(addDataAsync(s)));
 
-        Task<Result> IObservableDocumentStore<TData>.DeleteDocumentAsync(string key) =>
+        Task<Result<Unit>> IObservableDocumentStore<TData>.DeleteDocumentAsync(string key) =>
             WithNotification(source.DeleteDocumentAsync<TData>(key));
 
         Task<Result<TData>> IObservableDocumentStore<TData>.GetDocumentAsync(string key) =>
@@ -74,7 +72,7 @@ namespace DocumentStores.Internal
         Task<IEnumerable<string>> IObservableDocumentStore<TData>.GetKeysAsync() =>
             source.GetKeysAsync<TData>();
 
-        Task<Result> IObservableDocumentStore<TData>.PutDocumentAsync(string key, TData data) =>
+        Task<Result<Unit>> IObservableDocumentStore<TData>.PutDocumentAsync(string key, TData data) =>
             WithNotification(source.PutDocumentAsync(key, data));
 
         public void Dispose() => disposeHandle.Dispose();

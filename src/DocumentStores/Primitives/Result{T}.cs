@@ -1,56 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 
 #nullable enable
 
 namespace DocumentStores.Primitives
 {
-    /// <summary>
-    /// Represents the result of a performed operation.
-    /// </summary>
-    public class Result
-    {
-        private Result(Exception? exception) =>
-            this.exception = exception;
-
-        private readonly Exception? exception;
-
-        /// <summary>
-        /// Tests the result for success.
-        /// </summary>
-        public bool Try() => Try(out _);
-
-        /// <summary>
-        /// Tests the result for success.
-        /// If the result is not successful: Yields the contained <see cref="Exception"/> (otherwise <see cref="null"/>).
-        /// </summary>
-        public bool Try(out Exception? ex)
-        {
-            ex = this.exception;
-            return exception == null;
-        }
-
-#nullable restore
-
-        /// <summary>
-        /// If the result is successful: Does nothing;
-        /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
-        /// </summary>
-        public void PassOrThrow()
-        { 
-            if (!this.Try(out var ex)) throw new ResultException(ex);
-        }
-
-#nullable enable
-
-        public static Result Ok() => new Result(exception: null);
-
-        public static Result Error(Exception exception) =>
-            new Result(exception ?? throw new ArgumentNullException(nameof(exception)));
-
-        public static implicit operator Result(Exception ex) => Error(ex);
-
-    }
-
 
     /// <summary>
     /// Represents the result of a performed operation, with custom return data.
@@ -59,10 +13,10 @@ namespace DocumentStores.Primitives
     /// var result = Result<Foo>.Ok(foo1);
     /// var success = result.Try(out Foo data);
     /// </usage>
-    public class Result<TData>
-        where TData : class
+    [DebuggerStepThrough]
+    public class Result<TData> where TData : class
     {
-        private Result(TData? data, Exception? exception)
+        private Result(TData? data = null, Exception? exception = null)
         {
             this.data = data;
             this.exception = exception;
@@ -84,6 +38,16 @@ namespace DocumentStores.Primitives
 
         /// <summary>
         /// Tests the result for success.
+        /// If the result is not successful: Yields the contained <see cref="Exception"/> (otherwise <see cref="null"/>).
+        /// </summary>
+        public bool Try(out Exception? ex)
+        {
+            ex = this.exception;
+            return exception == null;
+        }
+
+        /// <summary>
+        /// Tests the result for success.
         /// If the result is successful: Yields the contained data (otherwise <see cref="null"/>).
         /// Else: Yields the contained exception (otherwise <see cref="null"/>).
         /// </summary>
@@ -102,22 +66,25 @@ namespace DocumentStores.Primitives
         /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
         /// </summary>
         public TData PassOrThrow()
-        { 
+        {
             if (!this.Try(out var res, out var ex)) throw new ResultException(ex);
             return res;
         }
-        
+
 #nullable enable
 
-        public static Result<TData> Ok(TData data) =>
+        internal static Result<TData> Ok(TData data) =>
             new Result<TData>(data ?? throw new ArgumentNullException(nameof(data)), null);
 
-        public static Result<TData> Error(Exception exception) =>
-            new Result<TData>(null, exception ?? throw new ArgumentNullException(nameof(exception)));
+        internal static Result<Unit> Ok() =>
+            new Result<Unit>(Unit.Default);
+
+        internal static Result<TData> Error(Exception exception) =>
+            new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
 
         public static implicit operator Result<TData>(TData data) => Ok(data);
 
-        public static implicit operator Result<TData>(Exception ex) => Error(ex);
+        public static implicit operator Result<TData>(Exception exception) => Error(exception);        
 
     }
 
