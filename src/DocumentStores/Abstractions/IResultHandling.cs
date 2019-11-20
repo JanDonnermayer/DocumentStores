@@ -1,10 +1,12 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
-    interface IResultHandling
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public interface IResultHandling
     {        
         Func<Func<Task<T>>, Func<Task<Result<T>>>> Catch<T>() where T : class;
 

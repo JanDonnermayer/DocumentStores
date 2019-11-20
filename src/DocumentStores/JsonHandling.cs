@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace DocumentStores.Internal
 {
-    class JsonHandling : IFileHandling, IResultHandling 
+    public readonly struct JsonHandling : IFileHandling, IResultHandling 
     {
         string IFileHandling.FileExtension => ".json";
 

@@ -1,10 +1,12 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace DocumentStores
 {
-    interface IFileHandling
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public interface IFileHandling
     {
         string FileExtension { get; }
 
