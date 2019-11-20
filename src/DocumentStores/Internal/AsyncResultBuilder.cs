@@ -155,6 +155,19 @@ namespace DocumentStores.Internal
             return GetResultAsync;
         }
 
+        public static Func<Task<Result<T>>> Init<T>(
+            this Func<Task<T>> source,
+            Func<Func<Task<T>>, Func<Task<Result<T>>>> handler)  where T : class
+        {
+            return handler(source);
+        }
+
+        public static Func<Task<Result<T>>> Pipe<T>(
+            this Func<Task<Result<T>>> source,
+            Func<Func<Task<Result<T>>>, Func<Task<Result<T>>>> handler)  where T : class
+        {
+            return handler(source);
+        }
 
 
         #region Private
