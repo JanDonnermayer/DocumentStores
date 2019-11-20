@@ -21,7 +21,7 @@ namespace DocumentStores
 
         Task<Result<TData>> GetDocumentAsync<TData>(string key) where TData : class;
 
-        Task<IEnumerable<string>> GetKeysAsync<TData>(CancellationToken ct = default);
+        Task<IEnumerable<string>> GetKeysAsync<TData>(CancellationToken ct = default) where TData : class ;
         
         Task<Result<Unit>> PutDocumentAsync<TData>(string key, TData data) where TData : class;
     }

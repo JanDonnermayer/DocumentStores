@@ -8,7 +8,9 @@ namespace DocumentStores
     [EditorBrowsable(EditorBrowsableState.Never)]
     public interface IFileHandling
     {
-        string FileExtension { get; }
+        string FileExtension<T>() where T : class;
+
+        string Subdirectory<T>() where T : class;
 
         Func<StreamReader, Task<T>> Deserialize<T>() where T : class;
 

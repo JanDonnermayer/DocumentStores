@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace DocumentStores
 {
-    public sealed class JsonFileDocumentStore : FileDocumentStore<JsonHandling>
+    public sealed class JsonFileDocumentStore : FileDocumentStore<JsonFileHandling>
     {
         public JsonFileDocumentStore(string directory) : base(directory)
         {

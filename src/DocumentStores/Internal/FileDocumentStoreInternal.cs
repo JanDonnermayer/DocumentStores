@@ -37,28 +37,29 @@ namespace DocumentStores.Internal
 
         private readonly IFileHandling fileHandling;
 
-        private string FileExtension => fileHandling.FileExtension;
-
         private string RootDirectory { get; }
 
-        //Subdirectory name is typename
+        private ImmutableDictionary<Type, string> FileExtensions =
+            ImmutableDictionary<Type, string>.Empty;
+        private string FileExtension<T>() where T : class =>
+            ImmutableInterlocked.GetOrAdd(
+                ref FileExtensions,
+                typeof(T),
+                _ => fileHandling.FileExtension<T>());
+
         private ImmutableDictionary<Type, string> Subdirectories =
             ImmutableDictionary<Type, string>.Empty;
-
-        private string SubDirectory<T>() =>
+        private string SubDirectory<T>() where T : class =>
             ImmutableInterlocked.GetOrAdd(
                 ref Subdirectories,
                 typeof(T),
-                typeof(T).ShortName(true).Replace(">", "}").Replace("<", "{"));
+                _ => fileHandling.Subdirectory<T>());
 
         private async Task Serialize<T>(T data, StreamWriter SW) where T : class =>
             await fileHandling.Serialize<T>()(data, SW);
 
         private Task<T> Deserialize<T>(StreamReader SR) where T : class =>
             fileHandling.Deserialize<T>()(SR);
-
-        private ImmutableDictionary<string, SemaphoreSlim> locks =
-            ImmutableDictionary<string, SemaphoreSlim>.Empty;
 
         // Map invalid filename chars to some weird unicode
         private static readonly ImmutableDictionary<char, char> encodingMap =
@@ -88,6 +89,9 @@ namespace DocumentStores.Internal
                 throw new ArgumentException("Key contains invalid chars!", nameof(key));
         }
 
+        private ImmutableDictionary<string, SemaphoreSlim> locks =
+            ImmutableDictionary<string, SemaphoreSlim>.Empty;
+
         private async Task<IDisposable> GetLockAsync(string key)
         {
             var sem = ImmutableInterlocked.GetOrAdd(ref locks, key, s => new SemaphoreSlim(1, 1));
@@ -102,16 +106,16 @@ namespace DocumentStores.Internal
             if (!directory.Exists) directory.Create();
         }
 
-        private string GetFile<T>(string key) =>
-           Path.Combine(this.RootDirectory, this.SubDirectory<T>(), EncodeKey(key) + FileExtension);
+        private string GetFile<T>(string key) where T : class =>
+           Path.Combine(this.RootDirectory, this.SubDirectory<T>(), EncodeKey(key) + FileExtension<T>());
 
-        private string GetKey<T>(string file)
+        private string GetKey<T>(string file) where T : class
         {
             var subs1 = file.Substring(
                 startIndex: RootDirectory.Length + @"\\".Length + SubDirectory<T>().Length);
             var name = subs1.Substring(
                 startIndex: 0,
-                length: subs1.Length - FileExtension.Length);
+                length: subs1.Length - FileExtension<T>().Length);
 
             return DecodeKey(name);
         }
@@ -121,7 +125,7 @@ namespace DocumentStores.Internal
 
         #region Implementation of IDocumentStoreInternal 
 
-        public Task<IEnumerable<string>> GetKeysAsync<T>(CancellationToken ct = default) =>
+        public Task<IEnumerable<string>> GetKeysAsync<T>(CancellationToken ct = default) where T : class =>
                   Task.Run(() =>
                   {
                       try
@@ -131,7 +135,7 @@ namespace DocumentStores.Internal
 
                           return Directory.EnumerateFiles(
                               directory,
-                              "*" + FileExtension,
+                              "*" + FileExtension<T>(),
                               SearchOption.TopDirectoryOnly).Select(GetKey<T>);
                       }
                       catch (Exception)
