@@ -9,7 +9,7 @@ namespace DocumentStores
     public static class IServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds an <see cref="JsonFileDocumentStore"/> as <see cref="IDocumentStore"/>
+        /// Adds an <see cref="FileDocumentStoreInternal"/> as <see cref="IDocumentStore"/>
         /// to the <see cref="IServiceCollection"/>
         /// </summary>
         /// <param name="directory">The directory that is used to store documents</param>
