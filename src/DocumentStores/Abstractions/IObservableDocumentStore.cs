@@ -29,6 +29,9 @@ namespace DocumentStores
         /// adds it using the <paramref name="addDataAsync"/> delegate.
         /// Else: Returns it.
         /// </summary>
+        /// <remarks>
+        /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
+        /// </remarks>
         Task<Result<TData>> GetOrAddDocumentAsync(
             string key,
             Func<string, Task<TData>> addDataAsync);

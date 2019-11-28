@@ -28,6 +28,7 @@ namespace DocumentStores.Test
             public ImmutableCounter Increment() => new ImmutableCounter(Count + 1);
         }
 
+        class Person { public string name; public int age; }
 
         private static JsonFileDocumentStore GetService(string directory)
         {
@@ -147,5 +148,5 @@ namespace DocumentStores.Test
         }
 
     }
-    
+
 }
