@@ -21,7 +21,7 @@ Features include exception-handling via result-types, and semaphores for thread-
 
     await service.AddOrUpdateDocumentAsync(
         key: KEY,
-        initialData: new Person() { name = "Jan", age = 24 },
+        initialData: new Person() { name = "Ellen", age = 24 },
         updateData: p => new Person() { name = p.name, age = p.age + 1 });
 
     await service.DeleteDocumentAsync(KEY);
