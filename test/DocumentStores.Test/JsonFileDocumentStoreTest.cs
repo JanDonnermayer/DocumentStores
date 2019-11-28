@@ -28,8 +28,6 @@ namespace DocumentStores.Test
             public ImmutableCounter Increment() => new ImmutableCounter(Count + 1);
         }
 
-        class Person { public string name; public int age; }
-
         private static JsonFileDocumentStore GetService(string directory)
         {
             var service = new JsonFileDocumentStore(directory);
@@ -60,8 +58,8 @@ namespace DocumentStores.Test
                         .WhenAll(Enumerable.Range(1, COUNT)
                         .Select(async i => await service.AddOrUpdateDocumentAsync(
                             key,
-                            _ => Task.FromResult(ImmutableCounter.Default.Increment()),
-                            (_, c) => Task.FromResult(c.Increment())))))));
+                            ImmutableCounter.Default.Increment(),
+                            _ => _.Increment()))))));
 
 
             var finalCounter = (await service.GetDocumentAsync(key)).PassOrThrow();
