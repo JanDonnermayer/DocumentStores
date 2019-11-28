@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
+		<Authors>Jan Donnermayer</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
