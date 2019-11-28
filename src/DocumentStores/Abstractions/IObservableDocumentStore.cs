@@ -42,7 +42,7 @@ namespace DocumentStores
         Task<Result<Unit>> DeleteDocumentAsync(string key);
 
         /// <summary>
-        /// Returns <typeparamref name="TData"/> contained in the document with the specified <paramref name="key"/>.
+        /// Returns <typeparamref name="TData"/> from the document with the specified <paramref name="key"/>.
         /// </summary>
         Task<Result<TData>> GetDocumentAsync(string key);
 
@@ -52,7 +52,8 @@ namespace DocumentStores
         Task<IEnumerable<string>> GetKeysAsync();
 
         /// <summary>
-        /// Saves the specified <paramref name="data"/> to a document with the specified <paramref name="key"/>
+        /// Saves the specified <paramref name="data"/> to the document with the specified <paramref name="key"/>.
+        /// If the document does not exist: Creates it.
         /// </summary>
         Task<Result<Unit>> PutDocumentAsync(string key, TData data);
     }
