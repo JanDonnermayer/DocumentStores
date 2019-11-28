@@ -15,7 +15,8 @@ Features include exception-handling via result-types, and semaphores for thread-
 
     class Person { public string name; public int age; }
 
-    var service = new JsonFileDocumentStore(DIRECTORY).AsObservableDocumentStore<Person>();
+    var service = new JsonFileDocumentStore(DIRECTORY)
+        .AsObservableDocumentStore<Person>();
 
     const KEY = "maintainer";
 
