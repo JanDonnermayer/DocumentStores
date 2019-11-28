@@ -32,7 +32,7 @@ namespace DocumentStores.Primitives
 
         /// <summary>
         /// Tests the result for success.
-        /// If the result is successful: Yields the contained data.
+        /// If the result is successful: Yields the contained <paramref name="data"/>.
         /// </summary>
         public bool Try(out TData? data) => Try(out data, out _);
 
@@ -48,8 +48,8 @@ namespace DocumentStores.Primitives
 
         /// <summary>
         /// Tests the result for success.
-        /// If the result is successful: Yields the contained data (otherwise <see cref="null"/>).
-        /// Else: Yields the contained exception (otherwise <see cref="null"/>).
+        /// If the result is successful: Yields the contained <paramref name="data"/> (otherwise <see cref="null"/>).
+        /// Else: Yields the contained <paramref name="exception"/> (otherwise <see cref="null"/>).
         /// </summary>
         public bool Try(out TData? data, out Exception? exception)
         {
