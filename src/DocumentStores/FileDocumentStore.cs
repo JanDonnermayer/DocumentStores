@@ -46,37 +46,42 @@ namespace DocumentStores
         public Task<IEnumerable<string>> GetKeysAsync<TData>(CancellationToken ct = default) where TData : class =>
             store.GetKeysAsync<TData>(ct);
 
-        public Task<Result<T>> AddOrUpdateDocumentAsync<T>(string key,
+        public async Task<Result<T>> AddOrUpdateDocumentAsync<T>(string key,
             Func<string, Task<T>> addDataAsync, Func<string, T, Task<T>> updateDataAsync) where T : class =>
-                Function.ApplyArgs(store.AddOrUpdateDocumentAsync, key, addDataAsync, updateDataAsync)
+                 await Function.ApplyArgs(store.AddOrUpdateDocumentAsync, key, addDataAsync, updateDataAsync)
                         .Init(Catch<T>())
                         .Pipe(Retry<T>())
-                        .Invoke();
+                        .Invoke()
+                        .ConfigureAwait(false);
 
-        public Task<Result<T>> GetOrAddDocumentAsync<T>(string key,
+        public async Task<Result<T>> GetOrAddDocumentAsync<T>(string key,
             Func<string, Task<T>> addDataAsync) where T : class =>
-                Function.ApplyArgs(store.GetOrAddDocumentAsync, key, addDataAsync)
+                await Function.ApplyArgs(store.GetOrAddDocumentAsync, key, addDataAsync)
                         .Init(Catch<T>())
                         .Pipe(Retry<T>())
-                        .Invoke();
+                        .Invoke()
+                        .ConfigureAwait(false);
 
-        public Task<Result<T>> GetDocumentAsync<T>(string key) where T : class =>
-            Function.ApplyArgs(store.GetDocumentAsync<T>, key)
+        public async Task<Result<T>> GetDocumentAsync<T>(string key) where T : class =>
+            await Function.ApplyArgs(store.GetDocumentAsync<T>, key)
                     .Init(Catch<T>())
                     .Pipe(Retry<T>())
-                    .Invoke();
+                    .Invoke()
+                    .ConfigureAwait(false);
 
-        public Task<Result<Unit>> DeleteDocumentAsync<T>(string key) where T : class =>
-            Function.ApplyArgs(store.DeleteDocumentAsync<T>, key)
+        public async Task<Result<Unit>> DeleteDocumentAsync<T>(string key) where T : class =>
+            await Function.ApplyArgs(store.DeleteDocumentAsync<T>, key)
                     .Init(Catch<Unit>())
                     .Pipe(Retry<Unit>())
-                    .Invoke();
+                    .Invoke()
+                    .ConfigureAwait(false);
 
-        public Task<Result<Unit>> PutDocumentAsync<T>(string key, T data) where T : class =>
-            Function.ApplyArgs<string, T, Task<Unit>>(store.PutDocumentAsync, key, data)
+        public async Task<Result<Unit>> PutDocumentAsync<T>(string key, T data) where T : class =>
+            await Function.ApplyArgs<string, T, Task<Unit>>(store.PutDocumentAsync, key, data)
                     .Init(Catch<Unit>())
                     .Pipe(Retry<Unit>())
-                    .Invoke();
+                    .Invoke()
+                    .ConfigureAwait(false);
 
         #endregion
     }

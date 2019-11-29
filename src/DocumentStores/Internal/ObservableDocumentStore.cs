@@ -19,7 +19,7 @@ namespace DocumentStores.Internal
         public ObservableDocumentStore(IDocumentStore source)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
-            var subject = new TaskPoolBehaviourSubject<IEnumerable<string>>(initial :
+            var subject = new TaskPoolBehaviourSubject<IEnumerable<string>>(initial:
                 source.GetKeysAsync<TData>(new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token).Result);
             observer = subject;
             observable = subject;
@@ -47,33 +47,34 @@ namespace DocumentStores.Internal
         IObservable<IEnumerable<string>> IObservableDocumentStore<TData>.GetKeysObservable() =>
             this.observable;
 
-        Task<Result<TData>> IObservableDocumentStore<TData>.AddOrUpdateDocumentAsync(
-            string key,
-            Func<string, Task<TData>> addDataAsync,
-            Func<string, TData, Task<TData>> updateDataAsync) =>
-            source.AddOrUpdateDocumentAsync(
-                key,
-                (s) => WithNotification(addDataAsync(s)),
-                (s, d) => WithNotification(updateDataAsync(s, d)));
+        async Task<Result<TData>> IObservableDocumentStore<TData>.AddOrUpdateDocumentAsync(
+              string key,
+              Func<string, Task<TData>> addDataAsync,
+              Func<string, TData, Task<TData>> updateDataAsync) =>
+              await source.AddOrUpdateDocumentAsync(
+                  key,
+                  (s) => WithNotification(addDataAsync(s)),
+                  (s, d) => WithNotification(updateDataAsync(s, d)));
 
-        Task<Result<TData>> IObservableDocumentStore<TData>.GetOrAddDocumentAsync(
-            string key,
-            Func<string, Task<TData>> addDataAsync) =>
-            source.GetOrAddDocumentAsync(
-                key,
-                (s) => WithNotification(addDataAsync(s)));
+        async Task<Result<TData>> IObservableDocumentStore<TData>.GetOrAddDocumentAsync(
+              string key,
+              Func<string, Task<TData>> addDataAsync) =>
+              await source.GetOrAddDocumentAsync(
+                  key,
+                  (s) => WithNotification(addDataAsync(s)))
+                  .ConfigureAwait(false);
 
-        Task<Result<Unit>> IObservableDocumentStore<TData>.DeleteDocumentAsync(string key) =>
-            WithNotification(source.DeleteDocumentAsync<TData>(key));
+        async Task<Result<Unit>> IObservableDocumentStore<TData>.DeleteDocumentAsync(string key) =>
+            await WithNotification(source.DeleteDocumentAsync<TData>(key));
 
-        Task<Result<TData>> IObservableDocumentStore<TData>.GetDocumentAsync(string key) =>
-            source.GetDocumentAsync<TData>(key);
+        async Task<Result<TData>> IObservableDocumentStore<TData>.GetDocumentAsync(string key) =>
+            await source.GetDocumentAsync<TData>(key);
 
-        Task<IEnumerable<string>> IObservableDocumentStore<TData>.GetKeysAsync() =>
-            source.GetKeysAsync<TData>();
+        async Task<IEnumerable<string>> IObservableDocumentStore<TData>.GetKeysAsync() =>
+            await source.GetKeysAsync<TData>().ConfigureAwait(false);
 
-        Task<Result<Unit>> IObservableDocumentStore<TData>.PutDocumentAsync(string key, TData data) =>
-            WithNotification(source.PutDocumentAsync(key, data));
+        async Task<Result<Unit>> IObservableDocumentStore<TData>.PutDocumentAsync(string key, TData data) =>
+            await WithNotification(source.PutDocumentAsync(key, data));
 
         public void Dispose() => disposeHandle.Dispose();
     }
