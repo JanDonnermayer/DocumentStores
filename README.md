@@ -30,5 +30,5 @@ await service.DeleteDocumentAsync(KEY);
 ## Dotnet CLI
 
 ```powershell
-dotnet add package DocumentStores 
+dotnet add package DocumentStores
 ```
