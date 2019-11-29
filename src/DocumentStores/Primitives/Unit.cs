@@ -7,6 +7,9 @@ namespace DocumentStores.Primitives
     ///</summary>    
     public class Unit // User struct instead!
     {
+        ///<summary>
+        /// Creates a new instance of the <see cref="Unit" /> class
+        ///</summary>
         public static Unit Default => new Unit();
     }
 

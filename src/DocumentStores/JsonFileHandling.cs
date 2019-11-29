@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 
 namespace DocumentStores.Internal
 {
+    /// <summary/> 
     [AttributeUsage(AttributeTargets.Class)]
     public class JsonFileHandling : Attribute, IFileHandling
     {        

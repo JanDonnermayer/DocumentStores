@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DocumentStores
 {
+    /// <summary> </summary>
     public interface IObservableDocumentStoreBuilder : IServiceCollection
     {
         ///<summary>

@@ -3,6 +3,7 @@ using DocumentStores.Internal;
 
 namespace DocumentStores
 {
+    /// <summary/> 
     public static class IDocumentStoreExtensions
     {
         /// <summary>

@@ -6,8 +6,14 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
+    /// <summary>
+    /// Provides methods for working with documents.
+    /// </summary>
     public interface IObservableDocumentStore<TData> where TData : class
     {
+        /// <summary>
+        /// Returns all document keys.
+        /// </summary>
         IObservable<IEnumerable<string>> GetKeysObservable();
 
         /// <summary>

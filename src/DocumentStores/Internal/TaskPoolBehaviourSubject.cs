@@ -6,7 +6,7 @@ using DocumentStores.Primitives;
 namespace DocumentStores.Internal
 {
     /// <summary>
-    /// A Subject<T> that enqueues notifictaions on the taskpool 
+    /// A Subject{T} that enqueues notifictaions on the taskpool 
     /// and replays the latest notification.
     /// </summary>
     /// <typeparam name="T"></typeparam>

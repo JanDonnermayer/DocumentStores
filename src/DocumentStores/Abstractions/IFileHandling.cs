@@ -5,15 +5,22 @@ using System.Threading.Tasks;
 
 namespace DocumentStores
 {
+    /// <summary>
+    /// Defines handling of files.
+    /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public interface IFileHandling
     {
+        /// <summary/> 
         string FileExtension<T>() where T : class;
 
+        /// <summary/> 
         string Subdirectory<T>() where T : class;
 
+        /// <summary/> 
         Task<T> DeserializeAsync<T>(StreamReader reader) where T : class;
 
+        /// <summary/> 
         Task SerializeAsync<T>(StreamWriter writer, T data) where T : class;
     }
 }

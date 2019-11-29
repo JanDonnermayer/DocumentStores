@@ -7,6 +7,9 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {    
+    /// <summary>
+    /// Provides methods for working with documents.
+    /// </summary>
     public interface IDocumentStore
     {
         /// <summary>

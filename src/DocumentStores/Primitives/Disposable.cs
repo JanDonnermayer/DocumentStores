@@ -44,6 +44,7 @@ namespace DocumentStores.Primitives
         /// </summary>
         public static Disposable Empty => new Disposable();
 
+        /// <summary/>
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 1)

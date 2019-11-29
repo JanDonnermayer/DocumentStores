@@ -16,9 +16,8 @@ namespace DocumentStores.Primitives
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DisposeHandle"/> class.
+        /// Initializes a new instance of the <see cref="DisposeHandle{TOwner}"/> class.
         /// </summary>
-        /// <param name="objectName">The name of the object that employs this handle.</param>
         public DisposeHandle(params IDisposable[] disposables)
         {
              _disposeStack = new Stack<IDisposable>(disposables ?? new IDisposable[] { });
@@ -27,7 +26,7 @@ namespace DocumentStores.Primitives
             _disposeStack.Push(new Disposable(() => CTS.Cancel()));
         }
 
-
+        /// <summary/>
         public bool IsDisposed =>
             _disposed == 1;
 
@@ -76,6 +75,7 @@ namespace DocumentStores.Primitives
                 throw new ObjectDisposedException(typeof(TOwner).Name);
         }
 
+        /// <summary/>
         public void Dispose()
         {
             if (System.Threading.Interlocked.Exchange(ref _disposed, 1) == 1)

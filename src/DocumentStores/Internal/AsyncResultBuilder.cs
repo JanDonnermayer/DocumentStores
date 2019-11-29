@@ -83,7 +83,7 @@ namespace DocumentStores.Internal
 
         /// <summary>
         /// If the specified async result is successful, returns it.
-        /// Else: Retries the operation within increasing intervals of length <paramref name="frequency"/> * 2^[tryCount],
+        /// Else: Retries the operation within increasing intervals of length <paramref name="frequencySeed"/> * 2^[tryCount],
         /// until the result is successful or <paramref name="count"/> is reached.
         /// </summary>
         public static Func<Task<Result<T>>> RetryIncrementally<T>(

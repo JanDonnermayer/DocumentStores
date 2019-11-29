@@ -10,7 +10,7 @@ namespace DocumentStores.Primitives
     /// Represents the result of a performed operation, with custom return data.
     /// </summary>
     /// <usage>
-    /// var result = Result<Foo>.Ok(foo1);
+    /// var result = Result{Foo}.Ok(foo1);
     /// var success = result.Try(out Foo data);
     /// </usage>
     [DebuggerStepThrough]
@@ -38,7 +38,7 @@ namespace DocumentStores.Primitives
 
         /// <summary>
         /// Tests the result for success.
-        /// If the result is not successful: Yields the contained <see cref="Exception"/> (otherwise <see cref="null"/>).
+        /// If the result is not successful: Yields the contained <see cref="Exception"/> (otherwise null).
         /// </summary>
         public bool Try(out Exception? ex)
         {
@@ -48,8 +48,8 @@ namespace DocumentStores.Primitives
 
         /// <summary>
         /// Tests the result for success.
-        /// If the result is successful: Yields the contained <paramref name="data"/> (otherwise <see cref="null"/>).
-        /// Else: Yields the contained <paramref name="exception"/> (otherwise <see cref="null"/>).
+        /// If the result is successful: Yields the contained <paramref name="data"/> (otherwise null).
+        /// Else: Yields the contained <paramref name="exception"/> (otherwise null).
         /// </summary>
         public bool Try(out TData? data, out Exception? exception)
         {
@@ -81,9 +81,11 @@ namespace DocumentStores.Primitives
 
         internal static Result<TData> Error(Exception exception) =>
             new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
-
+        
+        /// <summary/>
         public static implicit operator Result<TData>(TData data) => Ok(data);
-
+        
+        /// <summary/>
         public static implicit operator Result<TData>(Exception exception) => Error(exception);        
 
     }

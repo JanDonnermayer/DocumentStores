@@ -6,13 +6,15 @@ using System.Collections.Generic;
 
 namespace DocumentStores
 {
+    /// <summary/> 
     public static class IServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds an <see cref="FileDocumentStoreInternal"/> as <see cref="IDocumentStore"/>
+        /// Adds an <see cref="JsonFileDocumentStore"/> as <see cref="IDocumentStore"/>
         /// to the <see cref="IServiceCollection"/>
         /// </summary>
         /// <param name="directory">The directory that is used to store documents</param>
+        /// <param name="services">The services to which the <see cref="JsonFileDocumentStore"/> is added.</param>
         /// <returns></returns>
         public static IObservableDocumentStoreBuilder AddJsonFileDocumentStore(this IServiceCollection services, string directory)
         {

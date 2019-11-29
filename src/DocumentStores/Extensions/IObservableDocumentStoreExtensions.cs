@@ -4,12 +4,13 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
+    /// <summary/> 
     public static class IObservableDocumentStoreExtensions
     {
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,
         /// adds the specfied <paramref name="initialData"/>.
-        /// Else: Updates it using the specified <paramref name="updateDataAsync"/> delegate.
+        /// Else: Updates it using the specified <paramref name="updateData"/> delegate.
         /// </summary>
         /// <remarks>
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
