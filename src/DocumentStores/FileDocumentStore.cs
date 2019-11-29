@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.IO;
 using Newtonsoft.Json;
+using System.ComponentModel;
 
 namespace DocumentStores
 {
     /// <summary/> 
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class FileDocumentStore<TFileHandling> : IDocumentStore
         where TFileHandling : IFileHandling, new()
 

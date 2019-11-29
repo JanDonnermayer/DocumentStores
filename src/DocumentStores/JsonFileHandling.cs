@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using DocumentStores.Primitives;
@@ -8,6 +9,7 @@ namespace DocumentStores.Internal
 {
     /// <summary/> 
     [AttributeUsage(AttributeTargets.Class)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class JsonFileHandling : Attribute, IFileHandling
     {        
         string IFileHandling.FileExtension<T>() => 

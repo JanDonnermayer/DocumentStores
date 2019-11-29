@@ -1,8 +1,10 @@
+using System.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DocumentStores
 {
     /// <summary> </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public interface IObservableDocumentStoreBuilder : IServiceCollection
     {
         ///<summary>
