@@ -40,7 +40,8 @@ namespace DocumentStores.Internal
             }
             finally
             {
-                await NotifyObserversAsync();
+                await NotifyObserversAsync()
+                    .ConfigureAwait(false);
             }
         }
 
@@ -54,7 +55,8 @@ namespace DocumentStores.Internal
               await source.AddOrUpdateDocumentAsync(
                   key,
                   (s) => WithNotification(addDataAsync(s)),
-                  (s, d) => WithNotification(updateDataAsync(s, d)));
+                  (s, d) => WithNotification(updateDataAsync(s, d)))
+                  .ConfigureAwait(false);
 
         async Task<Result<TData>> IObservableDocumentStore<TData>.GetOrAddDocumentAsync(
               string key,
@@ -65,16 +67,16 @@ namespace DocumentStores.Internal
                   .ConfigureAwait(false);
 
         async Task<Result<Unit>> IObservableDocumentStore<TData>.DeleteDocumentAsync(string key) =>
-            await WithNotification(source.DeleteDocumentAsync<TData>(key));
+            await WithNotification(source.DeleteDocumentAsync<TData>(key)).ConfigureAwait(false);
 
         async Task<Result<TData>> IObservableDocumentStore<TData>.GetDocumentAsync(string key) =>
-            await source.GetDocumentAsync<TData>(key);
+            await source.GetDocumentAsync<TData>(key).ConfigureAwait(false);
 
         async Task<IEnumerable<string>> IObservableDocumentStore<TData>.GetKeysAsync() =>
             await source.GetKeysAsync<TData>().ConfigureAwait(false);
 
         async Task<Result<Unit>> IObservableDocumentStore<TData>.PutDocumentAsync(string key, TData data) =>
-            await WithNotification(source.PutDocumentAsync(key, data));
+            await WithNotification(source.PutDocumentAsync(key, data)).ConfigureAwait(false);
 
         public void Dispose() => disposeHandle.Dispose();
     }
