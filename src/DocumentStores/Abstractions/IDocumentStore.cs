@@ -6,7 +6,7 @@ using DocumentStores;
 using DocumentStores.Primitives;
 
 namespace DocumentStores
-{
+{    
     public interface IDocumentStore
     {
         /// <summary>

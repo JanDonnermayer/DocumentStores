@@ -34,7 +34,7 @@ namespace DocumentStores.Internal
 
         private Task<T> WithNotification<T>(Task<T> task)
         {
-            _ = NotifyObserversAsync();
+            _ = Task.Run(NotifyObserversAsync);
             return task;
         }
 

@@ -55,11 +55,11 @@ namespace DocumentStores.Internal
                 typeof(T),
                 _ => fileHandling.Subdirectory<T>());
 
-        private async Task Serialize<T>(T data, StreamWriter SW) where T : class =>
-            await fileHandling.Serialize<T>()(data, SW).ConfigureAwait(false);
+        private async Task SerializeAsync<T>(T data, StreamWriter SW) where T : class =>
+            await fileHandling.SerializeAsync<T>(SW, data).ConfigureAwait(false);
 
-        private async Task<T> Deserialize<T>(StreamReader SR) where T : class =>
-            await fileHandling.Deserialize<T>()(SR).ConfigureAwait(false);
+        private async Task<T> DeserializeAsync<T>(StreamReader SR) where T : class =>
+            await fileHandling.DeserializeAsync<T>(SR).ConfigureAwait(false);
 
         // Map invalid filename chars to some weird unicode
         private static readonly ImmutableDictionary<char, char> encodingMap =
@@ -156,7 +156,7 @@ namespace DocumentStores.Internal
             using FileStream FS = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
             using StreamReader SR = new StreamReader(FS);
 
-            var data = await Deserialize<T>(SR);
+            var data = await DeserializeAsync<T>(SR);
             return data;
         }
 
@@ -173,7 +173,7 @@ namespace DocumentStores.Internal
             using FileStream FS = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.Read);
             using StreamWriter SW = new StreamWriter(FS);
 
-            await Serialize<T>(data, SW);
+            await SerializeAsync<T>(data, SW);
 
             SW.Flush();
             FS.SetLength(FS.Position);
@@ -199,7 +199,7 @@ namespace DocumentStores.Internal
             using StreamReader SR = new StreamReader(FS);
             using StreamWriter SW = new StreamWriter(FS);
 
-            async Task<T> getDataAsync() => await Deserialize<T>(SR) switch
+            async Task<T> getDataAsync() => await DeserializeAsync<T>(SR) switch
             {
                 null => await addDataAsync(key)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
@@ -210,7 +210,7 @@ namespace DocumentStores.Internal
             var data = await getDataAsync();
 
             FS.Position = 0;
-            await Serialize(data, SW);
+            await SerializeAsync(data, SW);
             SW.Flush();
             FS.SetLength(FS.Position);
 
@@ -233,12 +233,12 @@ namespace DocumentStores.Internal
             using StreamReader SR = new StreamReader(FS);
             using StreamWriter SW = new StreamWriter(FS);
 
-            var data = await Deserialize<T>(SR)
+            var data = await DeserializeAsync<T>(SR)
                 ?? await addDataAsync(key)
                 ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
             FS.Position = 0;
-            await Serialize(data, SW);
+            await SerializeAsync(data, SW);
             SW.Flush();
             FS.SetLength(FS.Position);
 

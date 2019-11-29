@@ -12,8 +12,8 @@ namespace DocumentStores
 
         string Subdirectory<T>() where T : class;
 
-        Func<StreamReader, Task<T>> Deserialize<T>() where T : class;
+        Task<T> DeserializeAsync<T>(StreamReader reader) where T : class;
 
-        Func<T, StreamWriter, Task> Serialize<T>() where T : class;
+        Task SerializeAsync<T>(StreamWriter writer, T data) where T : class;
     }
 }

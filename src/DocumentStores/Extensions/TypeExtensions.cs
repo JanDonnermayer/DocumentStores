@@ -13,9 +13,6 @@ namespace System
         /// </summary>
         /// <param name="t"></param>
         /// <param name="trimArgCount"></param>
-        /// <example>
-        /// "Dictionary<String, String>"
-        /// </example>
         /// <returns></returns>
         public static string ShortName(this Type t, bool trimArgCount)
         {
