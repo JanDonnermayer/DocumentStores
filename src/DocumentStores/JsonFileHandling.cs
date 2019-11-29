@@ -16,10 +16,10 @@ namespace DocumentStores.Internal
            typeof(T).ShortName(true).Replace(">", "}").Replace("<", "{");
 
         Func<T, StreamWriter, Task> IFileHandling.Serialize<T>() =>
-            async (data, sw) => await sw.WriteAsync(JsonConvert.SerializeObject(data, Formatting.Indented));
+            async (data, sw) => await sw.WriteAsync(JsonConvert.SerializeObject(data, Formatting.Indented)).ConfigureAwait(false);
 
         Func<StreamReader, Task<T>> IFileHandling.Deserialize<T>()=>
-            async sr => JsonConvert.DeserializeObject<T>(await sr.ReadToEndAsync());
+            async sr => JsonConvert.DeserializeObject<T>(await sr.ReadToEndAsync().ConfigureAwait(false));
 
 
     }

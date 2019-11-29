@@ -32,17 +32,10 @@ namespace DocumentStores.Internal
             observer.OnNext(keys);
         }
 
-        private async Task<T> WithNotification<T>(Task<T> task)
+        private Task<T> WithNotification<T>(Task<T> task)
         {
-            try
-            {
-                return await task;
-            }
-            finally
-            {
-                await NotifyObserversAsync()
-                    .ConfigureAwait(false);
-            }
+            _ = NotifyObserversAsync();
+            return task;
         }
 
         IObservable<IEnumerable<string>> IObservableDocumentStore<TData>.GetKeysObservable() =>

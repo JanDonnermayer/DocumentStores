@@ -34,7 +34,7 @@ namespace DocumentStores.Internal
             {
                 try
                 {
-                    var result = await source();
+                    var result = await source().ConfigureAwait(false);
                     return Result<T>.Ok(result);
                 }
                 catch (Exception _) when (exceptionFilter(_))
@@ -69,8 +69,8 @@ namespace DocumentStores.Internal
                 foreach (var retrySpanProvider in retrySpanProviders)
                 {
                     if (!retrySpanProvider(mut_ex!).IsSome(out var span)) return mut_res;
-                    await Task.Delay(span);
-                    mut_res = await source.Invoke();
+                    await Task.Delay(span).ConfigureAwait(false);
+                    mut_res = await source.Invoke().ConfigureAwait(false);
                     if (mut_res.Try(out mut_ex)) return mut_res;
                 }
 
@@ -117,8 +117,8 @@ namespace DocumentStores.Internal
 
             async Task<Result<V>> GetResultAsync()
             {
-                if (!(await source()).Try(out var val, out var ex)) return ex!;
-                return await continuation(val!);
+                if (!(await source().ConfigureAwait(false)).Try(out var val, out var ex)) return ex!;
+                return await continuation(val!).ConfigureAwait(false);
             }
 
             return GetResultAsync;
@@ -144,7 +144,7 @@ namespace DocumentStores.Internal
 
             async Task<Result<T>> GetResultAsync()
             {
-                var res = await source();
+                var res = await source().ConfigureAwait(false);
                 if (res.Try(out var val, out var ex))
                     onOk(val!);
                 else

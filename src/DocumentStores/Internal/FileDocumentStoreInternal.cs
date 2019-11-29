@@ -56,10 +56,10 @@ namespace DocumentStores.Internal
                 _ => fileHandling.Subdirectory<T>());
 
         private async Task Serialize<T>(T data, StreamWriter SW) where T : class =>
-            await fileHandling.Serialize<T>()(data, SW);
+            await fileHandling.Serialize<T>()(data, SW).ConfigureAwait(false);
 
-        private Task<T> Deserialize<T>(StreamReader SR) where T : class =>
-            fileHandling.Deserialize<T>()(SR);
+        private async Task<T> Deserialize<T>(StreamReader SR) where T : class =>
+            await fileHandling.Deserialize<T>()(SR).ConfigureAwait(false);
 
         // Map invalid filename chars to some weird unicode
         private static readonly ImmutableDictionary<char, char> encodingMap =
