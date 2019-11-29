@@ -35,7 +35,6 @@ namespace DocumentStores.Test
         }
 
 
-
         [Test]
         public async Task ParallelInputTest()
         {
@@ -154,6 +153,8 @@ namespace DocumentStores.Test
 
             var res = service.GetDocumentAsync("non-existant-key").Result;
             Assert.IsFalse(res.Try());
+
+            Directory.Delete(testDir, true);
         }
 
         [Test]
@@ -170,6 +171,8 @@ namespace DocumentStores.Test
 
             Assert.IsTrue(res1.Try());
             Assert.IsTrue(res2.Try());
+
+            Directory.Delete(testDir, true);
         }
 
     }
