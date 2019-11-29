@@ -33,10 +33,11 @@ namespace DocumentStores.Internal
             observer.OnNext(keys);
         }
 
-        private Task<T> WithNotification<T>(Task<T> task)
+        private async Task<T> WithNotification<T>(Task<T> task)
         {
-            _ = Task.Run(NotifyObserversAsync);
-            return task;
+            var res = await task.ConfigureAwait(false);
+            await NotifyObserversAsync();
+            return res;
         }
 
         IObservable<IEnumerable<string>> IObservableDocumentStore<TData>.GetKeysObservable() =>
