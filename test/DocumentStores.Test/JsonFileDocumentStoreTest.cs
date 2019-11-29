@@ -145,6 +145,33 @@ namespace DocumentStores.Test
 
         }
 
+        [Test]
+        public void ReadingNonExistantFileUsingSynchronousWaitingReturnsError()
+        {
+            var testDir = GetTestDir();
+            var service = GetService(testDir)
+                .AsObservableDocumentStore<string>(); 
+
+            var res = service.GetDocumentAsync("non-existant-key").Result;
+            Assert.IsFalse(res.Try());
+        }
+
+        [Test]
+        public void ReadingExistantFileUsingSynchronousWaitingReturnsOk()
+        {
+            var testDir = GetTestDir();
+            var service = GetService(testDir)
+                .AsObservableDocumentStore<string>();
+
+            const string KEY = "key";
+
+            var res1 = service.PutDocumentAsync(KEY, "TestVal").Result;
+            var res2 = service.GetDocumentAsync(KEY).Result;
+
+            Assert.IsTrue(res1.Try());
+            Assert.IsTrue(res2.Try());
+        }
+
     }
 
 }
