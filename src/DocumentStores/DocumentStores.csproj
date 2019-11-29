@@ -8,6 +8,7 @@
   <PropertyGroup>
 		<Authors>Jan Donnermayer</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+     <description>A file-based key-value-store, using the popular Newtonsoft.Json serialization library.</description>
   </PropertyGroup>
 
   <ItemGroup>
