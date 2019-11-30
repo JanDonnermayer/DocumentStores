@@ -83,6 +83,14 @@ namespace DocumentStores.Primitives
             new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
         
         /// <summary/>
+        public static implicit operator TData(Result<TData> result) => 
+            result.Try(out var data, out var ex) switch
+            {
+                true => data!,
+                false => throw new ResultException(ex!)
+            };
+
+        /// <summary/>
         public static implicit operator Result<TData>(TData data) => Ok(data);
         
         /// <summary/>
