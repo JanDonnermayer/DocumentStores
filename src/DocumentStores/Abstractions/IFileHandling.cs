@@ -8,8 +8,7 @@ namespace DocumentStores
     /// <summary>
     /// Defines handling of files.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public interface IFileHandling
+    internal interface IFileHandling
     {
         /// <summary/> 
         string FileExtension<T>() where T : class;

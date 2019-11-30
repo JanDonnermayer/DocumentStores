@@ -6,7 +6,7 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
-    interface IDocumentStoreInternal
+    internal interface IDocumentStoreInternal
     {
         Task<TData> AddOrUpdateDocumentAsync<TData>(
             string key,
