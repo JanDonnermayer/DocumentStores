@@ -44,6 +44,7 @@
                 "-c:Release",
                 //"--include-source:true",
                 //"--include-symbols:true",
+                "-p:AssemblyVersion=${input:packageVersion}",
                 "-p:PackageVersion=${input:packageVersion}",
                 "-o:out"
             ],
