@@ -22,5 +22,18 @@ namespace DocumentStores
                     key, 
                     _ => Task.FromResult(initialData), 
                     (_, data) => Task.FromResult(updateData(data)));
+
+
+        /// <summary>
+        /// If the document with the specified <paramref name="key"/> does not exist,
+        /// adds the specfied <paramref name="initialData"/>.
+        /// Else: Returns it.
+        /// </summary>
+        public static Task<Result<TData>> GetOrAddDocumentAsync<TData>(
+            this IObservableDocumentStore<TData> source, string key,
+            TData initialData) where TData : class =>
+                source.GetOrAddDocumentAsync(
+                    key, 
+                    _ => Task.FromResult(initialData));
     }
 }
