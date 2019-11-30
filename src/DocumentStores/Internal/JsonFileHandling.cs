@@ -18,25 +18,27 @@ namespace DocumentStores.Internal
 
         async Task IFileHandling.SerializeAsync<T>(StreamWriter sw, T data)
         {
-            if (SynchronizationContext.Current == null)
+            if (SynchronizationContext.Current != null
+                && SynchronizationContext.Current.IsWaitNotificationRequired())
             {
-                await sw.WriteAsync(JsonConvert.SerializeObject(data, Formatting.Indented));
+                sw.Write(JsonConvert.SerializeObject(data, Formatting.Indented));
             }
             else
             {
-                sw.Write(JsonConvert.SerializeObject(data, Formatting.Indented));
+                await sw.WriteAsync(JsonConvert.SerializeObject(data, Formatting.Indented));
             }
         }
 
         async Task<T> IFileHandling.DeserializeAsync<T>(StreamReader sr)
         {
-            if (SynchronizationContext.Current == null)
+            if (SynchronizationContext.Current != null
+                && SynchronizationContext.Current.IsWaitNotificationRequired())
             {
-                return JsonConvert.DeserializeObject<T>(await sr.ReadToEndAsync());
+                return await Task.FromResult(JsonConvert.DeserializeObject<T>(sr.ReadToEnd()));
             }
             else
             {
-                return await Task.FromResult(JsonConvert.DeserializeObject<T>(sr.ReadToEnd()));
+                return JsonConvert.DeserializeObject<T>(await sr.ReadToEndAsync());
             }
         }
     }
