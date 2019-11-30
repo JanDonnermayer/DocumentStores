@@ -7,10 +7,7 @@ using Newtonsoft.Json;
 
 namespace DocumentStores.Internal
 {
-    /// <summary/> 
-    [AttributeUsage(AttributeTargets.Class)]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public class JsonFileHandling : Attribute, IFileHandling
+    internal class JsonFileHandling : IFileHandling
     {        
         string IFileHandling.FileExtension<T>() => 
             ".json";
@@ -23,7 +20,6 @@ namespace DocumentStores.Internal
 
         async Task<T> IFileHandling.DeserializeAsync<T>(StreamReader sr)=>
             JsonConvert.DeserializeObject<T>(await sr.ReadToEndAsync().ConfigureAwait(false));
-
 
     }
 }

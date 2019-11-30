@@ -13,7 +13,7 @@ namespace DocumentStores.Internal
     /// Provides methods for working with async results.
     /// </summary>
     [DebuggerStepThrough]
-    static class AsyncResultBuilder
+    internal static class AsyncResultBuilder
     {
 
         /// <summary>
