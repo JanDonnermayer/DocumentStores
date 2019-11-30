@@ -1,19 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using DocumentStores;
 using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
     /// <summary>
-    /// Provides methods for working with documents.
+    /// Provides methods for working with a document.
     /// </summary>
-    public interface IDocumentStore
+    public interface IDocumentStoreProxy
     {
         /// <summary>
-        /// If the document with the specified <paramref name="key"/> does not exist,
+        /// If the documentdoes not exist,
         /// adds it using the <paramref name="addDataAsync"/> delegate.
         /// Else: Updates it using the specified <paramref name="updateDataAsync"/> delegate.
         /// </summary>
@@ -22,40 +21,34 @@ namespace DocumentStores
         /// inside a lock on the specific document.
         /// </remarks>
         Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
-            string key,
             Func<string, Task<TData>> addDataAsync,
             Func<string, TData, Task<TData>> updateDataAsync) where TData : class;
 
         /// <summary>
-        /// If the document with the specified <paramref name="key"/> does not exist,
+        /// If the document does not exist,
         /// adds it using the <paramref name="addDataAsync"/> delegate.
         /// Else: Returns it.
         /// </summary>
         /// <remarks>
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> GetOrAddDocumentAsync<TData>(string key,
+        Task<Result<TData>> GetOrAddDocumentAsync<TData>(
             Func<string, Task<TData>> addDataAsync) where TData : class;
 
         /// <summary>
-        /// Deletes the document with the specified <paramref name="key"/>.
+        /// Deletes the document.
         /// </summary>
-        Task<Result<Unit>> DeleteDocumentAsync<TData>(string key) where TData : class;
+        Task<Result<Unit>> DeleteDocumentAsync<TData>() where TData : class;
 
         /// <summary>
-        /// Returns <typeparamref name="TData"/> contained in the document with the specified <paramref name="key"/>.
+        /// Returns <typeparamref name="TData"/> contained in the document.
         /// </summary>
-        Task<Result<TData>> GetDocumentAsync<TData>(string key) where TData : class;
+        Task<Result<TData>> GetDocumentAsync<TData>() where TData : class;
 
         /// <summary>
-        /// Returns all keys, associated to documents of <typeparamref name="TData"/>.
+        /// Saves the specified <paramref name="data"/> to a document.
         /// </summary>
-        Task<IEnumerable<string>> GetKeysAsync<TData>(CancellationToken ct = default) where TData : class ;
-        
-        /// <summary>
-        /// Saves the specified <paramref name="data"/> to a document with the specified <paramref name="key"/>
-        /// </summary>
-        Task<Result<Unit>> PutDocumentAsync<TData>(string key, TData data) where TData : class;
+        Task<Result<Unit>> PutDocumentAsync<TData>(TData data) where TData : class;
     }
 
 
