@@ -32,7 +32,7 @@
             "problemMatcher": "$msCompile"
         },       
         {
-            "label": "pack.out",
+            "label": "pack.local",
             "command": "dotnet",
             "type": "process",
             "dependsOn" : "test",
@@ -42,11 +42,9 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary",
                 "-c:Release",
-                //"--include-source:true",
-                //"--include-symbols:true",
                 "-p:AssemblyVersion=${input:packageVersion}",
                 "-p:PackageVersion=${input:packageVersion}",
-                "-o:out"
+                "-o:C:/Users/${env:USERNAME}/.nuget/packages.local/DocumentStores"
             ],
             "problemMatcher": "$msCompile"
         },   
