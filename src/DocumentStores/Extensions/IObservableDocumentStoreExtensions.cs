@@ -37,6 +37,9 @@ namespace DocumentStores
                     key, 
                     _ => Task.FromResult(initialData));
 
+        /// <summary>
+        /// Creates a proxy for the document with the specified <paramref name="key"/>
+        /// </summary>
         public static IObservableDocumentStoreProxy<TData> CreateProxy<TData>(
             this IObservableDocumentStore<TData> source, 
             string key)  where TData : class =>

@@ -7,7 +7,8 @@ using DocumentStores.Primitives;
 namespace DocumentStores
 {
     /// <summary>
-    /// Provides methods for working with a document.
+    /// An <see cref="IObservableDocumentStore{TData}" /> for a single document
+    /// with a specific key.
     /// </summary>
     public interface IObservableDocumentStoreProxy<TData> where TData : class        
     {
