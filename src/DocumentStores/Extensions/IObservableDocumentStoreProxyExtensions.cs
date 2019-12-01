@@ -1,12 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using DocumentStores.Internal;
 using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
     /// <summary/> 
-    public static class IObservableDocumentStoreExtensions
+    public static class IObservableDocumentStoreProxyExtensions
     {
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,
@@ -17,10 +16,9 @@ namespace DocumentStores
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
         /// </remarks>
         public static Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
-            this IObservableDocumentStore<TData> source, string key,
+            this IObservableDocumentStoreProxy<TData> source, string key,
             TData initialData, Func<TData, TData> updateData) where TData : class => 
                 source.AddOrUpdateDocumentAsync(
-                    key, 
                     _ => Task.FromResult(initialData), 
                     (_, data) => Task.FromResult(updateData(data)));
 
@@ -31,16 +29,9 @@ namespace DocumentStores
         /// Else: Returns it.
         /// </summary>
         public static Task<Result<TData>> GetOrAddDocumentAsync<TData>(
-            this IObservableDocumentStore<TData> source, string key,
+            this IObservableDocumentStoreProxy<TData> source, string key,
             TData initialData) where TData : class =>
                 source.GetOrAddDocumentAsync(
-                    key, 
                     _ => Task.FromResult(initialData));
-
-        public static IObservableDocumentStoreProxy<TData> CreateProxy<TData>(
-            this IObservableDocumentStore<TData> source, 
-            string key)  where TData : class =>
-                new ObservableDocumentStoreProxy<TData>(source, key);
-
     }
 }

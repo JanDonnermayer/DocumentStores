@@ -16,30 +16,15 @@ namespace DocumentStores.Internal
         string IFileHandling.Subdirectory<T>() =>
            typeof(T).ShortName(true).Replace(">", "}").Replace("<", "{");
 
-        async Task IFileHandling.SerializeAsync<T>(StreamWriter sw, T data)
+        Task IFileHandling.SerializeAsync<T>(StreamWriter sw, T data)
         {
-            if (SynchronizationContext.Current != null
-                && SynchronizationContext.Current.IsWaitNotificationRequired())
-            {
-                sw.Write(JsonConvert.SerializeObject(data, Formatting.Indented));
-            }
-            else
-            {
-                await sw.WriteAsync(JsonConvert.SerializeObject(data, Formatting.Indented));
-            }
+            sw.Write(JsonConvert.SerializeObject(data, Formatting.Indented));
+            return Task.CompletedTask;
         }
 
         async Task<T> IFileHandling.DeserializeAsync<T>(StreamReader sr)
         {
-            if (SynchronizationContext.Current != null
-                && SynchronizationContext.Current.IsWaitNotificationRequired())
-            {
-                return await Task.FromResult(JsonConvert.DeserializeObject<T>(sr.ReadToEnd()));
-            }
-            else
-            {
-                return JsonConvert.DeserializeObject<T>(await sr.ReadToEndAsync());
-            }
+            return await Task.FromResult(JsonConvert.DeserializeObject<T>(sr.ReadToEnd()));
         }
     }
 }

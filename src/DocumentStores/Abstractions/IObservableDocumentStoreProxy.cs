@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +9,7 @@ namespace DocumentStores
     /// <summary>
     /// Provides methods for working with a document.
     /// </summary>
-    public interface IDocumentStoreProxy
+    public interface IObservableDocumentStoreProxy<TData> where TData : class        
     {
         /// <summary>
         /// If the documentdoes not exist,
@@ -20,9 +20,9 @@ namespace DocumentStores
         /// Both <paramref name="addDataAsync"/> as well as <paramref name="updateDataAsync"/> are excecuted
         /// inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
+        Task<Result<TData>> AddOrUpdateDocumentAsync(
             Func<string, Task<TData>> addDataAsync,
-            Func<string, TData, Task<TData>> updateDataAsync) where TData : class;
+            Func<string, TData, Task<TData>> updateDataAsync);
 
         /// <summary>
         /// If the document does not exist,
@@ -32,23 +32,28 @@ namespace DocumentStores
         /// <remarks>
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> GetOrAddDocumentAsync<TData>(
-            Func<string, Task<TData>> addDataAsync) where TData : class;
+        Task<Result<TData>> GetOrAddDocumentAsync(
+            Func<string, Task<TData>> addDataAsync);
 
         /// <summary>
         /// Deletes the document.
         /// </summary>
-        Task<Result<Unit>> DeleteDocumentAsync<TData>() where TData : class;
+        Task<Result<Unit>> DeleteDocumentAsync();
 
         /// <summary>
         /// Returns <typeparamref name="TData"/> contained in the document.
         /// </summary>
-        Task<Result<TData>> GetDocumentAsync<TData>() where TData : class;
+        Task<Result<TData>> GetDocumentAsync();
 
         /// <summary>
         /// Saves the specified <paramref name="data"/> to a document.
         /// </summary>
-        Task<Result<Unit>> PutDocumentAsync<TData>(TData data) where TData : class;
+        Task<Result<Unit>> PutDocumentAsync(TData data);
+
+        /// <summary>
+        /// Returns an <see cref="IObservable{TData}"/> on the data contained in the document.
+        /// </summary>
+        IObservable<TData> GetObservable();
     }
 
 

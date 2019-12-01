@@ -149,7 +149,7 @@ namespace DocumentStores.Test
         {
             var testDir = GetTestDir();
             var service = GetService(testDir)
-                .AsObservableDocumentStore<string>(); 
+                .AsObservableDocumentStore<string>();
 
             var res = service.GetDocumentAsync("non-existant-key").Result;
             Assert.IsFalse(res.Try());
@@ -170,6 +170,29 @@ namespace DocumentStores.Test
             Assert.IsTrue(res1.Try());
             Assert.IsTrue(res2.Try());
 
+            Directory.Delete(testDir, true);
+        }
+
+        [Test]
+        public async Task ProxyObservableYieldsAsync()
+        {
+            var testDir = GetTestDir();
+
+            const string KEY = "key1";
+
+            var proxy = GetService(testDir)
+                .AsObservableDocumentStore<ImmutableCounter>()
+                .CreateProxy(KEY);
+
+            var tcs = new TaskCompletionSource<ImmutableCounter>();
+
+            proxy.GetObservable().Subscribe(tcs.SetResult);
+
+            await proxy.PutDocumentAsync(ImmutableCounter.Default);
+
+            var counter = await tcs.Task;
+
+            Assert.AreEqual(0, counter.Count);
             Directory.Delete(testDir, true);
         }
 

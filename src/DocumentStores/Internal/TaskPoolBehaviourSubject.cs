@@ -24,8 +24,11 @@ namespace DocumentStores.Internal
         private void ReleaseObservers() =>
             ImmutableInterlocked.Update(ref observers, _ => _.Clear());
 
-        private void PostForEachObserver(Action<IObserver<T>> action) =>
-            Task.Run(() => { foreach (var _ in observers) action(_); });
+        private void PostForEachObserver(Action<IObserver<T>> action)
+        {
+            foreach (var _ in observers) Task.Run(() => action(_));
+        }
+
 
         void IObserver<T>.OnCompleted()
         {
