@@ -26,6 +26,13 @@ namespace DocumentStores.Test
             public static ImmutableCounter Default => new ImmutableCounter(0);
 
             public ImmutableCounter Increment() => new ImmutableCounter(Count + 1);
+
+            public override bool Equals(object obj) => 
+                obj is ImmutableCounter counter &&
+                       Count == counter.Count;
+
+            public override int GetHashCode() => 
+                HashCode.Combine(Count);
         }
 
         private static JsonFileDocumentStore GetService(string directory)
@@ -192,7 +199,7 @@ namespace DocumentStores.Test
 
             var counter = await tcs.Task;
 
-            Assert.AreEqual(0, counter.Count);
+            Assert.AreEqual(ImmutableCounter.Default, counter);
             Directory.Delete(testDir, true);
         }
 
