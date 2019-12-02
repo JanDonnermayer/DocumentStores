@@ -198,7 +198,10 @@ namespace DocumentStores.Test
 
             proxy.GetObservable().Subscribe(tcs.SetResult);
 
-            await proxy.PutDocumentAsync(ImmutableCounter.Default);
+            await proxy.AddOrUpdateDocumentAsync(
+                initialData: ImmutableCounter.Default,
+                updateData: c => c.Increment()
+            );
 
             var counter = await tcs.Task;
 
