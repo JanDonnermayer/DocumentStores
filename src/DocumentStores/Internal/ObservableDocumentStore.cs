@@ -28,15 +28,14 @@ namespace DocumentStores.Internal
 
         private async Task NotifyObserversAsync()
         {
-            var keys = await source.GetKeysAsync<TData>()
-                .ConfigureAwait(false);
+            var keys = await source.GetKeysAsync<TData>();
             observer.OnNext(keys);
         }
 
         private async Task<T> WithNotification<T>(Task<T> task)
         {
             var res = await task.ConfigureAwait(false);
-            await NotifyObserversAsync();
+            _ = NotifyObserversAsync(); // Non blocking
             return res;
         }
 

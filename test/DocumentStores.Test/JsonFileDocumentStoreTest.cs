@@ -116,15 +116,17 @@ namespace DocumentStores.Test
         [Test]
         public async Task TestObserving()
         {
-            var testDir = GetTestDir();
+            var testDir = GetTestDir() + "1";
             var service = GetService(testDir)
                 .AsObservableDocumentStore<ImmutableList<ImmutableCounter>>(); //Random long name type
             const string key = "Xbuben";
+            const int OBSERVER_DELAY_MS = 100;
 
             static async Task TestAdd(IObservableDocumentStore<ImmutableList<ImmutableCounter>> service, string key)
             {
                 var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
                 await service.PutDocumentAsync(key, ImmutableList<ImmutableCounter>.Empty); // Subscribe after add
+                await Task.Delay(OBSERVER_DELAY_MS);
                 var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
                 var keys = await tcs.Task;
                 Assert.AreEqual(key, keys.First());
@@ -139,6 +141,7 @@ namespace DocumentStores.Test
             {
                 var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
                 await service.DeleteDocumentAsync(key);
+                await Task.Delay(OBSERVER_DELAY_MS);
                 var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
                 var keys = await tcs.Task;
                 Assert.IsEmpty(keys);

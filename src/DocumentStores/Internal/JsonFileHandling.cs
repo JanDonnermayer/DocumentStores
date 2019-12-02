@@ -16,14 +16,15 @@ namespace DocumentStores.Internal
         string IFileHandling.Subdirectory<T>() =>
            typeof(T).ShortName(true).Replace(">", "}").Replace("<", "{");
 
-        async Task IFileHandling.SerializeAsync<T>(StreamWriter sw, T data)
+        Task IFileHandling.SerializeAsync<T>(StreamWriter sw, T data)
         {
-            await Task.Factory.StartNew(() => sw.Write(JsonConvert.SerializeObject(data, Formatting.Indented)));
+            sw.Write(JsonConvert.SerializeObject(data, Formatting.Indented));
+            return Task.CompletedTask;
         }
 
-        async Task<T> IFileHandling.DeserializeAsync<T>(StreamReader sr)
+        Task<T> IFileHandling.DeserializeAsync<T>(StreamReader sr)
         {
-            return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(sr.ReadToEnd()));
+            return Task.FromResult(JsonConvert.DeserializeObject<T>(sr.ReadToEnd()));
         }
     }
 }
