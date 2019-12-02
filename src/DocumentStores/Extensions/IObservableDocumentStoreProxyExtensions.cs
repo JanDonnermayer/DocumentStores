@@ -8,7 +8,7 @@ namespace DocumentStores
     public static class IObservableDocumentStoreProxyExtensions
     {
         /// <summary>
-        /// If the document with the specified <paramref name="key"/> does not exist,
+        /// If the document does not exist,
         /// adds the specfied <paramref name="initialData"/>.
         /// Else: Updates it using the specified <paramref name="updateData"/> delegate.
         /// </summary>
@@ -24,7 +24,7 @@ namespace DocumentStores
 
 
         /// <summary>
-        /// If the document with the specified <paramref name="key"/> does not exist,
+        /// If the document does not exist,
         /// adds the specfied <paramref name="initialData"/>.
         /// Else: Returns it.
         /// </summary>

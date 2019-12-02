@@ -181,7 +181,7 @@ namespace DocumentStores.Test
         }
 
         [Test]
-        public async Task ProxyObservableYieldsAsync()
+        public async Task ProxyObservableNotifiesObserverAsync()
         {
             var testDir = GetTestDir();
 
