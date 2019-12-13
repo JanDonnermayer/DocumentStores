@@ -6,53 +6,59 @@ using System.Linq;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Collections.Immutable;
+using System.Reactive.Linq;
+using System.Threading;
+using System.Reactive;
 
 namespace DocumentStores.Test
 {
     [TestFixture]
     class JsonFileDocumentStoreTest
     {
-        private static string GetTestDir() => Path.Combine(
-            Path.GetTempPath(),
-            "DocumentStore.Tests",
-            Guid.NewGuid().ToString());
 
-        private class ImmutableCounter
+        private static String GetRootTestDir() =>
+            Path.Combine(
+                Path.GetTempPath(),
+                "DocumentStore.Tests"
+            );
+
+        private static string GetTestDir() =>
+            Path.Combine(
+                GetRootTestDir(),
+                TestContext.CurrentContext.Test.Name,
+                Guid.NewGuid().ToString()
+            );
+
+        private static JsonFileDocumentStore GetService() =>
+            new JsonFileDocumentStore(GetTestDir());
+
+
+        [TearDown]
+        public async Task DeleteTestDirectoryAsync()
         {
-            public int Count { get; }
-
-            public ImmutableCounter(int count) => this.Count = count;
-
-            public static ImmutableCounter Default => new ImmutableCounter(0);
-
-            public ImmutableCounter Increment() => new ImmutableCounter(Count + 1);
-
-            public override bool Equals(object obj) => 
-                obj is ImmutableCounter counter &&
-                       Count == counter.Count;
-
-            public override int GetHashCode() => 
-                HashCode.Combine(Count);
+            var deleter = new Action(() => Directory.Delete(GetRootTestDir(), recursive: true));
+            
+            for (int i = 0; i < 5; i++)
+            {
+                try 
+                {
+                    deleter.Invoke();
+                    return;
+                }
+                catch(UnauthorizedAccessException)
+                {
+                    await Task.Delay(100 * i);
+                }
+            }
         }
-
-        private static JsonFileDocumentStore GetService(string directory)
-        {
-            var service = new JsonFileDocumentStore(directory);
-            return service;
-        }
-
 
         [Test]
-        public async Task ParallelInputTest()
+        public async Task Put_Parallel__ReturnsOk()
         {
+            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
 
-            var testDir = GetTestDir();
-            var service = GetService(testDir).AsObservableDocumentStore<ImmutableCounter>();
-
-            if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
-
+            const string KEY = "key";
             var counter = ImmutableCounter.Default;
-            var key = Guid.NewGuid().ToString();
 
             const int COUNT = 10;
             const int WORKER_COUNT = 20;
@@ -63,35 +69,29 @@ namespace DocumentStores.Test
                     .Select(i => Task.Run(async () => await Task
                         .WhenAll(Enumerable.Range(1, COUNT)
                         .Select(async i => await service.AddOrUpdateDocumentAsync(
-                            key,
+                            KEY,
                             ImmutableCounter.Default.Increment(),
                             _ => _.Increment()))))));
 
 
-            var finalCounter = (await service.GetDocumentAsync(key)).PassOrThrow();
+            var finalCounter = (await service.GetDocumentAsync(KEY)).PassOrThrow();
 
-            (await service.DeleteDocumentAsync(key)).PassOrThrow();
+            (await service.DeleteDocumentAsync(KEY)).PassOrThrow();
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
-
-            Directory.Delete(testDir, true);
         }
 
 
         [Test]
-        public async Task AddForbiddenFileNamedDocs()
+        public async Task Put_InvalidFileNameKey__ReturnsOk()
         {
+            var service = GetService()
+            .AsObservableDocumentStore<ImmutableCounter>();
 
-            var testDir = GetTestDir();
-            var service = GetService(testDir).AsObservableDocumentStore<ImmutableCounter>();
-
-            if (!Directory.Exists(testDir)) Directory.CreateDirectory(testDir);
-
+            string KEY = JsonConvert.SerializeObject(new { Name = "X", Value = "Buben" });
             var counter = ImmutableCounter.Default;
 
-            // Create worst key imaginable. You can use anything!
-            string jsonKey = JsonConvert.SerializeObject(new { Name = "X", Value = "Buben" });
-            var keys = Path.GetInvalidFileNameChars().Select(_ => $@"{_}.LOL.lel\{jsonKey}/''");
+            var keys = Path.GetInvalidFileNameChars().Select(_ => $@"{_}.LOL.lel\{KEY}/''");
 
             var results = await Task.WhenAll(keys
                 .Select(_ => service.PutDocumentAsync(_, counter)));
@@ -109,67 +109,105 @@ namespace DocumentStores.Test
                     second: actualKeys,
                     comparer: StringComparer.OrdinalIgnoreCase),
                 message: "Keys differ after writing documents!");
-
-            Directory.Delete(testDir, true);
         }
 
         [Test]
-        public async Task TestObserving()
+        public async Task Put_Multiple__NotifiesObserver_Multiple()
         {
-            var testDir = GetTestDir() + "1";
-            var service = GetService(testDir)
-                .AsObservableDocumentStore<ImmutableList<ImmutableCounter>>(); //Random long name type
-            const string key = "Xbuben";
+            var service = GetService()
+                .AsObservableDocumentStore<ImmutableList<ImmutableCounter>>();
+
+            const string KEY = "Xbuben";
             const int OBSERVER_DELAY_MS = 100;
+            const int PUT_COUNT = 3;
+            const int EXPECTED_NOTIFCATION_COUNT = PUT_COUNT + 1; // 1 is initial
 
-            static async Task TestAdd(IObservableDocumentStore<ImmutableList<ImmutableCounter>> service, string key)
-            {
-                var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
-                await service.PutDocumentAsync(key, ImmutableList<ImmutableCounter>.Empty); // Subscribe after add
-                await Task.Delay(OBSERVER_DELAY_MS);
-                var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
-                var keys = await tcs.Task;
-                Assert.AreEqual(key, keys.First());
+            int mut_ActualNotificationCount = 0;
 
-                var tcs2 = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
-                var obs2 = service.GetKeysObservable().Subscribe(_ => tcs2.TrySetResult(_));
-                var keys2 = await tcs2.Task;
-                Assert.AreEqual(key, keys2.First());
-            }
+            var observable = service.GetKeysObservable();
+            using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
 
-            static async Task TestRemove(IObservableDocumentStore<ImmutableList<ImmutableCounter>> service, string key)
-            {
-                var tcs = new TaskCompletionSource<IEnumerable<string>>(TimeSpan.FromSeconds(3));
-                await service.DeleteDocumentAsync(key);
-                await Task.Delay(OBSERVER_DELAY_MS);
-                var obs = service.GetKeysObservable().Subscribe(_ => tcs.TrySetResult(_));
-                var keys = await tcs.Task;
-                Assert.IsEmpty(keys);
-            }
+            for (int i = 0; i < PUT_COUNT; i++)
+                await service.PutDocumentAsync(KEY, ImmutableList<ImmutableCounter>.Empty);
 
-            await TestAdd(service, key);
-            await TestRemove(service, key);
+            await Task.Delay(OBSERVER_DELAY_MS);
 
-            Directory.Delete(testDir, true);
-
+            Assert.AreEqual(EXPECTED_NOTIFCATION_COUNT, mut_ActualNotificationCount);
         }
 
         [Test]
-        public void ReadingNonExistantFileUsingSynchronousWaitingReturnsError()
+        public async Task Put_ThenObserver__NotifiesObserver()
         {
-            var testDir = GetTestDir();
-            var service = GetService(testDir)
+            var service = GetService()
+                .AsObservableDocumentStore<ImmutableList<ImmutableCounter>>();
+
+            const string KEY = "Xbuben";
+            const int OBSERVER_DELAY_MS = 100;
+            const int EXPECTED_NOTIFCATION_COUNT = 1; // 1 is initial
+
+            int mut_ActualNotificationCount = 0;
+
+            await service.PutDocumentAsync(KEY, ImmutableList<ImmutableCounter>.Empty);
+
+            await Task.Delay(OBSERVER_DELAY_MS);
+
+            var observable = service.GetKeysObservable();
+            using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
+
+            Assert.AreEqual(EXPECTED_NOTIFCATION_COUNT, mut_ActualNotificationCount);
+        }
+
+
+        [Test]
+        public async Task Proxy_AddOrUpdate_Multiple__NotifiesObserver_Multiple()
+        {
+            var service = GetService()
+                .AsObservableDocumentStore<ImmutableCounter>();
+
+            const string KEY = "Xbuben";
+            const int OBSERVER_DELAY_MS = 100;
+            const int ADD_OR_UPDATE_COUNT = 1;
+            const int EXPECTED_NOTIFCATION_COUNT = ADD_OR_UPDATE_COUNT + 1; // 1 is initial
+
+            int mut_ActualNotificationCount = 0;
+
+            var proxy = service.CreateProxy(KEY);
+
+            var observable = service.GetKeysObservable();
+            using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
+
+            for (int i = 0; i < ADD_OR_UPDATE_COUNT; i++)
+            {
+                await proxy.AddOrUpdateDocumentAsync(
+                    initialData: ImmutableCounter.Default,
+                    updateData: c => c.Increment()
+                );
+            }
+
+            await Task.Delay(OBSERVER_DELAY_MS);
+
+            Assert.AreEqual(EXPECTED_NOTIFCATION_COUNT, mut_ActualNotificationCount);
+        }
+
+
+        [Test]
+        public void GetNonExisting_SynchronousWaiting__ReturnsError()
+        {
+            var service = GetService()
                 .AsObservableDocumentStore<string>();
 
-            var res = service.GetDocumentAsync("non-existant-key").Result;
+            const string KEY = "non-existant-key";
+
+            var res = service.GetDocumentAsync(KEY).Result;
+
             Assert.IsFalse(res.Try());
         }
 
+
         [Test]
-        public void ReadingExistantFileUsingSynchronousWaitingReturnsOk()
+        public void PutAndGet_SynchronousWaiting__ReturnsOk()
         {
-            var testDir = GetTestDir();
-            var service = GetService(testDir)
+            var service = GetService()
                 .AsObservableDocumentStore<string>();
 
             const string KEY = "key";
@@ -179,36 +217,31 @@ namespace DocumentStores.Test
 
             Assert.IsTrue(res1.Try());
             Assert.IsTrue(res2.Try());
-
-            Directory.Delete(testDir, true);
         }
 
-        [Test]
-        public async Task ProxyObservableNotifiesObserverAsync()
+        #region  Private Types
+
+        private class ImmutableCounter
         {
-            var testDir = GetTestDir();
+            public int Count { get; }
 
-            const string KEY = "key1";
+            public ImmutableCounter(int count) => this.Count = count;
 
-            var proxy = GetService(testDir)
-                .AsObservableDocumentStore<ImmutableCounter>()
-                .CreateProxy(KEY);
+            public static ImmutableCounter Default => new ImmutableCounter(0);
 
-            var tcs = new TaskCompletionSource<ImmutableCounter>();
+            public ImmutableCounter Increment() => new ImmutableCounter(Count + 1);
 
-            proxy.GetObservable().Subscribe(tcs.SetResult);
+            public override bool Equals(object obj) =>
+                obj is ImmutableCounter counter &&
+                       Count == counter.Count;
 
-            await proxy.AddOrUpdateDocumentAsync(
-                initialData: ImmutableCounter.Default,
-                updateData: c => c.Increment()
-            );
-
-            var counter = await tcs.Task;
-
-            Assert.AreEqual(ImmutableCounter.Default, counter);
-            Directory.Delete(testDir, true);
+            public override int GetHashCode() =>
+                HashCode.Combine(Count);
         }
 
+        #endregion
     }
+
+
 
 }
