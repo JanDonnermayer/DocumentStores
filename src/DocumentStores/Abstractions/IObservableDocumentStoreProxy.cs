@@ -10,7 +10,7 @@ namespace DocumentStores
     /// An <see cref="IObservableDocumentStore{TData}" /> for a single document
     /// with a specific key.
     /// </summary>
-    public interface IObservableDocumentStoreProxy<TData> where TData : class        
+    public interface IDocumentChannel<TData> where TData : class        
     {
         /// <summary>
         /// If the documentdoes not exist,

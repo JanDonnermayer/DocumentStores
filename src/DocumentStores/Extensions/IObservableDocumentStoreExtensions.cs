@@ -38,12 +38,12 @@ namespace DocumentStores
                     _ => Task.FromResult(initialData));
 
         /// <summary>
-        /// Creates a proxy for the document with the specified <paramref name="key"/>
+        /// Creates a channel for the document with the specified <paramref name="key"/>
         /// </summary>
-        public static IObservableDocumentStoreProxy<TData> CreateProxy<TData>(
+        public static IDocumentChannel<TData> CreateChannel<TData>(
             this IObservableDocumentStore<TData> source, 
             string key)  where TData : class =>
-                new ObservableDocumentStoreProxy<TData>(source, key);
+                new DocumentChannel<TData>(source, key);
 
     }
 }

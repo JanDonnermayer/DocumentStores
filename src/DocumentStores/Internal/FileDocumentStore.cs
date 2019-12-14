@@ -42,7 +42,6 @@ namespace DocumentStores.Internal
 
         #region Implementation of IDocumentStore
 
-
         public Task<IEnumerable<string>> GetKeysAsync<TData>(CancellationToken ct = default) where TData : class =>
             store.GetKeysAsync<TData>(ct);
 

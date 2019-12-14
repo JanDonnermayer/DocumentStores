@@ -41,7 +41,7 @@ namespace DocumentStores.Internal
 
         private ImmutableDictionary<Type, string> FileExtensions =
             ImmutableDictionary<Type, string>.Empty;
-        private string FileExtension<T>() where T : class =>
+        private string GetFileExtension<T>() where T : class =>
             ImmutableInterlocked.GetOrAdd(
                 ref FileExtensions,
                 typeof(T),
@@ -49,7 +49,7 @@ namespace DocumentStores.Internal
 
         private ImmutableDictionary<Type, string> Subdirectories =
             ImmutableDictionary<Type, string>.Empty;
-        private string SubDirectory<T>() where T : class =>
+        private string GetSubDirectory<T>() where T : class =>
             ImmutableInterlocked.GetOrAdd(
                 ref Subdirectories,
                 typeof(T),
@@ -107,15 +107,15 @@ namespace DocumentStores.Internal
         }
 
         private string GetFile<T>(string key) where T : class =>
-           Path.Combine(this.RootDirectory, this.SubDirectory<T>(), EncodeKey(key) + FileExtension<T>());
+           Path.Combine(this.RootDirectory, this.GetSubDirectory<T>(), EncodeKey(key) + GetFileExtension<T>());
 
         private string GetKey<T>(string file) where T : class
         {
             var subs1 = file.Substring(
-                startIndex: RootDirectory.Length + @"\\".Length + SubDirectory<T>().Length);
+                startIndex: RootDirectory.Length + @"\\".Length + GetSubDirectory<T>().Length);
             var name = subs1.Substring(
                 startIndex: 0,
-                length: subs1.Length - FileExtension<T>().Length);
+                length: subs1.Length - GetFileExtension<T>().Length);
 
             return DecodeKey(name);
         }
@@ -130,12 +130,12 @@ namespace DocumentStores.Internal
                   {
                       try
                       {
-                          var directory = Path.Combine(RootDirectory, SubDirectory<T>());
+                          var directory = Path.Combine(RootDirectory, GetSubDirectory<T>());
                           if (!Directory.Exists(directory)) return Enumerable.Empty<string>();
 
                           return Directory.EnumerateFiles(
                               directory,
-                              "*" + FileExtension<T>(),
+                              "*" + GetFileExtension<T>(),
                               SearchOption.TopDirectoryOnly).Select(GetKey<T>);
                       }
                       catch (Exception)
