@@ -10,11 +10,10 @@ namespace DocumentStores.Internal
         : IDocumentChannel<TData> where TData : class
     {
         private readonly IDocumentTopic<TData> store;
-        private readonly string key;
+        private readonly DocumentKey key;
 
-        public DocumentChannel(IDocumentTopic<TData> store, string key)
+        public DocumentChannel(IDocumentTopic<TData> store, DocumentKey key)
         {
-            if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
             this.store = store ?? throw new ArgumentNullException(nameof(store));
             this.key = key;
         }
@@ -39,8 +38,8 @@ namespace DocumentStores.Internal
 
         IObservable<TData> IDocumentChannel<TData>.GetObservable() => 
             store
-                .GetKeysObservable()
-                .Where(keys => keys.Contains(key))
+                .GetAddressesObservable()
+                .Where(addr => addr.Select(a => a.Key).Contains(key))
                 .Select(_ => Observable.FromAsync(
                         () => store.GetDocumentAsync(key)))
                 .Merge()

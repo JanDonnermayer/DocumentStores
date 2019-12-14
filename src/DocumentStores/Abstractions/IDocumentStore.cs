@@ -13,7 +13,7 @@ namespace DocumentStores
     public interface IDocumentStore
     {
         /// <summary>
-        /// If the document with the specified <paramref name="key"/> does not exist,
+        /// If the document with the specified <paramref name="address"/> does not exist,
         /// adds it using the <paramref name="addDataAsync"/> delegate.
         /// Else: Updates it using the specified <paramref name="updateDataAsync"/> delegate.
         /// </summary>
@@ -22,12 +22,12 @@ namespace DocumentStores
         /// inside a lock on the specific document.
         /// </remarks>
         Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
-            DocumentKey key,
+            DocumentAddress address,
             Func<string, Task<TData>> addDataAsync,
             Func<string, TData, Task<TData>> updateDataAsync) where TData : class;
 
         /// <summary>
-        /// If the document with the specified <paramref name="key"/> does not exist,
+        /// If the document with the specified <paramref name="address"/> does not exist,
         /// adds it using the <paramref name="addDataAsync"/> delegate.
         /// Else: Returns it.
         /// </summary>
@@ -35,30 +35,30 @@ namespace DocumentStores
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
         Task<Result<TData>> GetOrAddDocumentAsync<TData>(
-            DocumentKey key,
+            DocumentAddress address,
             Func<string, Task<TData>> addDataAsync) where TData : class;
 
         /// <summary>
-        /// Deletes the document with the specified <paramref name="key"/>.
+        /// Deletes the document with the specified <paramref name="address"/>.
         /// </summary>
-        Task<Result<Unit>> DeleteDocumentAsync<TData>(DocumentKey key) where TData : class;
+        Task<Result<Unit>> DeleteDocumentAsync<TData>(DocumentAddress address) where TData : class;
 
         /// <summary>
-        /// Returns <typeparamref name="TData"/> contained in the document with the specified <paramref name="key"/>.
+        /// Returns <typeparamref name="TData"/> contained in the document with the specified <paramref name="address"/>.
         /// </summary>
-        Task<Result<TData>> GetDocumentAsync<TData>(DocumentKey key) where TData : class;
+        Task<Result<TData>> GetDocumentAsync<TData>(DocumentAddress address) where TData : class;
 
         /// <summary>
-        /// Returns all keys, associated to documents of <typeparamref name="TData"/>.
+        /// Returns all addresss, associated to documents of <typeparamref name="TData"/>.
         /// </summary>
-        Task<IEnumerable<DocumentKey>> GetKeysAsync<TData>(
-            DocumentTopicName topicName, 
+        Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
+            DocumentRoute route, 
             CancellationToken ct = default) where TData : class;
 
         /// <summary>
-        /// Saves the specified <paramref name="data"/> to a document with the specified <paramref name="key"/>
+        /// Saves the specified <paramref name="data"/> to a document with the specified <paramref name="address"/>
         /// </summary>
-        Task<Result<Unit>> PutDocumentAsync<TData>(DocumentKey key, TData data) where TData : class;
+        Task<Result<Unit>> PutDocumentAsync<TData>(DocumentAddress address, TData data) where TData : class;
     }
 
 

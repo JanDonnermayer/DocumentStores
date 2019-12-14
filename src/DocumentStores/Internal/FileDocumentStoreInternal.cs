@@ -9,7 +9,7 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal
 {
-    
+
     /// <summary>
     /// An <see cref="IDocumentStoreInternal"/>-Implementation,
     /// that uses files, to store serializable data.
@@ -79,10 +79,13 @@ namespace DocumentStores.Internal
             if (!directory.Exists) directory.Create();
         }
 
-        private string GetFile<T>(DocumentKey key) where T : class =>
-            Path.Combine(this.RootDirectory, this.GetSubDirectory<T>(), key.GetPath() + GetFileExtension<T>());
+        private string GetFile<T>(DocumentAddress address) where T : class =>
+            Path.Combine(
+                this.RootDirectory,
+                this.GetSubDirectory<T>(),
+                address.ToPath() + GetFileExtension<T>());
 
-        private DocumentKey GetKey<T>(string file) where T : class
+        private DocumentAddress GetAddress<T>(string file) where T : class
         {
             var subs1 = file.Substring(
                 startIndex: RootDirectory.Length + @"\\".Length + GetSubDirectory<T>().Length);
@@ -90,7 +93,7 @@ namespace DocumentStores.Internal
                 startIndex: 0,
                 length: subs1.Length - GetFileExtension<T>().Length);
 
-            return DocumentPathBuilder.GetKey(subpath);
+            return DocumentAddressBuilder.GetAddress(subpath);
         }
 
 
@@ -99,33 +102,33 @@ namespace DocumentStores.Internal
 
         #region Implementation of IDocumentStoreInternal 
 
-        public Task<IEnumerable<DocumentKey>> GetKeysAsync<T>(DocumentTopicName topicName, CancellationToken ct = default) where T : class =>
+        public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(DocumentRoute route, CancellationToken ct = default) where T : class =>
                   Task.Run(() =>
                   {
                       try
                       {
-                          var directory = Path.Combine(RootDirectory, GetSubDirectory<T>(), topicName.GetPath());
-                          if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentKey>();
+                          var directory = route.ToPath();
+                          if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentAddress>();
 
                           return Directory
                             .EnumerateFiles(
                                 path: directory,
                                 searchPattern: "*" + GetFileExtension<T>(),
                                 searchOption: SearchOption.AllDirectories)
-                            .Select(GetKey<T>);
+                            .Select(GetAddress<T>);
                       }
                       catch (Exception)
                       {
-                          return Enumerable.Empty<DocumentKey>();
+                          return Enumerable.Empty<DocumentAddress>();
                       }
                   }, ct);
 
-        public async Task<T> GetDocumentAsync<T>(DocumentKey key) where T : class
+        public async Task<T> GetDocumentAsync<T>(DocumentAddress address) where T : class
         {
-            var file = GetFile<T>(key);
+            var file = GetFile<T>(address);
             using var @lock = await GetLockAsync(file);
 
-            if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
+            if (!File.Exists(file)) throw new DocumentException($"No such document: {address.Key}");
 
             using FileStream FS = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
             using StreamReader SR = new StreamReader(FS);
@@ -134,11 +137,11 @@ namespace DocumentStores.Internal
             return data;
         }
 
-        public async Task<Unit> PutDocumentAsync<T>(DocumentKey key, T data) where T : class
+        public async Task<Unit> PutDocumentAsync<T>(DocumentAddress address, T data) where T : class
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
 
-            var file = GetFile<T>(key);
+            var file = GetFile<T>(address);
             using var @lock = await GetLockAsync(file);
 
             await CreateDirectoryIfMissingAsync(file);
@@ -155,14 +158,14 @@ namespace DocumentStores.Internal
         }
 
         public async Task<T> AddOrUpdateDocumentAsync<T>(
-            DocumentKey key,
+            DocumentAddress address,
             Func<string, Task<T>> addDataAsync,
             Func<string, T, Task<T>> updateDataAsync) where T : class
         {
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
             if (updateDataAsync is null) throw new ArgumentNullException(nameof(updateDataAsync));
 
-            var file = GetFile<T>(key);
+            var file = GetFile<T>(address);
             using var @lock = await GetLockAsync(file);
 
             await CreateDirectoryIfMissingAsync(file);
@@ -173,9 +176,9 @@ namespace DocumentStores.Internal
 
             async Task<T> getDataAsync() => await DeserializeAsync<T>(SR) switch
             {
-                null => await addDataAsync(key)
+                null => await addDataAsync(address.Key)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
-                T data => await updateDataAsync(key, data)
+                T data => await updateDataAsync(address.Key, data)
                     ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
             };
 
@@ -191,12 +194,12 @@ namespace DocumentStores.Internal
 
 
         public async Task<T> GetOrAddDocumentAsync<T>(
-            DocumentKey key,
+            DocumentAddress address,
             Func<string, Task<T>> addDataAsync) where T : class
         {
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
 
-            var file = GetFile<T>(key);
+            var file = GetFile<T>(address);
             using var @lock = await GetLockAsync(file);
 
             await CreateDirectoryIfMissingAsync(file);
@@ -206,7 +209,7 @@ namespace DocumentStores.Internal
             using StreamWriter SW = new StreamWriter(FS);
 
             var data = await DeserializeAsync<T>(SR)
-                ?? await addDataAsync(key)
+                ?? await addDataAsync(address.Key)
                 ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
             FS.Position = 0;
@@ -217,19 +220,19 @@ namespace DocumentStores.Internal
             return data;
         }
 
-        public async Task<Unit> DeleteDocumentAsync<T>(DocumentKey key) where T : class
+        public async Task<Unit> DeleteDocumentAsync<T>(DocumentAddress address) where T : class
         {
-            var file = GetFile<T>(key);
+            var file = GetFile<T>(address);
             using var @lock = await GetLockAsync(file);
 
-            if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
+            if (!File.Exists(file)) throw new DocumentException($"No such document: {address.Key}");
 
             File.Delete(file);
             return Unit.Default;
         }
 
         #endregion
-    
+
     }
 
 }

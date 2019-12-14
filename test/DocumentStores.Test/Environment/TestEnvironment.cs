@@ -1,6 +1,7 @@
 using System.IO;
 using NUnit.Framework;
 using System;
+using DocumentStores.Primitives;
 
 namespace DocumentStores.Test
 {
@@ -22,6 +23,9 @@ namespace DocumentStores.Test
         public static JsonFileDocumentStore GetService() =>
             new JsonFileDocumentStore(GetTestDir());
 
+        public static DocumentAddress GetAddress() =>
+            DocumentAddress.Create(Guid.NewGuid().ToString());
+            
     }
 
 

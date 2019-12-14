@@ -67,7 +67,7 @@ namespace DocumentStores.Test
 
             int mut_ActualNotificationCount = 0;
 
-            var observable = service.GetKeysObservable();
+            var observable = service.GetAddressesObservable();
             using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
 
             for (int i = 0; i < OPERATION_COUNT; i++)
@@ -99,7 +99,7 @@ namespace DocumentStores.Test
             var service = GetService()
                 .CreateTopic<string>();
 
-            const string KEY = "key";
+            const string KEY = "KEY";
 
             var res1 = service.PutDocumentAsync(KEY, "TestVal").Result;
             var res2 = service.GetDocumentAsync(KEY).Result;
@@ -114,7 +114,7 @@ namespace DocumentStores.Test
         {
             var service = GetService().CreateTopic<ImmutableCounter>();
 
-            const string KEY = "key";
+            const string KEY = "KEY";
             var counter = ImmutableCounter.Default;
 
             const int COUNT = 10;
@@ -142,8 +142,7 @@ namespace DocumentStores.Test
         [Test]
         public async Task Put_InvalidFileNameKey__ReturnsOk()
         {
-            var service = GetService()
-            .CreateTopic<ImmutableCounter>();
+            var service = GetService().CreateTopic<ImmutableCounter>();
 
             string KEY = JsonConvert.SerializeObject(new { Name = "X", Value = "Buben" });
             var counter = ImmutableCounter.Default;
@@ -161,7 +160,7 @@ namespace DocumentStores.Test
                 res.PassOrThrow();
             }
 
-            var actualKeys = (await service.GetKeysAsync()).Select(s => s.Value);
+            var actualKeys = (await service.GetAddressesAsync()).Select(s => s.Key.Value);
 
             Assert.IsTrue(
                 condition: Enumerable.SequenceEqual(
