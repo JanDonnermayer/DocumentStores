@@ -11,8 +11,8 @@ namespace DocumentStores
         /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of
         /// <see cref="IDocumentStore"/>
         /// </summary>
-        public static IDocumentTopic<TData> CreateTopic<TData>(this IDocumentStore source, DocumentRoute path) where TData : class =>
-            new DocumentTopic<TData>(source, path);
+        public static IDocumentTopic<TData> CreateTopic<TData>(this IDocumentStore source, DocumentRoute route) where TData : class =>
+            new DocumentTopic<TData>(source, route);
 
         /// <summary>
         /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of

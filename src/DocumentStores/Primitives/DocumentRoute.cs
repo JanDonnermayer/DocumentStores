@@ -53,10 +53,6 @@ namespace DocumentStores.Primitives
 
         #endregion
 
-        public static implicit operator DocumentRoute(string name) => Create(name);
-
     }
-
-
 
 }

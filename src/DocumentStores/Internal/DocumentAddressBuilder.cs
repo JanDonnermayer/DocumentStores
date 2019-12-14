@@ -26,7 +26,7 @@ namespace DocumentStores.Internal
         }
 
         public static DocumentRoute GetRoute(string path) => 
-            Path.GetDirectoryName(path).Split(separator).ToRoute().Decode();
+            path.Split(separator).ToRoute().Decode();
 
         public static DocumentAddress GetAddress(string path) => 
             GetRoute(path).ToAddress(Path.GetFileName(path)).Decode();

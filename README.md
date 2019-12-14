@@ -15,7 +15,7 @@ Features include exception-handling via result-types, and semaphores for thread-
 class Person { public string name; public int age; }
 
 var channel = new JsonFileDocumentStore("/store")
-    .GetTopic<Person>()
+    .CreateTopic<Person>()
     .CreateChannel("maintainer");
 
 await channel.AddOrUpdateDocumentAsync(
