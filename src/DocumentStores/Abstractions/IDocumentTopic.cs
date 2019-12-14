@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,12 +9,12 @@ namespace DocumentStores
     /// <summary>
     /// Provides methods for working with documents.
     /// </summary>
-    public interface IObservableDocumentStore<TData> where TData : class
+    public interface IDocumentTopic<TData> where TData : class
     {
         /// <summary>
         /// Returns all document keys.
         /// </summary>
-        IObservable<IEnumerable<string>> GetKeysObservable();
+        IObservable<IEnumerable<DocumentKey>> GetKeysObservable();
 
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,
@@ -55,7 +55,7 @@ namespace DocumentStores
         /// <summary>
         /// Returns all keys, associated to documents of <typeparamref name="TData"/>.
         /// </summary>
-        Task<IEnumerable<string>> GetKeysAsync();
+        Task<IEnumerable<DocumentKey>> GetKeysAsync();
 
         /// <summary>
         /// Saves the specified <paramref name="data"/> to the document with the specified <paramref name="key"/>.

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -9,10 +9,10 @@ namespace DocumentStores.Internal
     internal class DocumentChannel<TData>
         : IDocumentChannel<TData> where TData : class
     {
-        private readonly IObservableDocumentStore<TData> store;
+        private readonly IDocumentTopic<TData> store;
         private readonly string key;
 
-        public DocumentChannel(IObservableDocumentStore<TData> store, string key)
+        public DocumentChannel(IDocumentTopic<TData> store, string key)
         {
             if (string.IsNullOrEmpty(key)) throw new ArgumentNullException(nameof(key));
             this.store = store ?? throw new ArgumentNullException(nameof(store));

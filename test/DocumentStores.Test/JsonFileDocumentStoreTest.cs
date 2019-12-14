@@ -10,6 +10,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Reactive;
 using static DocumentStores.Test.TestEnvironment;
+using DocumentStores.Primitives;
 
 namespace DocumentStores.Test
 {
@@ -54,10 +55,10 @@ namespace DocumentStores.Test
                 store => store.DeleteDocumentAsync("KEY"));
 
         private async Task Operation_Multiple__NotifiesObserver_Multiple(
-            Func<IObservableDocumentStore<ImmutableCounter>, Task> operation)
+            Func<IDocumentTopic<ImmutableCounter>, Task> operation)
         {
             var service = GetService()
-                .AsObservableDocumentStore<ImmutableCounter>();
+                .CreateTopic<ImmutableCounter>();
 
             string KEY = Guid.NewGuid().ToString();
             const int OBSERVER_DELAY_MS = 100;
@@ -82,7 +83,7 @@ namespace DocumentStores.Test
         public void GetNonExisting_SynchronousWaiting__ReturnsError()
         {
             var service = GetService()
-                .AsObservableDocumentStore<string>();
+                .CreateTopic<string>();
 
             const string KEY = "non-existant-key";
 
@@ -96,7 +97,7 @@ namespace DocumentStores.Test
         public void PutAndGet_SynchronousWaiting__ReturnsOk()
         {
             var service = GetService()
-                .AsObservableDocumentStore<string>();
+                .CreateTopic<string>();
 
             const string KEY = "key";
 
@@ -111,7 +112,7 @@ namespace DocumentStores.Test
         [Test]
         public async Task Put_Parallel__ReturnsOk()
         {
-            var service = GetService().AsObservableDocumentStore<ImmutableCounter>();
+            var service = GetService().CreateTopic<ImmutableCounter>();
 
             const string KEY = "key";
             var counter = ImmutableCounter.Default;
@@ -142,12 +143,15 @@ namespace DocumentStores.Test
         public async Task Put_InvalidFileNameKey__ReturnsOk()
         {
             var service = GetService()
-            .AsObservableDocumentStore<ImmutableCounter>();
+            .CreateTopic<ImmutableCounter>();
 
             string KEY = JsonConvert.SerializeObject(new { Name = "X", Value = "Buben" });
             var counter = ImmutableCounter.Default;
 
-            var keys = Path.GetInvalidFileNameChars().Select(_ => $@"{_}.LOL.lel\{KEY}/''");
+            var keys = Path
+                .GetInvalidFileNameChars()
+                .Select(_ => $@"{_}.LOL.lel\{KEY}/''")
+                .Select(_ => _.ToLowerInvariant());
 
             var results = await Task.WhenAll(keys
                 .Select(_ => service.PutDocumentAsync(_, counter)));
@@ -157,13 +161,12 @@ namespace DocumentStores.Test
                 res.PassOrThrow();
             }
 
-            var actualKeys = await service.GetKeysAsync();
+            var actualKeys = (await service.GetKeysAsync()).Select(s => s.Value);
 
             Assert.IsTrue(
                 condition: Enumerable.SequenceEqual(
-                    first: keys,
-                    second: actualKeys,
-                    comparer: StringComparer.OrdinalIgnoreCase),
+                    first: keys.Select(s => s.ToLowerInvariant()),
+                    second: actualKeys.Select(s => s.ToLowerInvariant())),
                 message: "Keys differ after writing documents!");
         }
     }

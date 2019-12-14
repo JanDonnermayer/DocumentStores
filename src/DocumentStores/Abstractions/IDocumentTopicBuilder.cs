@@ -1,17 +1,17 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DocumentStores
 {
     /// <summary> </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public interface IObservableDocumentStoreBuilder : IServiceCollection
+    public interface IDocumentTopicBuilder : IServiceCollection
     {
         ///<summary>
-        /// Adds an <see cref="IObservableDocumentStore{TData}"/> 
+        /// Adds an <see cref="IDocumentTopic{TData}"/> 
         /// to the <see cref="IServiceCollection"/>
         ///</summary>
-        IObservableDocumentStoreBuilder WithObservableOn<TData>() where TData : class;
+        IDocumentTopicBuilder WithObservableOn<TData>() where TData : class;
     }
 
 }

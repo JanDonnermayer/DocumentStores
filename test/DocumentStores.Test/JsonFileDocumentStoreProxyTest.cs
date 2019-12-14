@@ -55,7 +55,7 @@ namespace DocumentStores.Test
             Func<IDocumentChannel<ImmutableCounter>, Task> operation)
         {
             var service = GetService()
-                .AsObservableDocumentStore<ImmutableCounter>();
+                .CreateTopic<ImmutableCounter>();
 
             string KEY = Guid.NewGuid().ToString();
             const int OBSERVER_DELAY_MS = 100;

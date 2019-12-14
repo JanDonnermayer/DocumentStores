@@ -1,5 +1,6 @@
 using System.Collections;
 using DocumentStores.Internal;
+using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
@@ -7,10 +8,17 @@ namespace DocumentStores
     public static class IDocumentStoreExtensions
     {
         /// <summary>
-        /// Creates an <see cref="IObservableDocumentStore{TData}"/> connected to this instance of
+        /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of
         /// <see cref="IDocumentStore"/>
         /// </summary>
-        public static IObservableDocumentStore<TData> AsObservableDocumentStore<TData>(this IDocumentStore source) where TData : class =>
-            new ObservableDocumentStore<TData>(source);
+        public static IDocumentTopic<TData> CreateTopic<TData>(this IDocumentStore source, DocumentTopicName name) where TData : class =>
+            new DocumentTopic<TData>(source, name);
+
+        /// <summary>
+        /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of
+        /// <see cref="IDocumentStore"/>
+        /// </summary>
+        public static IDocumentTopic<TData> CreateTopic<TData>(this IDocumentStore source) where TData : class =>
+            new DocumentTopic<TData>(source, DocumentTopicName.Default);
     }
 }

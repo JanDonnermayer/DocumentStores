@@ -7,7 +7,7 @@ using DocumentStores.Primitives;
 namespace DocumentStores
 {
     /// <summary>
-    /// An <see cref="IObservableDocumentStore{TData}" /> for a single document
+    /// An <see cref="IDocumentTopic{TData}" /> for a single document
     /// with a specific key.
     /// </summary>
     public interface IDocumentChannel<TData> where TData : class        

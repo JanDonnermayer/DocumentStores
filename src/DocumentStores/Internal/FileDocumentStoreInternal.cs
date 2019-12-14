@@ -61,33 +61,6 @@ namespace DocumentStores.Internal
         private async Task<T> DeserializeAsync<T>(StreamReader SR) where T : class =>
             await fileHandling.DeserializeAsync<T>(SR).ConfigureAwait(false);
 
-        // Map invalid filename chars to some weird unicode
-        private static readonly ImmutableDictionary<char, char> encodingMap =
-            Path
-                .GetInvalidFileNameChars()
-                .Select((_, i) => new KeyValuePair<char, char>(_, (char)(i + 2000)))
-                .ToImmutableDictionary();
-
-        private static readonly IImmutableDictionary<char, char> decodingMap =
-            encodingMap
-                .Select(kvp => new KeyValuePair<char, char>(kvp.Value, kvp.Key))
-                .ToImmutableDictionary();
-
-        private static string EncodeKey(string key) =>
-            new string(key.Select(_ => encodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
-
-        private static string DecodeKey(string encodedKey) =>
-            new string(encodedKey.Select(_ => decodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
-
-        // Check whether key is null,
-        // or contains anything from decoding map which would lead to collisions
-        private static void CheckKey(string key)
-        {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key));
-            if (key.Any(decodingMap.Keys.Contains))
-                throw new ArgumentException("Key contains invalid chars!", nameof(key));
-        }
 
         private ImmutableDictionary<string, SemaphoreSlim> locks =
             ImmutableDictionary<string, SemaphoreSlim>.Empty;
@@ -106,48 +79,49 @@ namespace DocumentStores.Internal
             if (!directory.Exists) directory.Create();
         }
 
-        private string GetFile<T>(string key) where T : class =>
-           Path.Combine(this.RootDirectory, this.GetSubDirectory<T>(), EncodeKey(key) + GetFileExtension<T>());
+        private string GetFile<T>(DocumentKey key) where T : class =>
+            Path.Combine(this.RootDirectory, this.GetSubDirectory<T>(), key.GetPath() + GetFileExtension<T>());
 
-        private string GetKey<T>(string file) where T : class
+        private DocumentKey GetKey<T>(string file) where T : class
         {
             var subs1 = file.Substring(
                 startIndex: RootDirectory.Length + @"\\".Length + GetSubDirectory<T>().Length);
-            var name = subs1.Substring(
+            var subpath = subs1.Substring(
                 startIndex: 0,
                 length: subs1.Length - GetFileExtension<T>().Length);
 
-            return DecodeKey(name);
+            return DocumentPathBuilder.GetKey(subpath);
         }
+
 
         #endregion
 
 
         #region Implementation of IDocumentStoreInternal 
 
-        public Task<IEnumerable<string>> GetKeysAsync<T>(CancellationToken ct = default) where T : class =>
+        public Task<IEnumerable<DocumentKey>> GetKeysAsync<T>(DocumentTopicName topicName, CancellationToken ct = default) where T : class =>
                   Task.Run(() =>
                   {
                       try
                       {
-                          var directory = Path.Combine(RootDirectory, GetSubDirectory<T>());
-                          if (!Directory.Exists(directory)) return Enumerable.Empty<string>();
+                          var directory = Path.Combine(RootDirectory, GetSubDirectory<T>(), topicName.GetPath());
+                          if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentKey>();
 
-                          return Directory.EnumerateFiles(
-                              directory,
-                              "*" + GetFileExtension<T>(),
-                              SearchOption.TopDirectoryOnly).Select(GetKey<T>);
+                          return Directory
+                            .EnumerateFiles(
+                                path: directory,
+                                searchPattern: "*" + GetFileExtension<T>(),
+                                searchOption: SearchOption.AllDirectories)
+                            .Select(GetKey<T>);
                       }
                       catch (Exception)
                       {
-                          return Enumerable.Empty<string>();
+                          return Enumerable.Empty<DocumentKey>();
                       }
                   }, ct);
 
-        public async Task<T> GetDocumentAsync<T>(string key) where T : class
+        public async Task<T> GetDocumentAsync<T>(DocumentKey key) where T : class
         {
-            CheckKey(key);
-
             var file = GetFile<T>(key);
             using var @lock = await GetLockAsync(file);
 
@@ -160,9 +134,8 @@ namespace DocumentStores.Internal
             return data;
         }
 
-        public async Task<Unit> PutDocumentAsync<T>(string key, T data) where T : class
+        public async Task<Unit> PutDocumentAsync<T>(DocumentKey key, T data) where T : class
         {
-            CheckKey(key);
             if (data == null) throw new ArgumentNullException(nameof(data));
 
             var file = GetFile<T>(key);
@@ -182,11 +155,10 @@ namespace DocumentStores.Internal
         }
 
         public async Task<T> AddOrUpdateDocumentAsync<T>(
-            string key,
+            DocumentKey key,
             Func<string, Task<T>> addDataAsync,
             Func<string, T, Task<T>> updateDataAsync) where T : class
         {
-            CheckKey(key);
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
             if (updateDataAsync is null) throw new ArgumentNullException(nameof(updateDataAsync));
 
@@ -217,11 +189,11 @@ namespace DocumentStores.Internal
             return data;
         }
 
+
         public async Task<T> GetOrAddDocumentAsync<T>(
-            string key,
+            DocumentKey key,
             Func<string, Task<T>> addDataAsync) where T : class
         {
-            CheckKey(key);
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
 
             var file = GetFile<T>(key);
@@ -245,10 +217,8 @@ namespace DocumentStores.Internal
             return data;
         }
 
-        public async Task<Unit> DeleteDocumentAsync<T>(string key) where T : class
+        public async Task<Unit> DeleteDocumentAsync<T>(DocumentKey key) where T : class
         {
-            CheckKey(key);
-
             var file = GetFile<T>(key);
             using var @lock = await GetLockAsync(file);
 

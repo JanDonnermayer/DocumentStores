@@ -16,28 +16,28 @@ namespace DocumentStores
         /// <param name="directory">The directory that is used to store documents</param>
         /// <param name="services">The services to which the <see cref="JsonFileDocumentStore"/> is added.</param>
         /// <returns></returns>
-        public static IObservableDocumentStoreBuilder AddJsonFileDocumentStore(this IServiceCollection services, string directory)
+        public static IDocumentTopicBuilder AddJsonFileDocumentStore(this IServiceCollection services, string directory)
         {
             if (services is null) throw new System.ArgumentNullException(nameof(services));
             if (string.IsNullOrEmpty(directory)) throw new System.ArgumentException("message", nameof(directory));
 
             services.AddSingleton<IDocumentStore>(_ => new JsonFileDocumentStore(directory));
-            return new ObservableDocumentStoreBuilder(services);
+            return new DocumentTopicBuilder(services);
         }
 
         #region Private Types
 
-        private class ObservableDocumentStoreBuilder : IServiceCollection, IObservableDocumentStoreBuilder
+        private class DocumentTopicBuilder : IServiceCollection, IDocumentTopicBuilder
         {
             private readonly IServiceCollection services;
 
-            public ObservableDocumentStoreBuilder(IServiceCollection services) =>
+            public DocumentTopicBuilder(IServiceCollection services) =>
                 this.services = services ?? throw new ArgumentNullException(nameof(services));
 
 
-            public IObservableDocumentStoreBuilder WithObservableOn<TData>() where TData : class
+            public IDocumentTopicBuilder WithObservableOn<TData>() where TData : class
             {
-                this.AddSingleton<IObservableDocumentStore<TData>, ObservableDocumentStore<TData>>();
+                this.AddSingleton<IDocumentTopic<TData>, DocumentTopic<TData>>();
                 return this;
             }
 

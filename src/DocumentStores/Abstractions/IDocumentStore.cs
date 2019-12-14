@@ -22,7 +22,7 @@ namespace DocumentStores
         /// inside a lock on the specific document.
         /// </remarks>
         Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
-            string key,
+            DocumentKey key,
             Func<string, Task<TData>> addDataAsync,
             Func<string, TData, Task<TData>> updateDataAsync) where TData : class;
 
@@ -34,28 +34,31 @@ namespace DocumentStores
         /// <remarks>
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> GetOrAddDocumentAsync<TData>(string key,
+        Task<Result<TData>> GetOrAddDocumentAsync<TData>(
+            DocumentKey key,
             Func<string, Task<TData>> addDataAsync) where TData : class;
 
         /// <summary>
         /// Deletes the document with the specified <paramref name="key"/>.
         /// </summary>
-        Task<Result<Unit>> DeleteDocumentAsync<TData>(string key) where TData : class;
+        Task<Result<Unit>> DeleteDocumentAsync<TData>(DocumentKey key) where TData : class;
 
         /// <summary>
         /// Returns <typeparamref name="TData"/> contained in the document with the specified <paramref name="key"/>.
         /// </summary>
-        Task<Result<TData>> GetDocumentAsync<TData>(string key) where TData : class;
+        Task<Result<TData>> GetDocumentAsync<TData>(DocumentKey key) where TData : class;
 
         /// <summary>
         /// Returns all keys, associated to documents of <typeparamref name="TData"/>.
         /// </summary>
-        Task<IEnumerable<string>> GetKeysAsync<TData>(CancellationToken ct = default) where TData : class ;
-        
+        Task<IEnumerable<DocumentKey>> GetKeysAsync<TData>(
+            DocumentTopicName topicName, 
+            CancellationToken ct = default) where TData : class;
+
         /// <summary>
         /// Saves the specified <paramref name="data"/> to a document with the specified <paramref name="key"/>
         /// </summary>
-        Task<Result<Unit>> PutDocumentAsync<TData>(string key, TData data) where TData : class;
+        Task<Result<Unit>> PutDocumentAsync<TData>(DocumentKey key, TData data) where TData : class;
     }
 
 
