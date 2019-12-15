@@ -9,9 +9,8 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal
 {
-    internal static class DocumentAddressBuilder
+    internal static class FileDocumentRouter
     {
-
         public static string ToPath(this DocumentRoute route) => 
             string.Join(
                 separator.ToString(),
@@ -26,7 +25,7 @@ namespace DocumentStores.Internal
         {
             if (string.IsNullOrEmpty(path))
                 return DocumentRoute.Default;
-
+     
             if (Path.IsPathRooted(path))
                 throw new ArgumentException("Rooted paths are not suported!");
 
@@ -82,23 +81,29 @@ namespace DocumentStores.Internal
         private static readonly char filePrefix = '$';
 
         // Map invalid filename chars to some weird unicode
-        private static readonly ImmutableDictionary<char, char> encodingMap =
+        private static readonly IImmutableDictionary<char, char> _encodingMap =
             Path
                 .GetInvalidFileNameChars()
                 .Concat(new[] { filePrefix })
                 .Select((_, i) => new KeyValuePair<char, char>(_, (char)(i + 1700)))
                 .ToImmutableDictionary();
 
-        private static readonly IImmutableDictionary<char, char> decodingMap =
-            encodingMap
+        private static readonly IImmutableDictionary<char, char> _decodingMap =
+            _encodingMap
                 .Select(kvp => new KeyValuePair<char, char>(kvp.Value, kvp.Key))
                 .ToImmutableDictionary();
 
+        private static readonly Lazy<IImmutableDictionary<char, char>> encodingMap =
+            new Lazy<IImmutableDictionary<char, char>>(() => _encodingMap);
+
+        private static readonly Lazy<IImmutableDictionary<char, char>> decodingMap =
+            new Lazy<IImmutableDictionary<char, char>>(() => _decodingMap);
+
         private static string Encode(string value) =>
-            new string(value.Select(_ => encodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
+            new string(value.Select(_ => encodingMap.Value.TryGetValue(_, out var v) ? v : _).ToArray());
 
         private static string Decode(string encodedValue) =>
-            new string(encodedValue.Select(_ => decodingMap.TryGetValue(_, out var v) ? v : _).ToArray());
+            new string(encodedValue.Select(_ => decodingMap.Value.TryGetValue(_, out var v) ? v : _).ToArray());
 
         // Check whether key is null,
         // or contains anything from decoding map which would lead to collisions
@@ -106,7 +111,7 @@ namespace DocumentStores.Internal
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
-            if (key.Any(decodingMap.Keys.Contains))
+            if (key.Any(_decodingMap.Keys.Contains))
                 throw new ArgumentException("Key contains invalid chars!", nameof(key));
             return key;
         }

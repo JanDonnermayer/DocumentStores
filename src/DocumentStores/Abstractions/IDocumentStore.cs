@@ -23,8 +23,8 @@ namespace DocumentStores
         /// </remarks>
         Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
             DocumentAddress address,
-            Func<string, Task<TData>> addDataAsync,
-            Func<string, TData, Task<TData>> updateDataAsync) where TData : class;
+            Func<DocumentAddress, Task<TData>> addDataAsync,
+            Func<DocumentAddress, TData, Task<TData>> updateDataAsync) where TData : class;
 
         /// <summary>
         /// If the document with the specified <paramref name="address"/> does not exist,
@@ -36,7 +36,7 @@ namespace DocumentStores
         /// </remarks>
         Task<Result<TData>> GetOrAddDocumentAsync<TData>(
             DocumentAddress address,
-            Func<string, Task<TData>> addDataAsync) where TData : class;
+            Func<DocumentAddress, Task<TData>> addDataAsync) where TData : class;
 
         /// <summary>
         /// Deletes the document with the specified <paramref name="address"/>.

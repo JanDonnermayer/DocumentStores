@@ -22,8 +22,8 @@ namespace DocumentStores
         /// inside a lock on the specific document.
         /// </remarks>
         Task<Result<TData>> AddOrUpdateDocumentAsync(
-            Func<string, Task<TData>> addDataAsync,
-            Func<string, TData, Task<TData>> updateDataAsync);
+            Func<Task<TData>> addDataAsync,
+            Func<TData, Task<TData>> updateDataAsync);
 
         /// <summary>
         /// If the document does not exist,
@@ -34,7 +34,7 @@ namespace DocumentStores
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
         Task<Result<TData>> GetOrAddDocumentAsync(
-            Func<string, Task<TData>> addDataAsync);
+            Func<Task<TData>> addDataAsync);
 
         /// <summary>
         /// Deletes the document.
@@ -51,11 +51,6 @@ namespace DocumentStores
         /// </summary>
         Task<Result<Unit>> PutDocumentAsync(TData data);
 
-        /// <summary>
-        /// Returns an <see cref="IObservable{TData}"/> on the data contained in the document.
-        /// </summary>
-        IObservable<TData> GetObservable();
     }
-
 
 }

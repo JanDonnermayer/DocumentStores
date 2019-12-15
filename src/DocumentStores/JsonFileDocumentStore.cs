@@ -21,8 +21,8 @@ namespace DocumentStores
 
         /// <inheritdoc/>
         public Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
-            DocumentAddress address, Func<string, Task<TData>> addDataAsync, 
-            Func<string, TData, Task<TData>> updateDataAsync) where TData : class
+            DocumentAddress address, Func<DocumentAddress, Task<TData>> addDataAsync, 
+            Func<DocumentAddress, TData, Task<TData>> updateDataAsync) where TData : class
         {
             return documentStore.AddOrUpdateDocumentAsync(address, addDataAsync, updateDataAsync);
         }
@@ -50,7 +50,7 @@ namespace DocumentStores
 
         /// <inheritdoc/>
         public Task<Result<TData>> GetOrAddDocumentAsync<TData>(DocumentAddress address, 
-            Func<string, Task<TData>> addDataAsync) where TData : class
+            Func<DocumentAddress, Task<TData>> addDataAsync) where TData : class
         {
             return documentStore.GetOrAddDocumentAsync(address, addDataAsync);
         }

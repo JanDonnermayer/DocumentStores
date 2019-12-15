@@ -27,8 +27,8 @@ namespace DocumentStores
         /// </remarks>
         Task<Result<TData>> AddOrUpdateDocumentAsync(
             DocumentKey key,
-            Func<string, Task<TData>> addDataAsync,
-            Func<string, TData, Task<TData>> updateDataAsync);
+            Func<DocumentKey, Task<TData>> addDataAsync,
+            Func<DocumentKey, TData, Task<TData>> updateDataAsync);
 
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,
@@ -40,7 +40,7 @@ namespace DocumentStores
         /// </remarks>
         Task<Result<TData>> GetOrAddDocumentAsync(
             DocumentKey key,
-            Func<string, Task<TData>> addDataAsync);
+            Func<DocumentKey, Task<TData>> addDataAsync);
 
         /// <summary>
         /// Deletes the document with the specified <paramref name="key"/>.

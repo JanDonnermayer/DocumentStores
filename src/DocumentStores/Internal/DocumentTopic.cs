@@ -55,20 +55,20 @@ namespace DocumentStores.Internal
 
         async Task<Result<TData>> IDocumentTopic<TData>.AddOrUpdateDocumentAsync(
               DocumentKey key,
-              Func<string, Task<TData>> addDataAsync,
-              Func<string, TData, Task<TData>> updateDataAsync) =>
+              Func<DocumentKey, Task<TData>> addDataAsync,
+              Func<DocumentKey, TData, Task<TData>> updateDataAsync) =>
                 await source.AddOrUpdateDocumentAsync(
                     route.ToAddress(key),
-                    (s) => WithNotification(addDataAsync(s)),
-                    (s, d) => WithNotification(updateDataAsync(s, d)))
+                    (s) => WithNotification(addDataAsync(s.Key)),
+                    (s, d) => WithNotification(updateDataAsync(s.Key, d)))
                     .ConfigureAwait(false);
 
         async Task<Result<TData>> IDocumentTopic<TData>.GetOrAddDocumentAsync(
               DocumentKey key,
-              Func<string, Task<TData>> addDataAsync) =>
+              Func<DocumentKey, Task<TData>> addDataAsync) =>
                 await source.GetOrAddDocumentAsync(
                     route.ToAddress(key),
-                    (s) => WithNotification(addDataAsync(s)))
+                    (s) => WithNotification(addDataAsync(s.Key)))
                     .ConfigureAwait(false);
 
         async Task<Result<Unit>> IDocumentTopic<TData>.DeleteDocumentAsync(DocumentKey key) =>

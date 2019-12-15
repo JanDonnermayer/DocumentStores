@@ -33,10 +33,6 @@ namespace DocumentStores
             this IDocumentStore store,
             DocumentSearchOptions options = DocumentSearchOptions.AllLevels,
             CancellationToken ct = default) where TData : class =>
-                store.GetAddressesAsync<TData>(
-                    route: DocumentRoute.Default,
-                    options: options,
-                    ct: ct);
-
+                store.GetAddressesAsync<TData>(DocumentRoute.Default, options, ct);
     }
 }

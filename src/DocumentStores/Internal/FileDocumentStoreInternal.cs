@@ -119,7 +119,7 @@ namespace DocumentStores.Internal
                                 searchPattern: "*" + GetFileExtension<T>(),
                                 searchOption: searchOption)
                             .Select(Path.GetFileNameWithoutExtension)
-                            .Select(DocumentAddressBuilder.GetKey)
+                            .Select(FileDocumentRouter.GetKey)
                             .Select(k => route.ToAddress(k));
                       }
                       catch (Exception)
@@ -164,8 +164,8 @@ namespace DocumentStores.Internal
 
         public async Task<T> AddOrUpdateDocumentAsync<T>(
             DocumentAddress address,
-            Func<string, Task<T>> addDataAsync,
-            Func<string, T, Task<T>> updateDataAsync) where T : class
+            Func<DocumentAddress, Task<T>> addDataAsync,
+            Func<DocumentAddress, T, Task<T>> updateDataAsync) where T : class
         {
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
             if (updateDataAsync is null) throw new ArgumentNullException(nameof(updateDataAsync));
@@ -181,9 +181,9 @@ namespace DocumentStores.Internal
 
             async Task<T> getDataAsync() => await DeserializeAsync<T>(SR) switch
             {
-                null => await addDataAsync(address.Key)
+                null => await addDataAsync(address)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
-                T data => await updateDataAsync(address.Key, data)
+                T data => await updateDataAsync(address, data)
                     ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
             };
 
@@ -200,7 +200,7 @@ namespace DocumentStores.Internal
 
         public async Task<T> GetOrAddDocumentAsync<T>(
             DocumentAddress address,
-            Func<string, Task<T>> addDataAsync) where T : class
+            Func<DocumentAddress, Task<T>> addDataAsync) where T : class
         {
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
 
@@ -214,7 +214,7 @@ namespace DocumentStores.Internal
             using StreamWriter SW = new StreamWriter(FS);
 
             var data = await DeserializeAsync<T>(SR)
-                ?? await addDataAsync(address.Key)
+                ?? await addDataAsync(address)
                 ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
             FS.Position = 0;

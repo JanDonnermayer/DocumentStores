@@ -19,8 +19,8 @@ namespace DocumentStores
             this IDocumentChannel<TData> source, 
             TData initialData, Func<TData, TData> updateData) where TData : class => 
                 source.AddOrUpdateDocumentAsync(
-                    _ => Task.FromResult(initialData), 
-                    (_, data) => Task.FromResult(updateData(data)));
+                    () => Task.FromResult(initialData), 
+                    data => Task.FromResult(updateData(data)));
 
 
         /// <summary>
@@ -32,6 +32,6 @@ namespace DocumentStores
             this IDocumentChannel<TData> source,
             TData initialData) where TData : class =>
                 source.GetOrAddDocumentAsync(
-                    _ => Task.FromResult(initialData));
+                    () => Task.FromResult(initialData));
     }
 }

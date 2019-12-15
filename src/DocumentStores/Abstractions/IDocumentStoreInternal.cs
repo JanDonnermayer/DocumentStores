@@ -10,11 +10,11 @@ namespace DocumentStores
     {
         Task<TData> AddOrUpdateDocumentAsync<TData>(
             DocumentAddress address,
-            Func<string, Task<TData>> addDataAsync,
-            Func<string, TData, Task<TData>> updateDataAsync) where TData : class;
+            Func<DocumentAddress, Task<TData>> addDataAsync,
+            Func<DocumentAddress, TData, Task<TData>> updateDataAsync) where TData : class;
 
         Task<TData> GetOrAddDocumentAsync<TData>(DocumentAddress address,
-            Func<string, Task<TData>> addDataAsync) where TData : class;
+            Func<DocumentAddress, Task<TData>> addDataAsync) where TData : class;
 
         Task<Unit> DeleteDocumentAsync<TData>(DocumentAddress address) where TData : class;
 
