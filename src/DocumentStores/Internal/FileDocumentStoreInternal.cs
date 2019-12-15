@@ -79,22 +79,17 @@ namespace DocumentStores.Internal
             if (!directory.Exists) directory.Create();
         }
 
+        private string GetDirectory<T>(DocumentRoute route) where T : class =>
+            Path.Combine(
+                this.RootDirectory,
+                this.GetSubDirectory<T>(),
+                route.ToPath());
+
         private string GetFile<T>(DocumentAddress address) where T : class =>
             Path.Combine(
                 this.RootDirectory,
                 this.GetSubDirectory<T>(),
                 address.ToPath() + GetFileExtension<T>());
-
-        private DocumentAddress GetAddress<T>(string file) where T : class
-        {
-            var subs1 = file.Substring(
-                startIndex: RootDirectory.Length + @"\\".Length + GetSubDirectory<T>().Length);
-            var subpath = subs1.Substring(
-                startIndex: 0,
-                length: subs1.Length - GetFileExtension<T>().Length);
-
-            return DocumentAddressBuilder.GetAddress(subpath);
-        }
 
 
         #endregion
@@ -102,20 +97,30 @@ namespace DocumentStores.Internal
 
         #region Implementation of IDocumentStoreInternal 
 
-        public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(DocumentRoute route, CancellationToken ct = default) where T : class =>
+        public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(
+            DocumentRoute route, DocumentSearchOptions options, CancellationToken ct = default) where T : class =>
                   Task.Run(() =>
                   {
                       try
                       {
-                          var directory = route.ToPath();
+                          var directory = GetDirectory<T>(route);
                           if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentAddress>();
+
+                          SearchOption searchOption = options switch
+                          {
+                              DocumentSearchOptions.TopLevelOnly => SearchOption.TopDirectoryOnly,
+                              DocumentSearchOptions.AllLevels => SearchOption.AllDirectories,
+                              _ => throw new ArgumentException($"Invalid {nameof(options)}: {options}")
+                          };
 
                           return Directory
                             .EnumerateFiles(
                                 path: directory,
                                 searchPattern: "*" + GetFileExtension<T>(),
-                                searchOption: SearchOption.AllDirectories)
-                            .Select(GetAddress<T>);
+                                searchOption: searchOption)
+                            .Select(Path.GetFileNameWithoutExtension)
+                            .Select(DocumentAddressBuilder.GetKey)
+                            .Select(k => route.ToAddress(k));
                       }
                       catch (Exception)
                       {
@@ -128,7 +133,7 @@ namespace DocumentStores.Internal
             var file = GetFile<T>(address);
             using var @lock = await GetLockAsync(file);
 
-            if (!File.Exists(file)) throw new DocumentException($"No such document: {address.Key}");
+            if (!File.Exists(file)) throw new DocumentException($"No such document: {address}");
 
             using FileStream FS = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
             using StreamReader SR = new StreamReader(FS);
@@ -225,7 +230,7 @@ namespace DocumentStores.Internal
             var file = GetFile<T>(address);
             using var @lock = await GetLockAsync(file);
 
-            if (!File.Exists(file)) throw new DocumentException($"No such document: {address.Key}");
+            if (!File.Exists(file)) throw new DocumentException($"No such document: {address}");
 
             File.Delete(file);
             return Unit.Default;

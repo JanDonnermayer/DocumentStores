@@ -33,18 +33,33 @@ namespace DocumentStores.Test
             Directory.Delete(GetRootTestDir(), recursive: true);
         }
 
+        [Test]
+        public async Task Put_Then_Delete__ContainsCorrectAddresses()
+        {
+            var service = GetService();
+            const string ADDRESS = "KEY";
+            const string VALUE = "VALUE";
+           
+            await service.PutDocumentAsync(ADDRESS, VALUE);
+            var mut_addresses = await service.GetAddressesAsync<string>();
+            Assert.IsTrue(mut_addresses.Contains(ADDRESS));
+
+            await service.DeleteDocumentAsync<string>(ADDRESS);
+            mut_addresses = await service.GetAddressesAsync<string>();
+            Assert.IsFalse(mut_addresses.Contains(ADDRESS));
+        }
 
         [Test]
         public Task Put_Multiple__NotifiesObserver_Multiple() =>
             Operation_Multiple__NotifiesObserver_Multiple(
-                store => store.PutDocumentAsync(
+                topic => topic.PutDocumentAsync(
                     key: "KEY",
                     data: ImmutableCounter.Default));
 
         [Test]
         public Task AddOrUpdate_Multiple__NotifiesObserver_Multiple() =>
             Operation_Multiple__NotifiesObserver_Multiple(
-                store => store.AddOrUpdateDocumentAsync(
+                topic => topic.AddOrUpdateDocumentAsync(
                     key: "KEY",
                     initialData: ImmutableCounter.Default,
                     updateData: c => c.Increment()));
@@ -52,13 +67,12 @@ namespace DocumentStores.Test
         [Test]
         public Task Delete_Multiple__NotifiesObserver_Multiple() =>
             Operation_Multiple__NotifiesObserver_Multiple(
-                store => store.DeleteDocumentAsync("KEY"));
+                topic => topic.DeleteDocumentAsync("KEY"));
 
         private async Task Operation_Multiple__NotifiesObserver_Multiple(
             Func<IDocumentTopic<ImmutableCounter>, Task> operation)
         {
-            var service = GetService()
-                .CreateTopic<ImmutableCounter>();
+            var service = GetService().CreateTopic<ImmutableCounter>();
 
             string KEY = Guid.NewGuid().ToString();
             const int OBSERVER_DELAY_MS = 100;
@@ -67,7 +81,7 @@ namespace DocumentStores.Test
 
             int mut_ActualNotificationCount = 0;
 
-            var observable = service.GetAddressesObservable();
+            var observable = service.GetKeysObservable();
             using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
 
             for (int i = 0; i < OPERATION_COUNT; i++)
@@ -149,23 +163,22 @@ namespace DocumentStores.Test
 
             var keys = Path
                 .GetInvalidFileNameChars()
-                .Select(_ => $@"{_}.LOL.lel\{KEY}/''")
-                .Select(_ => _.ToLowerInvariant());
+                .Select(_ => $@"{_}.$LOL.lel\{KEY}/''");
 
             var results = await Task.WhenAll(keys
-                .Select(_ => service.PutDocumentAsync(_, counter)));
+                .Select(key => service.PutDocumentAsync(key, counter)));
 
             foreach (var res in results)
             {
                 res.PassOrThrow();
             }
 
-            var actualKeys = (await service.GetAddressesAsync()).Select(s => s.Key.Value);
+            var actualKeys = (await service.GetKeysAsync()).Select(_ => _.Value);
 
             Assert.IsTrue(
                 condition: Enumerable.SequenceEqual(
-                    first: keys.Select(s => s.ToLowerInvariant()),
-                    second: actualKeys.Select(s => s.ToLowerInvariant())),
+                    first: keys,
+                    second: actualKeys),
                 message: "Keys differ after writing documents!");
         }
     }

@@ -38,8 +38,8 @@ namespace DocumentStores.Internal
 
         IObservable<TData> IDocumentChannel<TData>.GetObservable() => 
             store
-                .GetAddressesObservable()
-                .Where(addr => addr.Select(a => a.Key).Contains(key))
+                .GetKeysObservable()
+                .Where(keys => keys.Contains(key))
                 .Select(_ => Observable.FromAsync(
                         () => store.GetDocumentAsync(key)))
                 .Merge()

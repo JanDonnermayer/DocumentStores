@@ -14,7 +14,7 @@ namespace DocumentStores
         /// <summary>
         /// Returns all document keys.
         /// </summary>
-        IObservable<IEnumerable<DocumentAddress>> GetAddressesObservable();
+        IObservable<IEnumerable<DocumentKey>> GetKeysObservable();
 
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,
@@ -55,7 +55,7 @@ namespace DocumentStores
         /// <summary>
         /// Returns all keys, associated to documents of <typeparamref name="TData"/>.
         /// </summary>
-        Task<IEnumerable<DocumentAddress>> GetAddressesAsync();
+        Task<IEnumerable<DocumentKey>> GetKeysAsync();
 
         /// <summary>
         /// Saves the specified <paramref name="data"/> to the document with the specified <paramref name="key"/>.

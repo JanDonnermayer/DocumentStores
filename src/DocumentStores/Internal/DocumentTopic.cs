@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DocumentStores;
@@ -12,30 +13,35 @@ namespace DocumentStores.Internal
     {
         private readonly IDocumentStore source;
         private readonly DocumentRoute route;
-        private readonly IObserver<IEnumerable<DocumentAddress>> observer;
-        private readonly IObservable<IEnumerable<DocumentAddress>> observable;
+        private readonly IObserver<IEnumerable<DocumentKey>> observer;
+        private readonly IObservable<IEnumerable<DocumentKey>> observable;
         private readonly IDisposable disposeHandle;
 
 
         public DocumentTopic(IDocumentStore source, DocumentRoute route)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
-            this.route = route;            
-            var subject = new TaskPoolBehaviourSubject<IEnumerable<DocumentAddress>>(initial:
-                source.GetAddressesAsync<TData>(
-                    route: route,
-                    ct: new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token).Result);
+            this.route = route;
+            var subject = new TaskPoolBehaviourSubject<IEnumerable<DocumentKey>>(initial: GetKeysInternalAsync().Result);
 
             observer = subject;
             observable = subject;
             disposeHandle = subject;
         }
 
-        private async Task NotifyObserversAsync()
+        private async Task<IEnumerable<DocumentKey>> GetKeysInternalAsync()
         {
-            var keys = await source.GetAddressesAsync<TData>(route).ConfigureAwait(false);
-            observer.OnNext(keys);
+            var addresses = await source
+                .GetAddressesAsync<TData>(
+                    route: route,
+                    options: DocumentSearchOptions.TopLevelOnly,
+                    ct: new CancellationTokenSource(2000).Token)
+                .ConfigureAwait(false);
+            return addresses.Select(_ => _.Key);
         }
+
+        private async Task NotifyObserversAsync() => 
+            observer.OnNext(await GetKeysInternalAsync());
 
         private async Task<T> WithNotification<T>(Task<T> task)
         {
@@ -44,26 +50,26 @@ namespace DocumentStores.Internal
             return res;
         }
 
-        IObservable<IEnumerable<DocumentAddress>> IDocumentTopic<TData>.GetAddressesObservable() =>
+        IObservable<IEnumerable<DocumentKey>> IDocumentTopic<TData>.GetKeysObservable() =>
             this.observable;
 
         async Task<Result<TData>> IDocumentTopic<TData>.AddOrUpdateDocumentAsync(
               DocumentKey key,
               Func<string, Task<TData>> addDataAsync,
               Func<string, TData, Task<TData>> updateDataAsync) =>
-              await source.AddOrUpdateDocumentAsync(
-                  route.ToAddress(key),
-                  (s) => WithNotification(addDataAsync(s)),
-                  (s, d) => WithNotification(updateDataAsync(s, d)))
-                  .ConfigureAwait(false);
+                await source.AddOrUpdateDocumentAsync(
+                    route.ToAddress(key),
+                    (s) => WithNotification(addDataAsync(s)),
+                    (s, d) => WithNotification(updateDataAsync(s, d)))
+                    .ConfigureAwait(false);
 
         async Task<Result<TData>> IDocumentTopic<TData>.GetOrAddDocumentAsync(
               DocumentKey key,
               Func<string, Task<TData>> addDataAsync) =>
-              await source.GetOrAddDocumentAsync(
-                  route.ToAddress(key),
-                  (s) => WithNotification(addDataAsync(s)))
-                  .ConfigureAwait(false);
+                await source.GetOrAddDocumentAsync(
+                    route.ToAddress(key),
+                    (s) => WithNotification(addDataAsync(s)))
+                    .ConfigureAwait(false);
 
         async Task<Result<Unit>> IDocumentTopic<TData>.DeleteDocumentAsync(DocumentKey key) =>
             await WithNotification(source.DeleteDocumentAsync<TData>(route.ToAddress(key))).ConfigureAwait(false);
@@ -71,8 +77,8 @@ namespace DocumentStores.Internal
         async Task<Result<TData>> IDocumentTopic<TData>.GetDocumentAsync(DocumentKey key) =>
             await source.GetDocumentAsync<TData>(route.ToAddress(key)).ConfigureAwait(false);
 
-        async Task<IEnumerable<DocumentAddress>> IDocumentTopic<TData>.GetAddressesAsync() =>
-            await source.GetAddressesAsync<TData>(route).ConfigureAwait(false);
+        async Task<IEnumerable<DocumentKey>> IDocumentTopic<TData>.GetKeysAsync() =>
+            await GetKeysInternalAsync().ConfigureAwait(false);
 
         async Task<Result<Unit>> IDocumentTopic<TData>.PutDocumentAsync(DocumentKey key, TData data) =>
             await WithNotification(source.PutDocumentAsync(route.ToAddress(key), data)).ConfigureAwait(false);

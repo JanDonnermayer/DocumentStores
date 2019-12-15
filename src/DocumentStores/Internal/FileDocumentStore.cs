@@ -27,7 +27,8 @@ namespace DocumentStores.Internal
                 producer.Catch(
                     exceptionFilter: ex =>
                         ex is DocumentException
-                        || ex is IOException);
+                        || ex is IOException
+                        || ex is UnauthorizedAccessException);
 
         private Func<Func<Task<Result<T>>>, Func<Task<Result<T>>>> Retry<T>() where T : class =>
             producer =>
@@ -44,8 +45,9 @@ namespace DocumentStores.Internal
 
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
             DocumentRoute topicName, 
+            DocumentSearchOptions options = DocumentSearchOptions.TopLevelOnly,
             CancellationToken ct = default) where TData : class =>
-                store.GetAddressesAsync<TData>(topicName, ct);
+                store.GetAddressesAsync<TData>(topicName, options, ct);
 
         public async Task<Result<T>> AddOrUpdateDocumentAsync<T>(DocumentAddress address,
             Func<string, Task<T>> addDataAsync, Func<string, T, Task<T>> updateDataAsync) where T : class =>

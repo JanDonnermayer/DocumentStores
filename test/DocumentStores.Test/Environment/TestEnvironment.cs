@@ -22,10 +22,6 @@ namespace DocumentStores.Test
 
         public static JsonFileDocumentStore GetService() =>
             new JsonFileDocumentStore(GetTestDir());
-
-        public static DocumentAddress GetAddress() =>
-            DocumentAddress.Create(Guid.NewGuid().ToString());
             
     }
-
 }

@@ -22,9 +22,26 @@ namespace DocumentStores.Primitives
         public static DocumentAddress Create(DocumentKey key) => 
             Create(DocumentRoute.Default, key);
 
-        public DocumentAddress Map(Func<string, string> mapper) => 
-            Create(Route.Map(mapper), Key.Map(mapper));
-        
+        internal DocumentAddress MapRoute(Func<DocumentRoute, DocumentRoute> mapper) =>
+            Create(mapper(Route), Key);
+
+        internal DocumentAddress MapKey(Func<DocumentKey, DocumentKey> mapper) => 
+            Create(Route, mapper(Key));
+
+
+        #region Overrides
+            
+        public override string ToString() => 
+            $"{nameof(Route)} : {Route}, {nameof(Key)} : {Key}";
+
+        #endregion
+
+        #region Operators
+
+        public static implicit operator DocumentAddress(string key) => Create(key);
+
+
+        #endregion        
     }
 
 }

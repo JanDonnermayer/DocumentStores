@@ -55,7 +55,7 @@ namespace DocumentStores.Test
             Func<IDocumentChannel<ImmutableCounter>, Task> operation)
         {
             var service = GetService()
-                .CreateTopic<ImmutableCounter>(DocumentRoute.Create("lel").Append("lool"));
+                .CreateTopic<ImmutableCounter>("lel", "lol");
 
             string KEY = Guid.NewGuid().ToString();
             const int OBSERVER_DELAY_MS = 100;
@@ -66,7 +66,7 @@ namespace DocumentStores.Test
 
             var channel = service.CreateChannel(KEY);
 
-            var observable = service.GetAddressesObservable();
+            var observable = service.GetKeysObservable();
             using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
 
             for (int i = 0; i < OPERATION_COUNT; i++)

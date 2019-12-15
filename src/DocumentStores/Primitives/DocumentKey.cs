@@ -2,11 +2,10 @@
 
 
 using System;
-using System.Collections.Generic;
 
 namespace DocumentStores.Primitives
 {
-    public readonly struct DocumentKey
+    public readonly partial struct DocumentKey
     {
         public readonly string Value;
 
@@ -16,14 +15,23 @@ namespace DocumentStores.Primitives
             this.Value = value;
         }
 
-        public static DocumentKey Create(string key) => new DocumentKey(key);
+        public static DocumentKey Create(string value) => new DocumentKey(value);
 
-        public DocumentKey Map(Func<string, string> mapper) => Create(mapper(Value));
+        internal DocumentKey MapValue(Func<string, string> mapper) => Create(mapper(Value));
         
+        #region  Override
 
-        public static implicit operator DocumentKey(string key) => new DocumentKey(key);
+        public override string ToString() => Value;
+
+        #endregion
+
+        #region  Operators
 
         public static implicit operator string(DocumentKey key) => key.Value;
+
+        public static implicit operator DocumentKey(string value) => new DocumentKey(value);
+
+        #endregion
     }
 
 }

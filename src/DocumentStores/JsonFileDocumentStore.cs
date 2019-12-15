@@ -41,10 +41,11 @@ namespace DocumentStores
 
         /// <inheritdoc/>
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
-            DocumentRoute topicName, 
+            DocumentRoute route, 
+            DocumentSearchOptions options = DocumentSearchOptions.AllLevels,
             CancellationToken ct = default) where TData : class
         {
-            return documentStore.GetAddressesAsync<TData>(topicName, ct);
+            return documentStore.GetAddressesAsync<TData>(route, options, ct);
         }
 
         /// <inheritdoc/>
