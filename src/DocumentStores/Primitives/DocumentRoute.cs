@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,10 +9,9 @@ using System.Linq;
 namespace DocumentStores.Primitives
 {
 
-    public readonly struct DocumentRoute
+    public readonly struct DocumentRoute : IEnumerable<string>
     {
         private readonly ImmutableArray<string> segments;
-        public readonly IEnumerable<string> Segments => segments;
 
         private DocumentRoute(IEnumerable<string> segments) =>
             this.segments = (segments ?? throw new ArgumentNullException(nameof(segments)))
@@ -55,7 +55,17 @@ namespace DocumentStores.Primitives
 
         /// <inheritdoc/>
         public override string ToString() =>
-           $"[{String.Join(", ", Segments.ToArray())}]";
+           $"[{String.Join(", ", segments.ToArray())}]";
+
+
+        /// <inheritdoc/>
+        public IEnumerator<string> GetEnumerator() => 
+            ((IEnumerable<string>)segments).GetEnumerator();
+
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => 
+            ((IEnumerable<string>)segments).GetEnumerator();
 
         #endregion
 

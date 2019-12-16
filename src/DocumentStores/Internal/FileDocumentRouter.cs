@@ -11,42 +11,34 @@ namespace DocumentStores.Internal
 {
     internal static class FileDocumentRouter
     {
-        public static string ToPath(this DocumentRoute route) => 
+        public static string ToPath(this DocumentRoute route) =>
             string.Join(
                 separator.ToString(),
-                route.Encode().Segments.ToArray());
+                route.Encode().Append("").ToArray());
 
-        public static string ToPath(this DocumentAddress address) => 
+        public static string ToPath(this DocumentAddress address) =>
             string.Join(
                 separator.ToString(),
-                address.Route.Encode().Segments.Append(address.Key.Encode().Value).ToArray());
+                address.Route.Encode().Append(address.Key.Encode().Value).ToArray());
 
         public static DocumentRoute GetRoute(string path)
         {
             if (string.IsNullOrEmpty(path))
                 return DocumentRoute.Default;
-     
+
             if (Path.IsPathRooted(path))
                 throw new ArgumentException("Rooted paths are not suported!");
 
-            return path
-                .Split(separator)
-                .Where(_ => !IsFileFormat(_))
-                .ToRoute()
-                .Decode();
+            return Path
+                    .GetDirectoryName(path)
+                    .Split(separator)
+                    .ToRoute()
+                    .Decode();
         }
 
         public static DocumentKey GetKey(string path)
         {
-            var file = path.Split(separator).LastOrDefault(IsFileFormat);
-
-            if (string.IsNullOrEmpty(file))
-                throw new FormatException(
-                    "Last segment of path has to be in FileFormat!"
-                    + " path: "
-                    + path);
-
-            return DocumentKey.Create(file).Decode();
+            return DocumentKey.Create(Path.GetFileName(path)).Decode();
         }
 
         public static DocumentAddress ToAddress(this DocumentRoute route, DocumentKey key) =>
@@ -56,7 +48,7 @@ namespace DocumentStores.Internal
             DocumentRoute.Create(segments);
 
         private static DocumentKey Encode(this DocumentKey source) =>
-            source.MapValue(CheckChars).MapValue(Encode).MapValue(ApplyFileFormat);
+            source.MapValue(CheckChars).MapValue(Encode);
 
         private static DocumentRoute Encode(this DocumentRoute source) =>
             source.MapSegments(CheckChars).MapSegments(Encode);
@@ -65,26 +57,16 @@ namespace DocumentStores.Internal
             source.MapSegments(Decode);
 
         private static DocumentKey Decode(this DocumentKey source) =>
-            source.MapValue(RemoveFileFormat).MapValue(Decode);
+            source.MapValue(Decode);
 
-        private static string ApplyFileFormat(string value) =>
-            filePrefix + value;
-
-        private static string RemoveFileFormat(string value) =>
-            value.TrimStart(filePrefix);
-
-        private static bool IsFileFormat(string value) =>
-            value.StartsWith(filePrefix.ToString());
 
         private static readonly char separator = Path.DirectorySeparatorChar;
-
-        private static readonly char filePrefix = '$';
+        private static readonly char altSeparator = Path.AltDirectorySeparatorChar;
 
         // Map invalid filename chars to some weird unicode
         private static readonly IImmutableDictionary<char, char> _encodingMap =
             Path
                 .GetInvalidFileNameChars()
-                .Concat(new[] { filePrefix })
                 .Select((_, i) => new KeyValuePair<char, char>(_, (char)(i + 1700)))
                 .ToImmutableDictionary();
 
