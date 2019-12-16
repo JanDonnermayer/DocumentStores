@@ -15,7 +15,7 @@ namespace DocumentStores.Primitives
         public readonly string Value;
 
         private DocumentVersion(string value) => 
-            Value = value ?? throw new ArgumentNullException(nameof(value));
+            Value = value ?? throw new ArgumentException("Null or empty value!", nameof(value));
 
         public static DocumentVersion Create(string value) =>
             new DocumentVersion(value);

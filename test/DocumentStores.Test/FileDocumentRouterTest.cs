@@ -2,6 +2,7 @@
 using DocumentStores.Internal;
 using System.Linq;
 using DocumentStores.Primitives;
+using System;
 
 namespace DocumentStores.Test
 {
@@ -9,34 +10,63 @@ namespace DocumentStores.Test
     class FileDocumentRouterTest
     {
 
-        [TestCase("A/B/C/", ExpectedResult = 3)]
-        [TestCase("A/B/C", ExpectedResult = 2)]
-        public int GetRoute_CorrectLength(string path)
+        [TestCase(@"A\B\", ExpectedResult = 2)]
+        [TestCase(@"A\B", ExpectedResult = 1)]
+        [TestCase(@"A\", ExpectedResult = 1)]
+        [TestCase("A/B/", ExpectedResult = 2)]
+        [TestCase("A/B", ExpectedResult = 1)]
+        [TestCase("A/", ExpectedResult = 1)]
+        [TestCase("A", ExpectedResult = 1)]
+        public int ValidPath_GetRoute_ReturnsCorrectLength(string path)
         {
             var route = FileDocumentRouter.GetRoute(path);
-
             return route.Count();
         }
 
-        [TestCase("A/B", ExpectedResult = "B")]
-        [TestCase("/B", ExpectedResult = "B")]
-        [TestCase("B", ExpectedResult = "B")]
-        public string GetKey_CorrectValue(string path)
+        [TestCase(@"\A")] 
+        [TestCase("/A")]  
+        [TestCase("")]
+        [TestCase(null)]
+        public void InvalidPath_GetRoute_ThrowsArgumentException(string path)
+        {
+            Assert.Throws<ArgumentException>(() => 
+                FileDocumentRouter.GetRoute(path));
+        }
+
+
+        [TestCase(@"A\B\", ExpectedResult = @"A\B\")]
+        [TestCase(@"A\B", ExpectedResult = @"A\")]
+        [TestCase(@"A\", ExpectedResult = @"A\")]
+        [TestCase("A/B/", ExpectedResult = @"A\B\")]
+        [TestCase("A/B", ExpectedResult = @"A\")]
+        [TestCase("A/", ExpectedResult = @"A\")]
+        [TestCase("A", ExpectedResult = @"A\")]
+        public string ValidPath_GetRoute_ToPath_ReturnsCorrectValue(string path)
+        {
+            var route = FileDocumentRouter.GetRoute(path);
+            return route.ToPath();
+        }
+
+        [TestCase(@"\A", ExpectedResult = "A")] 
+        [TestCase("/A", ExpectedResult = "A")]  
+        [TestCase(@"A\B", ExpectedResult = "B")]
+        [TestCase(@"A/B", ExpectedResult = "B")]
+        [TestCase(@"A", ExpectedResult = "A")]
+        [TestCase(@"A.A", ExpectedResult = "A.A")]
+        public string ValidPath_GetKey_ReturnsCorrectValue(string path)
         {
             var key = FileDocumentRouter.GetKey(path);
-
             return key;
         }
 
-        [Test]
-        public void ValidRoute_RoundTripped_Equals()
+
+        [TestCase("")]
+        [TestCase(null)]
+        public void InvalidPath_GetKey_ThrowsArgumentException(string path)
         {
-            var initialRoute = DocumentRoute.Create("A", "B", "C");
-            var roundTrippedRoute = FileDocumentRouter.GetRoute(initialRoute.ToPath());
-
-            Assert.AreEqual(initialRoute, roundTrippedRoute);
+            Assert.Throws<ArgumentException>(() => 
+                FileDocumentRouter.GetKey(path));
         }
-
 
     }
 

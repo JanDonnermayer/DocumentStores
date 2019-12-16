@@ -12,7 +12,7 @@ namespace DocumentStores.Primitives
 
         private DocumentKey(string value, DocumentVersion version)
         {
-            if (string.IsNullOrEmpty(value)) throw new ArgumentNullException(nameof(value)); 
+            if (string.IsNullOrEmpty(value)) throw new ArgumentException("Null or empty value!", nameof(value)); 
             this.Value = value;
             this.Version = version;
         }

@@ -24,13 +24,19 @@ namespace DocumentStores.Internal
         public static DocumentRoute GetRoute(string path)
         {
             if (string.IsNullOrEmpty(path))
-                return DocumentRoute.Default;
+                throw new ArgumentException("Value is null or empty!", nameof(path));
 
             if (Path.IsPathRooted(path))
-                throw new ArgumentException("Rooted paths are not suported!");
+                throw new ArgumentException("Rooted paths are not suported!", nameof(path));
 
-            return Path
-                    .GetDirectoryName(path)
+    	    static string GetDirectoryName(string path) =>
+                Path.GetDirectoryName(path) switch 
+                {
+                    "" => path,
+                    string _path => _path
+                };
+
+            return GetDirectoryName(path)
                     .Split(separator)
                     .ToRoute()
                     .Decode();
@@ -38,6 +44,9 @@ namespace DocumentStores.Internal
 
         public static DocumentKey GetKey(string path)
         {
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentException("Value is null or empty!", nameof(path));
+                
             return DocumentKey.Create(Path.GetFileName(path)).Decode();
         }
 
@@ -89,13 +98,13 @@ namespace DocumentStores.Internal
 
         // Check whether key is null,
         // or contains anything from decoding map which would lead to collisions
-        private static string CheckChars(string key)
+        private static string CheckChars(string value)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key));
-            if (key.Any(_decodingMap.Keys.Contains))
-                throw new ArgumentException("Key contains invalid chars!", nameof(key));
-            return key;
+            if (string.IsNullOrEmpty(value))
+                throw new ArgumentException("Value is null or empty!", nameof(value));               
+            if (value.Any(_decodingMap.Keys.Contains))
+                throw new ArgumentException("Key contains invalid chars!", nameof(value));
+            return value;
         }
 
 
