@@ -38,16 +38,16 @@ namespace DocumentStores.Primitives
                     .Select(m => m.Value)
                     .Select(int.Parse);
             }
-            
+
             var n1 = matchNumbers(this.Value);
             var n2 = matchNumbers(other.Value);
 
-            static IEnumerable<int> concatZeros(IEnumerable<int> source, int totalCount) =>
-                source.Concat(Enumerable.Repeat(0, Math.Max(0, totalCount - source.Count())));
+            static IEnumerable<T> padRight<T>(IEnumerable<T> source, T paddingValue, int totalCount) =>
+                source.Concat(Enumerable.Repeat(paddingValue, Math.Max(0, totalCount - source.Count())));
 
             return Enumerable.Zip(
-                concatZeros(n1, n2.Count()),
-                concatZeros(n2, n1.Count()),
+                padRight(n1, 0, n2.Count()),
+                padRight(n2, 0, n1.Count()),
                 (t, o) => t - o
             ).FirstOrDefault(i => i != 0);
         }
