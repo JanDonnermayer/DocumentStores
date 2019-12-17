@@ -29,9 +29,6 @@ namespace DocumentStores.Internal
             if (Path.IsPathRooted(path))
                 throw new ArgumentException("Rooted paths are not suported!", nameof(path));
 
-            if (path.StartsWith(separator.ToString()) || path.StartsWith(altSeparator.ToString()))
-                throw new ArgumentException("Absolute paths are not supported!", nameof(path));
-
     	    static string GetDirectoryName(string path) =>
                 Path.GetDirectoryName(path) switch 
                 {
