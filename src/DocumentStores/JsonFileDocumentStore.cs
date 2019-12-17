@@ -15,13 +15,15 @@ namespace DocumentStores
         /// <summary/> 
         public JsonFileDocumentStore(string directory)
         {
-            var handling = new JsonFileHandling();
-            this.documentStore = new FileDocumentStore(directory, handling);
+            this.documentStore = new DocumentStore(
+                new JsonFileDocumentSerializer(),
+                new FileDocumentRouter(directory, ".json")
+            );
         }
 
         /// <inheritdoc/>
         public Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
-            DocumentAddress address, Func<DocumentAddress, Task<TData>> addDataAsync, 
+            DocumentAddress address, Func<DocumentAddress, Task<TData>> addDataAsync,
             Func<DocumentAddress, TData, Task<TData>> updateDataAsync) where TData : class
         {
             return documentStore.AddOrUpdateDocumentAsync(address, addDataAsync, updateDataAsync);
@@ -41,7 +43,7 @@ namespace DocumentStores
 
         /// <inheritdoc/>
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
-            DocumentRoute route, 
+            DocumentRoute route,
             DocumentSearchOptions options = DocumentSearchOptions.AllLevels,
             CancellationToken ct = default) where TData : class
         {
@@ -49,7 +51,7 @@ namespace DocumentStores
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> GetOrAddDocumentAsync<TData>(DocumentAddress address, 
+        public Task<Result<TData>> GetOrAddDocumentAsync<TData>(DocumentAddress address,
             Func<DocumentAddress, Task<TData>> addDataAsync) where TData : class
         {
             return documentStore.GetOrAddDocumentAsync(address, addDataAsync);

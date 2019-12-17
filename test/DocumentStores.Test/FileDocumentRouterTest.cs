@@ -12,6 +12,9 @@ namespace DocumentStores.Test
     class FileDocumentRouterTest
     {
 
+        private FileDocumentRouter GetDocumentRouter() =>
+            new FileDocumentRouter();
+
         [TestCase(@"A\B\", ExpectedResult = 2)]
         [TestCase(@"A\B", ExpectedResult = 1)]
         [TestCase(@"A\", ExpectedResult = 1)]
@@ -21,7 +24,7 @@ namespace DocumentStores.Test
         [TestCase("A", ExpectedResult = 1)]
         public int ValidPath_GetRoute_ReturnsCorrectLength(string path)
         {
-            var route = FileDocumentRouter.GetRoute(path);
+            var route = FileDocumentRouterInternal.GetRoute(path);
             return route.Count();
         }
 
@@ -32,7 +35,7 @@ namespace DocumentStores.Test
         public void InvalidPath_GetRoute_ThrowsArgumentException(string path)
         {
             Assert.Throws<ArgumentException>(() =>
-                FileDocumentRouter.GetRoute(path));
+                FileDocumentRouterInternal.GetRoute(path));
         }
 
 
@@ -52,7 +55,7 @@ namespace DocumentStores.Test
         [TestCase("A", ExpectedResult = "A/", IncludePlatform = "Linux")]
         public string ValidPath_GetRoute_ToPath_ReturnsCorrectValue(string path)
         {
-            var route = FileDocumentRouter.GetRoute(path);
+            var route = FileDocumentRouterInternal.GetRoute(path);
             return route.ToPath();
         }
 
@@ -65,7 +68,7 @@ namespace DocumentStores.Test
         [TestCase(@"A.A", ExpectedResult = "A.A")]
         public string ValidPath_GetKey_ReturnsCorrectValue(string path)
         {
-            var key = FileDocumentRouter.GetKey(path);
+            var key = FileDocumentRouterInternal.GetKey(path);
             return key;
         }
 
@@ -75,7 +78,7 @@ namespace DocumentStores.Test
         public void InvalidPath_GetKey_ThrowsArgumentException(string path)
         {
             Assert.Throws<ArgumentException>(() =>
-                FileDocumentRouter.GetKey(path));
+                FileDocumentRouterInternal.GetKey(path));
         }
 
 

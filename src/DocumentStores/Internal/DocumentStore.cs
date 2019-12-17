@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using DocumentStores.Primitives;
 using DocumentStores.Internal;
@@ -11,13 +11,13 @@ using System.ComponentModel;
 namespace DocumentStores.Internal
 {
 
-    internal class FileDocumentStore : IDocumentStore       
+    internal class DocumentStore : IDocumentStore
     {
         private readonly IDocumentStoreInternal store;
 
-        public FileDocumentStore(string directory, IFileHandling handling)
+        public DocumentStore(IDocumentSerializer serializer, IDocumentRouter router)
         {
-            this.store = new FileDocumentStoreInternal(directory, handling);
+            this.store = new DocumentStoreInternal(serializer, router);
         }
 
         #region Private members
@@ -26,9 +26,7 @@ namespace DocumentStores.Internal
             producer =>
                 producer.Catch(
                     exceptionFilter: ex =>
-                        ex is DocumentException
-                        || ex is IOException
-                        || ex is UnauthorizedAccessException);
+                        ex is DocumentException);
 
         private Func<Func<Task<Result<T>>>, Func<Task<Result<T>>>> Retry<T>() where T : class =>
             producer =>
@@ -44,7 +42,7 @@ namespace DocumentStores.Internal
         #region Implementation of IDocumentStore
 
         Task<IEnumerable<DocumentAddress>> IDocumentStore.GetAddressesAsync<TData>(
-            DocumentRoute topicName, 
+            DocumentRoute topicName,
             DocumentSearchOptions options,
             CancellationToken ct) where TData : class =>
                 store.GetAddressesAsync<TData>(topicName, options, ct);
