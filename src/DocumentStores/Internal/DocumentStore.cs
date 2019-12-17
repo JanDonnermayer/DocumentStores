@@ -26,7 +26,9 @@ namespace DocumentStores.Internal
             producer =>
                 producer.Catch(
                     exceptionFilter: ex =>
-                        ex is DocumentException);
+                        ex is IOException 
+                        || ex is UnauthorizedAccessException 
+                        || ex is DocumentException);
 
         private Func<Func<Task<Result<T>>>, Func<Task<Result<T>>>> Retry<T>() where T : class =>
             producer =>

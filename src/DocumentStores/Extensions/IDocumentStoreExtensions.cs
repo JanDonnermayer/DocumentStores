@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,6 +11,35 @@ namespace DocumentStores
     /// <summary/> 
     public static class IDocumentStoreExtensions
     {
+        /// <summary>
+        /// If the document with the specified <paramref name="address"/> does not exist,
+        /// adds the specfied <paramref name="initialData"/>.
+        /// Else: Updates it using the specified <paramref name="updateData"/> delegate.
+        /// </summary>
+        /// <remarks>
+        /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
+        /// </remarks>
+        public static Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
+            this IDocumentStore source, DocumentAddress address,
+            TData initialData, Func<TData, TData> updateData) where TData : class =>
+                source.AddOrUpdateDocumentAsync(
+                    address: address,
+                    addDataAsync: _ => Task.FromResult(initialData),
+                    updateDataAsync: (_, data) => Task.FromResult(updateData(data)));
+
+
+        /// <summary>
+        /// If the document with the specified <paramref name="address"/> does not exist,
+        /// adds the specfied <paramref name="initialData"/>.
+        /// Else: Returns it.
+        /// </summary>
+        public static Task<Result<TData>> GetOrAddDocumentAsync<TData>(
+            this IDocumentStore source, DocumentAddress address,
+            TData initialData) where TData : class =>
+                source.GetOrAddDocumentAsync(
+                    address: address,
+                    addDataAsync: _ => Task.FromResult(initialData));
+
         /// <summary>
         /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of
         /// <see cref="IDocumentStore"/>

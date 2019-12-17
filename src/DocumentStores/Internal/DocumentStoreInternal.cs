@@ -10,15 +10,6 @@ using DocumentStores.Primitives;
 namespace DocumentStores.Internal
 {
 
-    /// <summary>
-    /// An <see cref="IDocumentStoreInternal"/>-Implementation,
-    /// that uses files, to store serializable data.
-    /// </summary>
-    /// <remarks>
-    /// Each document is stored as a separate file with the following path:
-    /// "[RootDirectory]/[DataType]/[key].[extension]".
-    /// Keys are cleaned in order to be valid file-names.
-    /// </remarks>
     internal class DocumentStoreInternal : IDocumentStoreInternal
     {
 
@@ -38,7 +29,6 @@ namespace DocumentStores.Internal
         private readonly IDocumentSerializer serializer;
 
         private readonly IDocumentRouter router;
-
 
         private ImmutableDictionary<DocumentAddress, SemaphoreSlim> locks =
             ImmutableDictionary<DocumentAddress, SemaphoreSlim>.Empty;
@@ -62,7 +52,10 @@ namespace DocumentStores.Internal
         public async Task<T> GetDocumentAsync<T>(DocumentAddress address) where T : class
         {
             using var @lock = await GetLockAsync(address);
-            if (!router.Exists<T>(address)) throw new DocumentException($"No such document: {address}");
+
+            if (!router.Exists<T>(address))
+                throw new DocumentException($"No such document: {address}");
+
             using var stream = router.GetReadStream<T>(address);
 
             return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
@@ -70,11 +63,13 @@ namespace DocumentStores.Internal
 
         public async Task<Unit> PutDocumentAsync<T>(DocumentAddress address, T data) where T : class
         {
-            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
 
             using var @lock = await GetLockAsync(address);
-            using var stream = router.GetWriteStream<T>(address);
 
+            router.Delete<T>(address);
+            using var stream = router.GetWriteStream<T>(address);
             await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
 
             return Unit.Default;
@@ -85,8 +80,11 @@ namespace DocumentStores.Internal
             Func<DocumentAddress, Task<T>> addDataAsync,
             Func<DocumentAddress, T, Task<T>> updateDataAsync) where T : class
         {
-            if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
-            if (updateDataAsync is null) throw new ArgumentNullException(nameof(updateDataAsync));
+            if (addDataAsync is null)
+                throw new ArgumentNullException(nameof(addDataAsync));
+
+            if (updateDataAsync is null)
+                throw new ArgumentNullException(nameof(updateDataAsync));
 
             using var @lock = await GetLockAsync(address);
 
@@ -97,12 +95,16 @@ namespace DocumentStores.Internal
 
                 using var stream = router.GetReadStream<T>(address);
                 var data = await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
-                return await updateDataAsync(address, data) ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!");
+
+                return await updateDataAsync(address, data)
+                    ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!");
             }
 
             var data = await GetDocumentAsync();
+
+            router.Delete<T>(address);
             using var stream = router.GetWriteStream<T>(address);
-            await serializer.SerializeAsync(stream, data);
+            await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
 
             return data;
         }
@@ -112,37 +114,38 @@ namespace DocumentStores.Internal
             DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync) where T : class
         {
-            if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
+            if (addDataAsync is null)
+                throw new ArgumentNullException(nameof(addDataAsync));
 
-            var file = GetFile<T>(address);
-            using var @lock = await GetLockAsync(file);
+            using var @lock = await GetLockAsync(address);
 
-            await CreateDirectoryIfMissingAsync(file);
+            if (router.Exists<T>(address))
+            {
+                using var stream = router.GetReadStream<T>(address);
+                return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
+            }
+            else
+            {
+                var data = await addDataAsync(address)
+                    ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
-            using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-            using StreamReader SR = new StreamReader(FS);
-            using StreamWriter SW = new StreamWriter(FS);
+                router.Delete<T>(address);
+                using var stream = router.GetWriteStream<T>(address);
+                await serializer.SerializeAsync<T>(stream, data).ConfigureAwait(false);
 
-            var data = await DeserializeAsync<T>(SR)
-                ?? await addDataAsync(address)
-                ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
-
-            FS.Position = 0;
-            await SerializeAsync(data, SW);
-            SW.Flush();
-            FS.SetLength(FS.Position);
-
-            return data;
+                return data;
+            }
         }
 
         public async Task<Unit> DeleteDocumentAsync<T>(DocumentAddress address) where T : class
         {
-            var file = GetFile<T>(address);
-            using var @lock = await GetLockAsync(file);
+            using var @lock = await GetLockAsync(address);
 
-            if (!File.Exists(file)) throw new DocumentException($"No such document: {address}");
+            if (!router.Exists<T>(address))
+                throw new DocumentException($"No such document: {address}");
 
-            File.Delete(file);
+            router.Delete<T>(address);
+
             return Unit.Default;
         }
 

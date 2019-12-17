@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace DocumentStores.Primitives
 {
-    public readonly struct DocumentVersion : IComparable<DocumentVersion>
+    internal readonly struct DocumentVersion : IComparable<DocumentVersion>
     {
         private const string DEFAULT_VALUE = "*";
 

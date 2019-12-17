@@ -5,26 +5,20 @@ using System;
 
 namespace DocumentStores.Primitives
 {
-    public readonly struct DocumentKey 
+    public readonly struct DocumentKey
     {
         public readonly string Value;
-        public readonly DocumentVersion Version;
 
-        private DocumentKey(string value, DocumentVersion version)
+        private DocumentKey(string value)
         {
-            if (string.IsNullOrEmpty(value)) throw new ArgumentException("Null or empty value!", nameof(value)); 
+            if (string.IsNullOrEmpty(value)) throw new ArgumentException("Null or empty value!", nameof(value));
             this.Value = value;
-            this.Version = version;
         }
 
-        public static DocumentKey Create(string value, DocumentVersion version) => 
-            new DocumentKey(value, version);
-
-        public static DocumentKey Create(string value) => 
-            Create(value, DocumentVersion.Default);
+        public static DocumentKey Create(string value) => new DocumentKey(value);
 
         internal DocumentKey MapValue(Func<string, string> mapper) => Create(mapper(Value));
-        
+
         #region  Override
 
         public override string ToString() => Value;

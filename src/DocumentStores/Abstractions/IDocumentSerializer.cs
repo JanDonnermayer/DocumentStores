@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace DocumentStores
 {
     /// <summary>
-    /// Defines handling of files.
+    /// Provides serialization.
     /// </summary>
     internal interface IDocumentSerializer
     {

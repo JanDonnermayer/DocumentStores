@@ -14,7 +14,11 @@ namespace DocumentStores.Internal
         private string GetRootDirectory<TDocument>() =>
             Path.Combine(
                 rootDirectory,
-                typeof(TDocument).ShortName(true).Replace(">", "}").Replace("<", "{"));
+                typeof(TDocument)
+                    .ShortName(true)
+                    .Replace(">", "}")
+                    .Replace("<", "{")
+            );
 
 
         private readonly string rootDirectory;
@@ -48,6 +52,9 @@ namespace DocumentStores.Internal
 
 
         #region  IDocumentRouter
+
+        public bool Exists<TDocument>(DocumentAddress address) =>
+            File.Exists(GetFilePath<TDocument>(address));
 
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TDocument>(
             DocumentRoute route,
@@ -85,7 +92,8 @@ namespace DocumentStores.Internal
         public Stream GetReadStream<TDocument>(DocumentAddress address)
         {
             var file = GetFilePath<TDocument>(address);
-            if (!File.Exists(file)) return Stream.Null;
+            if (!File.Exists(file))
+                throw new DocumentException($"No such document: {address}");
 
             return File.OpenRead(file);
         }
@@ -99,8 +107,14 @@ namespace DocumentStores.Internal
             return File.OpenWrite(file);
         }
 
-        public bool Exists<TDocument>(DocumentAddress address) =>
-            File.Exists(GetFilePath<TDocument>(address));
+        public void Delete<TDocument>(DocumentAddress address)
+        {
+            var file = GetFilePath<TDocument>(address);
+            if (!File.Exists(file)) return;
+
+            File.Delete(file);
+        }
+
 
         #endregion
     }

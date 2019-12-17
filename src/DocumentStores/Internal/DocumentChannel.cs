@@ -22,9 +22,9 @@ namespace DocumentStores.Internal
             Func<Task<TData>> addDataAsync,
             Func<TData, Task<TData>> updateDataAsync) =>
                 topic.AddOrUpdateDocumentAsync(
-                    key, 
-                    _ => addDataAsync(), 
-                    (_, data) => updateDataAsync(data));
+                    key: key,
+                    addDataAsync: _ => addDataAsync(),
+                    updateDataAsync: (_, data) => updateDataAsync(data));
 
         Task<Result<Unit>> IDocumentChannel<TData>.DeleteDocumentAsync() => 
             topic.DeleteDocumentAsync(key);

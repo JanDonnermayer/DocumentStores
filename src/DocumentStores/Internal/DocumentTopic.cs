@@ -29,6 +29,9 @@ namespace DocumentStores.Internal
             disposeHandle = subject;
         }
 
+        private static DocumentAddress Combine(DocumentRoute route, DocumentKey key) =>
+            DocumentAddress.Create(route, key);
+
         private async Task<IEnumerable<DocumentKey>> GetKeysInternalAsync()
         {
             var addresses = await source
@@ -58,7 +61,7 @@ namespace DocumentStores.Internal
               Func<DocumentKey, Task<TData>> addDataAsync,
               Func<DocumentKey, TData, Task<TData>> updateDataAsync) =>
                 await source.AddOrUpdateDocumentAsync(
-                    route.ToAddress(key),
+                    Combine(route, key),
                     (s) => WithNotification(addDataAsync(s.Key)),
                     (s, d) => WithNotification(updateDataAsync(s.Key, d)))
                     .ConfigureAwait(false);
@@ -67,21 +70,21 @@ namespace DocumentStores.Internal
               DocumentKey key,
               Func<DocumentKey, Task<TData>> addDataAsync) =>
                 await source.GetOrAddDocumentAsync(
-                    route.ToAddress(key),
+                    Combine(route, key),
                     (s) => WithNotification(addDataAsync(s.Key)))
                     .ConfigureAwait(false);
 
         async Task<Result<Unit>> IDocumentTopic<TData>.DeleteDocumentAsync(DocumentKey key) =>
-            await WithNotification(source.DeleteDocumentAsync<TData>(route.ToAddress(key))).ConfigureAwait(false);
+            await WithNotification(source.DeleteDocumentAsync<TData>(Combine(route, key))).ConfigureAwait(false);
 
         async Task<Result<TData>> IDocumentTopic<TData>.GetDocumentAsync(DocumentKey key) =>
-            await source.GetDocumentAsync<TData>(route.ToAddress(key)).ConfigureAwait(false);
+            await source.GetDocumentAsync<TData>(Combine(route, key)).ConfigureAwait(false);
 
         async Task<IEnumerable<DocumentKey>> IDocumentTopic<TData>.GetKeysAsync() =>
             await GetKeysInternalAsync().ConfigureAwait(false);
 
         async Task<Result<Unit>> IDocumentTopic<TData>.PutDocumentAsync(DocumentKey key, TData data) =>
-            await WithNotification(source.PutDocumentAsync(route.ToAddress(key), data)).ConfigureAwait(false);
+            await WithNotification(source.PutDocumentAsync(Combine(route, key), data)).ConfigureAwait(false);
 
         public void Dispose() => disposeHandle.Dispose();
     }
