@@ -50,7 +50,11 @@ namespace DocumentStores.Internal
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("Value is null or empty!", nameof(path));
                 
-            return DocumentKey.Create(Path.GetFileName(path)).Decode();
+            var fileName = Path.GetFileName(path)
+                .Replace(separator.ToString(), string.Empty)
+                .Replace(altSeparator.ToString(), string.Empty);
+
+            return DocumentKey.Create(fileName).Decode();
         }
 
         public static DocumentAddress ToAddress(this DocumentRoute route, DocumentKey key) =>

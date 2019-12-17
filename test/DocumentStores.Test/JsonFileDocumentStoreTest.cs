@@ -153,7 +153,7 @@ namespace DocumentStores.Test
         }
 
 
-        // [Test]
+        [TestCase(IncludePlatform="Win")]
         public async Task Put_InvalidFileNameKey__ReturnsOk()
         {
             var service = GetService().CreateTopic<ImmutableCounter>();

@@ -117,7 +117,7 @@ namespace DocumentStores.Internal
                             .EnumerateFiles(
                                 path: directory,
                                 searchPattern: "*" + GetFileExtension<T>(),
-                                searchOption: searchOption)
+                                searchOption: searchOption)      
                             .Select(Path.GetFileNameWithoutExtension)
                             .Select(FileDocumentRouter.GetKey)
                             .Select(k => route.ToAddress(k));
