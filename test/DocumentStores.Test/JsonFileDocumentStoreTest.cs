@@ -29,7 +29,9 @@ namespace DocumentStores.Test
         [OneTimeTearDown]
         public void DeleteTestDirectory()
         {
-            Directory.Delete(GetRootTestDir(), recursive: true);
+            var dir = GetRootTestDir();
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
         }
 
 
