@@ -46,12 +46,8 @@ namespace DocumentStores.Internal
         {
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("Value is null or empty!", nameof(path));
-                
-            var fileName = Path.GetFileName(path)
-                .Replace(separator.ToString(), string.Empty)
-                .Replace(altSeparator.ToString(), string.Empty);
-
-            return DocumentKey.Create(fileName).Decode();
+        
+            return DocumentKey.Create(Path.GetFileName(path)).Decode();
         }
 
         public static DocumentAddress ToAddress(this DocumentRoute route, DocumentKey key) =>
@@ -60,16 +56,16 @@ namespace DocumentStores.Internal
         private static DocumentRoute ToRoute(this IEnumerable<string> segments) =>
             DocumentRoute.Create(segments);
 
-        private static DocumentKey Encode(this DocumentKey source) =>
+        public static DocumentKey Encode(this DocumentKey source) =>
             source.MapValue(CheckChars).MapValue(Encode);
 
-        private static DocumentRoute Encode(this DocumentRoute source) =>
+        public static DocumentRoute Encode(this DocumentRoute source) =>
             source.MapSegments(CheckChars).MapSegments(Encode);
 
-        private static DocumentRoute Decode(this DocumentRoute source) =>
+        public static DocumentRoute Decode(this DocumentRoute source) =>
             source.MapSegments(Decode);
 
-        private static DocumentKey Decode(this DocumentKey source) =>
+        public static DocumentKey Decode(this DocumentKey source) =>
             source.MapValue(Decode);
 
 
@@ -80,7 +76,7 @@ namespace DocumentStores.Internal
         private static readonly IImmutableDictionary<char, char> _encodingMap =
             Path
                 .GetInvalidFileNameChars()
-                .Select((_, i) => new KeyValuePair<char, char>(_, (char)(i + 1700)))
+                .Select(c => new KeyValuePair<char, char>(c, (char)(c + 1000)))
                 .ToImmutableDictionary();
 
         private static readonly IImmutableDictionary<char, char> _decodingMap =
@@ -95,10 +91,10 @@ namespace DocumentStores.Internal
             new Lazy<IImmutableDictionary<char, char>>(() => _decodingMap);
 
         private static string Encode(string value) =>
-            new string(value.Select(_ => encodingMap.Value.TryGetValue(_, out var v) ? v : _).ToArray());
+            new string(value.Select(c => encodingMap.Value.TryGetValue(c, out var v) ? v : c).ToArray());
 
         private static string Decode(string encodedValue) =>
-            new string(encodedValue.Select(_ => decodingMap.Value.TryGetValue(_, out var v) ? v : _).ToArray());
+            new string(encodedValue.Select(c => decodingMap.Value.TryGetValue(c, out var v) ? v : c).ToArray());
 
         // Check whether key is null,
         // or contains anything from decoding map which would lead to collisions

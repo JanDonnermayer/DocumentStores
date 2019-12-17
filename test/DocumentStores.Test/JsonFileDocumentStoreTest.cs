@@ -30,7 +30,9 @@ namespace DocumentStores.Test
         [OneTimeTearDown]
         public void DeleteTestDirectory()
         {
-            Directory.Delete(GetRootTestDir(), recursive: true);
+            var dir = GetRootTestDir();
+                if (!Directory.Exists(dir))
+            Directory.Delete(dir, recursive: true);
         }
 
         [Test]
@@ -150,36 +152,6 @@ namespace DocumentStores.Test
             (await service.DeleteDocumentAsync(KEY)).PassOrThrow();
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
-        }
-
-
-        [TestCase(IncludePlatform="Win")]
-        public async Task Put_InvalidFileNameKey__ReturnsOk()
-        {
-            var service = GetService().CreateTopic<ImmutableCounter>();
-
-            string KEY = JsonConvert.SerializeObject(new { Name = "X", Value = "Buben" });
-            var counter = ImmutableCounter.Default;
-
-            var keys = Path
-                .GetInvalidFileNameChars()
-                .Select(_ => $@"{_}.$LOL.lel\{KEY}/''");
-
-            var results = await Task.WhenAll(keys
-                .Select(key => service.PutDocumentAsync(key, counter)));
-
-            foreach (var res in results)
-            {
-                res.PassOrThrow();
-            }
-
-            var actualKeys = (await service.GetKeysAsync()).Select(_ => _.Value);
-
-            Assert.IsTrue(
-                condition: Enumerable.SequenceEqual(
-                    first: keys,
-                    second: actualKeys),
-                message: "Keys differ after writing documents!");
         }
     }
 }

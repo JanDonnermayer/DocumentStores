@@ -7,7 +7,7 @@ using System.IO;
 
 namespace DocumentStores.Test
 {
-    
+
     [TestFixture]
     class FileDocumentRouterTest
     {
@@ -25,13 +25,13 @@ namespace DocumentStores.Test
             return route.Count();
         }
 
-        [TestCase(@"\A")] 
-        [TestCase("/A")]  
+        [TestCase(@"\A")]
+        [TestCase("/A")]
         [TestCase("")]
         [TestCase(null)]
         public void InvalidPath_GetRoute_ThrowsArgumentException(string path)
         {
-            Assert.Throws<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() =>
                 FileDocumentRouter.GetRoute(path));
         }
 
@@ -57,8 +57,8 @@ namespace DocumentStores.Test
         }
 
 
-        [TestCase(@"\A", ExpectedResult = "A")] 
-        [TestCase("/A", ExpectedResult = "A")]  
+        [TestCase(@"\A", ExpectedResult = "A")]
+        [TestCase("/A", ExpectedResult = "A")]
         [TestCase(@"A\B", ExpectedResult = "B")]
         [TestCase(@"A/B", ExpectedResult = "B")]
         [TestCase(@"A", ExpectedResult = "A")]
@@ -74,8 +74,32 @@ namespace DocumentStores.Test
         [TestCase(null)]
         public void InvalidPath_GetKey_ThrowsArgumentException(string path)
         {
-            Assert.Throws<ArgumentException>(() => 
+            Assert.Throws<ArgumentException>(() =>
                 FileDocumentRouter.GetKey(path));
+        }
+
+
+        [Test]
+        public void InvalidPathCharKeys_Encode_Decode_IsEqual()
+        {
+            var values = Path.GetInvalidFileNameChars().Select(c => c.ToString());
+
+            var keys = values.Select(DocumentKey.Create).ToArray();
+            var roundTrippedKeys= keys.Select(k => k.Encode()).Select(k => k.Decode()).ToArray();
+
+            Assert.AreEqual(keys, roundTrippedKeys);
+        }
+
+        
+        [Test]
+        public void InvalidPathCharRoutes_Encode_Decode_IsEqual()
+        {
+            var values = Path.GetInvalidFileNameChars().Select(c => c.ToString());
+            
+            var routes = values.Select(c => DocumentRoute.Create(c)).ToArray();
+            var roundTrippedRoutes= routes.Select(k => k.Encode()).Select(k => k.Decode()).ToArray();
+
+            Assert.AreEqual(routes, roundTrippedRoutes);
         }
 
     }
