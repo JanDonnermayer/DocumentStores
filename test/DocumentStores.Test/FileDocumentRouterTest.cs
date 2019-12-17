@@ -3,9 +3,11 @@ using DocumentStores.Internal;
 using System.Linq;
 using DocumentStores.Primitives;
 using System;
+using System.IO;
 
 namespace DocumentStores.Test
 {
+    
     [TestFixture]
     class FileDocumentRouterTest
     {
@@ -34,18 +36,26 @@ namespace DocumentStores.Test
         }
 
 
-        [TestCase(@"A\B\", ExpectedResult = @"A\B\")]
-        [TestCase(@"A\B", ExpectedResult = @"A\")]
-        [TestCase(@"A\", ExpectedResult = @"A\")]
-        [TestCase("A/B/", ExpectedResult = @"A\B\")]
-        [TestCase("A/B", ExpectedResult = @"A\")]
-        [TestCase("A/", ExpectedResult = @"A\")]
-        [TestCase("A", ExpectedResult = @"A\")]
+        [TestCase(@"A\B\", ExpectedResult = @"A\B\", IncludePlatform = "Win")]
+        [TestCase(@"A\B", ExpectedResult = @"A\", IncludePlatform = "Win")]
+        [TestCase(@"A\", ExpectedResult = @"A\", IncludePlatform = "Win")]
+        [TestCase("A/B/", ExpectedResult = @"A\B\", IncludePlatform = "Win")]
+        [TestCase("A/B", ExpectedResult = @"A\", IncludePlatform = "Win")]
+        [TestCase("A/", ExpectedResult = @"A\", IncludePlatform = "Win")]
+        [TestCase("A", ExpectedResult = @"A\", IncludePlatform = "Win")]
+        [TestCase(@"A\B\", ExpectedResult = "A/B/", IncludePlatform = "Linux")]
+        [TestCase(@"A\B", ExpectedResult = "A/", IncludePlatform = "Linux")]
+        [TestCase(@"A\", ExpectedResult = "A/", IncludePlatform = "Linux")]
+        [TestCase("A/B/", ExpectedResult = "A/B/", IncludePlatform = "Linux")]
+        [TestCase("A/B", ExpectedResult = "A/", IncludePlatform = "Linux")]
+        [TestCase("A/", ExpectedResult = "A/", IncludePlatform = "Linux")]
+        [TestCase("A", ExpectedResult = "A/", IncludePlatform = "Linux")]
         public string ValidPath_GetRoute_ToPath_ReturnsCorrectValue(string path)
         {
             var route = FileDocumentRouter.GetRoute(path);
             return route.ToPath();
         }
+
 
         [TestCase(@"\A", ExpectedResult = "A")] 
         [TestCase("/A", ExpectedResult = "A")]  
