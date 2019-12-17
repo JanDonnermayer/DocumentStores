@@ -138,35 +138,5 @@ namespace DocumentStores.Test
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
         }
-
-
-        [Test]
-        public async Task Put_InvalidFileNameKey__ReturnsOk()
-        {
-            var service = GetService()
-            .AsObservableDocumentStore<ImmutableCounter>();
-
-            string KEY = JsonConvert.SerializeObject(new { Name = "X", Value = "Buben" });
-            var counter = ImmutableCounter.Default;
-
-            var keys = Path.GetInvalidFileNameChars().Select(_ => $@"{_}.LOL.lel\{KEY}/''");
-
-            var results = await Task.WhenAll(keys
-                .Select(_ => service.PutDocumentAsync(_, counter)));
-
-            foreach (var res in results)
-            {
-                res.PassOrThrow();
-            }
-
-            var actualKeys = await service.GetKeysAsync();
-
-            Assert.IsTrue(
-                condition: Enumerable.SequenceEqual(
-                    first: keys,
-                    second: actualKeys,
-                    comparer: StringComparer.OrdinalIgnoreCase),
-                message: "Keys differ after writing documents!");
-        }
     }
 }
