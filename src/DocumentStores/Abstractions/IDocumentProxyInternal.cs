@@ -2,7 +2,7 @@ using System.IO;
 
 namespace DocumentStores.Internal
 {
-    internal interface IDocumentProxyInternal<TDocument>
+    internal interface IDocumentProxyInternal<TData>
     {
         Stream GetReadStream();
 

@@ -4,29 +4,29 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal
 {
-    internal class DocumentProxyInternal<TDocument> : IDocumentProxyInternal<TDocument>
+    internal class DocumentProxyInternal<TData> : IDocumentProxyInternal<TData>
     {
-        private readonly IDocumentRouter router;
-        
+        private readonly IDocumentStoreInternal router;
+
         private readonly DocumentAddress address;
 
-        public DocumentProxyInternal(IDocumentRouter router, DocumentAddress address)
+        public DocumentProxyInternal(IDocumentStoreInternal router, DocumentAddress address)
         {
             this.router = router ?? throw new ArgumentNullException(nameof(router));
             this.address = address;
         }
 
-        void IDocumentProxyInternal<TDocument>.Delete() => 
-            router.Delete<TDocument>(address);
+        void IDocumentProxyInternal<TData>.Delete() => 
+            router.Delete<TData>(address);
 
-        bool IDocumentProxyInternal<TDocument>.Exists() => 
-            router.Exists<TDocument>(address);
+        bool IDocumentProxyInternal<TData>.Exists() => 
+            router.Exists<TData>(address);
 
-        Stream IDocumentProxyInternal<TDocument>.GetReadStream() => 
-            router.GetReadStream<TDocument>(address);
+        Stream IDocumentProxyInternal<TData>.GetReadStream() => 
+            router.GetReadStream<TData>(address);
 
-        Stream IDocumentProxyInternal<TDocument>.GetWriteStream() => 
-            router.GetWriteStream<TDocument>(address);
+        Stream IDocumentProxyInternal<TData>.GetWriteStream() => 
+            router.GetWriteStream<TData>(address);
     }
 
 }

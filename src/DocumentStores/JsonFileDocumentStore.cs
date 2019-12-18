@@ -17,7 +17,7 @@ namespace DocumentStores
         {
             this.documentStore = new DocumentStore(
                 new JsonFileDocumentSerializer(),
-                new FileDocumentRouter(directory, ".json")
+                new FileDocumentStoreInternal(directory, ".json")
             );
         }
 

@@ -10,12 +10,12 @@ using DocumentStores.Primitives;
 namespace DocumentStores.Internal
 {
 
-    internal class DocumentStoreInternal : IDocumentStoreInternal
+    internal class DocumentStoreAdapter : IDocumentStoreAdapter
     {
 
         #region Constructor
 
-        public DocumentStoreInternal(IDocumentSerializer serializer, IDocumentRouter router)
+        public DocumentStoreAdapter(IDocumentSerializer serializer, IDocumentStoreInternal router)
         {
             this.router = router ?? throw new ArgumentNullException(nameof(router));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -28,10 +28,10 @@ namespace DocumentStores.Internal
 
         private readonly IDocumentSerializer serializer;
 
-        private readonly IDocumentRouter router;
+        private readonly IDocumentStoreInternal router;
 
-        private IDocumentProxyInternal<TDocument> GetDocumentProxyInternal<TDocument>(DocumentAddress address) =>
-            router.CreateProxy<TDocument>(address);
+        private IDocumentProxyInternal<TData> GetDocumentProxy<TData>(DocumentAddress address) =>
+            router.CreateProxy<TData>(address);
 
         private ImmutableDictionary<DocumentAddress, SemaphoreSlim> locks =
             ImmutableDictionary<DocumentAddress, SemaphoreSlim>.Empty;
@@ -46,7 +46,7 @@ namespace DocumentStores.Internal
         #endregion
 
 
-        #region Implementation of IDocumentStoreInternal 
+        #region Implementation of IDocumentStoreAdapter 
 
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(
             DocumentRoute route, DocumentSearchOptions options, CancellationToken ct = default) where T : class =>
@@ -56,7 +56,7 @@ namespace DocumentStores.Internal
         {
             using var @lock = await GetLockAsync(address);
 
-            var router = GetDocumentProxyInternal<T>(address);
+            var router = GetDocumentProxy<T>(address);
 
             if (!router.Exists())
                 throw new DocumentException($"No such document: {address}");
@@ -73,7 +73,7 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var router = GetDocumentProxyInternal<T>(address);
+            var router = GetDocumentProxy<T>(address);
 
             router.Delete();
             using var stream = router.GetWriteStream();
@@ -95,7 +95,7 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxyInternal<T>(address);
+            var document = GetDocumentProxy<T>(address);
 
             async Task<T> GetDataAsync()
             {
@@ -128,7 +128,7 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxyInternal<T>(address);
+            var document = GetDocumentProxy<T>(address);
 
             if (document.Exists())
             {
@@ -152,7 +152,7 @@ namespace DocumentStores.Internal
         {
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxyInternal<T>(address);
+            var document = GetDocumentProxy<T>(address);
 
             if (!document.Exists())
                 throw new DocumentException($"No such document: {address}");

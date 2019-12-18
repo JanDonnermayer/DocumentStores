@@ -13,11 +13,11 @@ namespace DocumentStores.Internal
 
     internal class DocumentStore : IDocumentStore
     {
-        private readonly IDocumentStoreInternal store;
+        private readonly IDocumentStoreAdapter store;
 
-        public DocumentStore(IDocumentSerializer serializer, IDocumentRouter router)
+        public DocumentStore(IDocumentSerializer serializer, IDocumentStoreInternal router)
         {
-            this.store = new DocumentStoreInternal(serializer, router);
+            this.store = new DocumentStoreAdapter(serializer, router);
         }
 
         #region Private members
