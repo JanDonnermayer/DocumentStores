@@ -5,7 +5,7 @@ using DocumentStores.Primitives;
 namespace DocumentStores
 {
     /// <summary/> 
-    public static class IDocumentChannelExtensions
+    public static class IDocumentProxyExtensions
     {
         /// <summary>
         /// If the document does not exist,
@@ -16,7 +16,7 @@ namespace DocumentStores
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
         /// </remarks>
         public static Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
-            this IDocumentChannel<TData> source, 
+            this IDocumentProxy<TData> source, 
             TData initialData, Func<TData, TData> updateData) where TData : class => 
                 source.AddOrUpdateDocumentAsync(
                     () => Task.FromResult(initialData), 
@@ -29,7 +29,7 @@ namespace DocumentStores
         /// Else: Returns it.
         /// </summary>
         public static Task<Result<TData>> GetOrAddDocumentAsync<TData>(
-            this IDocumentChannel<TData> source,
+            this IDocumentProxy<TData> source,
             TData initialData) where TData : class =>
                 source.GetOrAddDocumentAsync(
                     () => Task.FromResult(initialData));

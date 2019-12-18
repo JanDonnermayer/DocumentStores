@@ -5,7 +5,7 @@ namespace DocumentStores
 {
     internal static class IDocumentRouterExtensions
     {
-        public static IDocumentProxy<TDocument> CreateProxy<TDocument>(this IDocumentRouter router, DocumentAddress address) => 
-            new DocumentRouteProxy<TDocument>(router, address);
+        public static IDocumentProxyInternal<TDocument> CreateProxy<TDocument>(this IDocumentRouter router, DocumentAddress address) => 
+            new DocumentProxyInternal<TDocument>(router, address);
     }
 }

@@ -30,7 +30,7 @@ namespace DocumentStores.Internal
 
         private readonly IDocumentRouter router;
 
-        private IDocumentProxy<TDocument> GetDocumentProxy<TDocument>(DocumentAddress address) =>
+        private IDocumentProxyInternal<TDocument> GetDocumentProxyInternal<TDocument>(DocumentAddress address) =>
             router.CreateProxy<TDocument>(address);
 
         private ImmutableDictionary<DocumentAddress, SemaphoreSlim> locks =
@@ -56,7 +56,7 @@ namespace DocumentStores.Internal
         {
             using var @lock = await GetLockAsync(address);
 
-            var router = GetDocumentProxy<T>(address);
+            var router = GetDocumentProxyInternal<T>(address);
 
             if (!router.Exists())
                 throw new DocumentException($"No such document: {address}");
@@ -73,7 +73,7 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var router = GetDocumentProxy<T>(address);
+            var router = GetDocumentProxyInternal<T>(address);
 
             router.Delete();
             using var stream = router.GetWriteStream();
@@ -95,7 +95,7 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxy<T>(address);
+            var document = GetDocumentProxyInternal<T>(address);
 
             async Task<T> GetDataAsync()
             {
@@ -128,7 +128,7 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxy<T>(address);
+            var document = GetDocumentProxyInternal<T>(address);
 
             if (document.Exists())
             {
@@ -152,7 +152,7 @@ namespace DocumentStores.Internal
         {
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxy<T>(address);
+            var document = GetDocumentProxyInternal<T>(address);
 
             if (!document.Exists())
                 throw new DocumentException($"No such document: {address}");

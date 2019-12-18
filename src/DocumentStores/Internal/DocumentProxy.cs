@@ -6,19 +6,19 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal
 {
-    internal class DocumentChannel<TData>
-        : IDocumentChannel<TData> where TData : class
+    internal class DocumentProxy<TData>
+        : IDocumentProxy<TData> where TData : class
     {
         private readonly IDocumentTopic<TData> topic;
         private readonly DocumentKey key;
 
-        public DocumentChannel(IDocumentTopic<TData> topic, DocumentKey key)
+        public DocumentProxy(IDocumentTopic<TData> topic, DocumentKey key)
         {
             this.topic = topic ?? throw new ArgumentNullException(nameof(topic));
             this.key = key;
         }
 
-        Task<Result<TData>> IDocumentChannel<TData>.AddOrUpdateDocumentAsync(
+        Task<Result<TData>> IDocumentProxy<TData>.AddOrUpdateDocumentAsync(
             Func<Task<TData>> addDataAsync,
             Func<TData, Task<TData>> updateDataAsync) =>
                 topic.AddOrUpdateDocumentAsync(
@@ -26,17 +26,17 @@ namespace DocumentStores.Internal
                     addDataAsync: _ => addDataAsync(),
                     updateDataAsync: (_, data) => updateDataAsync(data));
 
-        Task<Result<Unit>> IDocumentChannel<TData>.DeleteDocumentAsync() => 
+        Task<Result<Unit>> IDocumentProxy<TData>.DeleteDocumentAsync() => 
             topic.DeleteDocumentAsync(key);
 
-        Task<Result<TData>> IDocumentChannel<TData>.GetDocumentAsync() => 
+        Task<Result<TData>> IDocumentProxy<TData>.GetDocumentAsync() => 
             topic.GetDocumentAsync(key);
 
-        Task<Result<TData>> IDocumentChannel<TData>.GetOrAddDocumentAsync(
+        Task<Result<TData>> IDocumentProxy<TData>.GetOrAddDocumentAsync(
             Func<Task<TData>> addDataAsync) => 
                 topic.GetOrAddDocumentAsync(key, _ => addDataAsync());
 
-        Task<Result<Unit>> IDocumentChannel<TData>.PutDocumentAsync(TData data) => 
+        Task<Result<Unit>> IDocumentProxy<TData>.PutDocumentAsync(TData data) => 
             topic.PutDocumentAsync(key, data);
 
     }
