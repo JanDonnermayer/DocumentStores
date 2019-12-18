@@ -16,7 +16,7 @@ class Person { public string name; public int age; }
 
 var channel = new JsonFileDocumentStore("/store")
     .CreateTopic<Person>("contributors")
-    .CreateChannel("maintainer");
+    .CreateProxy("maintainer");
 
 await channel.AddOrUpdateDocumentAsync(
     initialData: new Person() { name = "Jan", age = 24 },

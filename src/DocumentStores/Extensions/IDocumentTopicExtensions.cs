@@ -73,7 +73,7 @@ namespace DocumentStores
         /// <summary>
         /// Creates a channel for the document with the specified <paramref name="key"/>
         /// </summary>
-        public static IDocumentProxy<TData> CreateChannel<TData>(
+        public static IDocumentProxy<TData> CreateProxy<TData>(
             this IDocumentTopic<TData> source, DocumentKey key) where TData : class =>
                 new DocumentProxy<TData>(source, key);
 
