@@ -7,8 +7,7 @@ using DocumentStores.Primitives;
 namespace DocumentStores
 {
     /// <summary>
-    /// An <see cref="IDocumentTopic{TData}" /> for a single document
-    /// with a specific key.
+    /// A view on a single document.
     /// </summary>
     public interface IDocumentProxy<TData> where TData : class        
     {

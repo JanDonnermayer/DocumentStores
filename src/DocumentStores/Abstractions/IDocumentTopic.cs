@@ -7,7 +7,7 @@ using DocumentStores.Primitives;
 namespace DocumentStores
 {
     /// <summary>
-    /// Provides methods for working with documents.
+    /// A view on documents at a given route.
     /// </summary>
     public interface IDocumentTopic<TData> where TData : class
     {

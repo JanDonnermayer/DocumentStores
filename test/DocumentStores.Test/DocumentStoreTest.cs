@@ -17,7 +17,7 @@ namespace DocumentStores.Test
     [TestFixture]
     class DocumentStoreTest
     {
-        private static String GetRootTestDir() =>
+        private static string GetRootTestDir() =>
             Path.Combine(
                 Path.GetTempPath(),
                 TestContext.CurrentContext.Test.ClassName
