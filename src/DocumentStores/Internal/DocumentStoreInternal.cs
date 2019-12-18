@@ -88,7 +88,7 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            async Task<T> GetDocumentAsync()
+            async Task<T> GetDataAsync()
             {
                 if (!router.Exists<T>(address)) return await addDataAsync(address)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
@@ -100,7 +100,7 @@ namespace DocumentStores.Internal
                     ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!");
             }
 
-            var data = await GetDocumentAsync();
+            var data = await GetDataAsync();
 
             router.Delete<T>(address);
             using var stream = router.GetWriteStream<T>(address);
