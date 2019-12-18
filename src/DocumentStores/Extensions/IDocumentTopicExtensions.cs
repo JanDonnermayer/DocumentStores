@@ -71,7 +71,7 @@ namespace DocumentStores
                 source.GetDocumentsAsync(_ => true);
 
         /// <summary>
-        /// Creates a channel for the document with the specified <paramref name="key"/>
+        /// Creates a proxy for the document with the specified <paramref name="key"/>
         /// </summary>
         public static IDocumentProxy<TData> CreateProxy<TData>(
             this IDocumentTopic<TData> source, DocumentKey key) where TData : class =>
