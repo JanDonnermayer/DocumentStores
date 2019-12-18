@@ -30,6 +30,9 @@ namespace DocumentStores.Internal
 
         private readonly IDocumentRouter router;
 
+        private IDocumentProxy<TDocument> GetDocumentProxy<TDocument>(DocumentAddress address) =>
+            router.CreateProxy<TDocument>(address);
+
         private ImmutableDictionary<DocumentAddress, SemaphoreSlim> locks =
             ImmutableDictionary<DocumentAddress, SemaphoreSlim>.Empty;
 
@@ -53,10 +56,12 @@ namespace DocumentStores.Internal
         {
             using var @lock = await GetLockAsync(address);
 
-            if (!router.Exists<T>(address))
+            var router = GetDocumentProxy<T>(address);
+
+            if (!router.Exists())
                 throw new DocumentException($"No such document: {address}");
 
-            using var stream = router.GetReadStream<T>(address);
+            using var stream = router.GetReadStream();
 
             return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
         }
@@ -68,8 +73,10 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            router.Delete<T>(address);
-            using var stream = router.GetWriteStream<T>(address);
+            var router = GetDocumentProxy<T>(address);
+
+            router.Delete();
+            using var stream = router.GetWriteStream();
             await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
 
             return Unit.Default;
@@ -88,12 +95,14 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
+            var document = GetDocumentProxy<T>(address);
+
             async Task<T> GetDataAsync()
             {
-                if (!router.Exists<T>(address)) return await addDataAsync(address)
+                if (!document.Exists()) return await addDataAsync(address)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
-                using var stream = router.GetReadStream<T>(address);
+                using var stream = document.GetReadStream();
                 var data = await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
 
                 return await updateDataAsync(address, data)
@@ -102,8 +111,8 @@ namespace DocumentStores.Internal
 
             var data = await GetDataAsync();
 
-            router.Delete<T>(address);
-            using var stream = router.GetWriteStream<T>(address);
+            document.Delete();
+            using var stream = document.GetWriteStream();
             await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
 
             return data;
@@ -119,9 +128,11 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            if (router.Exists<T>(address))
+            var document = GetDocumentProxy<T>(address);
+
+            if (document.Exists())
             {
-                using var stream = router.GetReadStream<T>(address);
+                using var stream = document.GetReadStream();
                 return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
             }
             else
@@ -129,9 +140,9 @@ namespace DocumentStores.Internal
                 var data = await addDataAsync(address)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
-                router.Delete<T>(address);
-                using var stream = router.GetWriteStream<T>(address);
-                await serializer.SerializeAsync<T>(stream, data).ConfigureAwait(false);
+                document.Delete();
+                using var stream = document.GetWriteStream();
+                await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
 
                 return data;
             }
@@ -141,10 +152,12 @@ namespace DocumentStores.Internal
         {
             using var @lock = await GetLockAsync(address);
 
-            if (!router.Exists<T>(address))
+            var document = GetDocumentProxy<T>(address);
+
+            if (!document.Exists())
                 throw new DocumentException($"No such document: {address}");
 
-            router.Delete<T>(address);
+            document.Delete();
 
             return Unit.Default;
         }

@@ -9,8 +9,8 @@ namespace DocumentStores
     internal interface IDocumentRouter
     {
         Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TDocument>(
-            DocumentRoute route, 
-            DocumentSearchOptions options, 
+            DocumentRoute route,
+            DocumentSearchOptions options,
             CancellationToken ct = default);
 
         Stream GetReadStream<TDocument>(DocumentAddress address);
