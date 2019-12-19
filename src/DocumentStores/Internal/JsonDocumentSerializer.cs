@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace DocumentStores.Internal
 {
-    internal class JsonFileDocumentSerializer : IDocumentSerializer
+    internal class JsonDocumentSerializer : IDocumentSerializer
     {
         async Task IDocumentSerializer.SerializeAsync<T>(Stream stream, T data)
         {

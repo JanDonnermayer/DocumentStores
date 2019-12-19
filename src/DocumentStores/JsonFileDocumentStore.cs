@@ -16,7 +16,7 @@ namespace DocumentStores
         public JsonFileDocumentStore(string directory)
         {
             this.documentStore = new DocumentStore(
-                new JsonFileDocumentSerializer(),
+                new JsonDocumentSerializer(),
                 new FileDataStore(directory, ".json")
             );
         }
