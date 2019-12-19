@@ -109,7 +109,7 @@ namespace DocumentStores.Test
             const string VALUE = "VALUE";
 
             var res1 = service.PutAsync(KEY, VALUE).Result;
-            var res2 = service.GetOrAddAsync<string>(KEY, VALUE).Result;
+            var res2 = service.GetOrAddAsync(KEY, VALUE).Result;
 
             Assert.IsTrue(res1.Try());
             Assert.IsTrue(res2.Try(out string val));
