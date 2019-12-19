@@ -12,7 +12,7 @@ namespace DocumentStores
     public interface IDocumentTopic<TData> where TData : class
     {
         /// <summary>
-        /// Returns all document keys.
+        /// Gets an observable on all associated document keys.
         /// </summary>
         IObservable<IEnumerable<DocumentKey>> GetKeysObservable();
 
@@ -25,7 +25,7 @@ namespace DocumentStores
         /// Both <paramref name="addDataAsync"/> as well as <paramref name="updateDataAsync"/> are excecuted
         /// inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> AddOrUpdateDocumentAsync(
+        Task<Result<TData>> AddOrUpdateAsync(
             DocumentKey key,
             Func<DocumentKey, Task<TData>> addDataAsync,
             Func<DocumentKey, TData, Task<TData>> updateDataAsync);
@@ -38,19 +38,19 @@ namespace DocumentStores
         /// <remarks>
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> GetOrAddDocumentAsync(
+        Task<Result<TData>> GetOrAddAsync(
             DocumentKey key,
             Func<DocumentKey, Task<TData>> addDataAsync);
 
         /// <summary>
         /// Deletes the document with the specified <paramref name="key"/>.
         /// </summary>
-        Task<Result<Unit>> DeleteDocumentAsync(DocumentKey key);
+        Task<Result<Unit>> DeleteAsync(DocumentKey key);
 
         /// <summary>
         /// Returns <typeparamref name="TData"/> from the document with the specified <paramref name="key"/>.
         /// </summary>
-        Task<Result<TData>> GetDocumentAsync(DocumentKey key);
+        Task<Result<TData>> GetAsync(DocumentKey key);
 
         /// <summary>
         /// Returns all keys, associated to documents of <typeparamref name="TData"/>.
@@ -61,7 +61,7 @@ namespace DocumentStores
         /// Saves the specified <paramref name="data"/> to the document with the specified <paramref name="key"/>.
         /// If the document does not exist: Creates it.
         /// </summary>
-        Task<Result<Unit>> PutDocumentAsync(DocumentKey key, TData data);
+        Task<Result<Unit>> PutAsync(DocumentKey key, TData data);
     }
 
 }

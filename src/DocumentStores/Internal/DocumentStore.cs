@@ -15,7 +15,7 @@ namespace DocumentStores.Internal
     {
         private readonly IDocumentStoreAdapter store;
 
-        public DocumentStore(IDocumentSerializer serializer, IDocumentStoreInternal store)
+        public DocumentStore(IDocumentSerializer serializer, IDataStore store)
         {
             this.store = new DocumentStoreAdapter(serializer, store);
         }
@@ -49,38 +49,38 @@ namespace DocumentStores.Internal
             CancellationToken ct) where TData : class =>
                 store.GetAddressesAsync<TData>(topicName, options, ct);
 
-        async Task<Result<T>> IDocumentStore.AddOrUpdateDocumentAsync<T>(DocumentAddress address,
+        async Task<Result<T>> IDocumentStore.AddOrUpdateAsync<T>(DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync, Func<DocumentAddress, T, Task<T>> updateDataAsync) where T : class =>
-                 await Function.ApplyArgs(store.AddOrUpdateDocumentAsync, address, addDataAsync, updateDataAsync)
+                 await Function.ApplyArgs(store.AddOrUpdateAsync, address, addDataAsync, updateDataAsync)
                         .Init(Catch<T>())
                         .Pipe(Retry<T>())
                         .Invoke()
                         .ConfigureAwait(false);
 
-        async Task<Result<T>> IDocumentStore.GetOrAddDocumentAsync<T>(DocumentAddress address,
+        async Task<Result<T>> IDocumentStore.GetOrAddAsync<T>(DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync) where T : class =>
-                await Function.ApplyArgs(store.GetOrAddDocumentAsync, address, addDataAsync)
+                await Function.ApplyArgs(store.GetOrAddAsync, address, addDataAsync)
                         .Init(Catch<T>())
                         .Pipe(Retry<T>())
                         .Invoke()
                         .ConfigureAwait(false);
 
-        async Task<Result<T>> IDocumentStore.GetDocumentAsync<T>(DocumentAddress address) where T : class =>
-            await Function.ApplyArgs(store.GetDocumentAsync<T>, address)
+        async Task<Result<T>> IDocumentStore.GetAsync<T>(DocumentAddress address) where T : class =>
+            await Function.ApplyArgs(store.GetAsync<T>, address)
                     .Init(Catch<T>())
                     .Pipe(Retry<T>())
                     .Invoke()
                     .ConfigureAwait(false);
 
-        async Task<Result<Unit>> IDocumentStore.DeleteDocumentAsync<T>(DocumentAddress address) where T : class =>
-            await Function.ApplyArgs(store.DeleteDocumentAsync<T>, address)
+        async Task<Result<Unit>> IDocumentStore.DeleteAsync<T>(DocumentAddress address) where T : class =>
+            await Function.ApplyArgs(store.DeleteAsync<T>, address)
                     .Init(Catch<Unit>())
                     .Pipe(Retry<Unit>())
                     .Invoke()
                     .ConfigureAwait(false);
 
-        async Task<Result<Unit>> IDocumentStore.PutDocumentAsync<T>(DocumentAddress address, T data) where T : class =>
-            await Function.ApplyArgs(store.PutDocumentAsync, address, data)
+        async Task<Result<Unit>> IDocumentStore.PutAsync<T>(DocumentAddress address, T data) where T : class =>
+            await Function.ApplyArgs(store.PutAsync, address, data)
                     .Init(Catch<Unit>())
                     .Pipe(Retry<Unit>())
                     .Invoke()

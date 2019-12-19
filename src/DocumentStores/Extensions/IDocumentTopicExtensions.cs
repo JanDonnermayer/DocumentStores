@@ -18,10 +18,10 @@ namespace DocumentStores
         /// <remarks>
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        public static Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
+        public static Task<Result<TData>> AddOrUpdateAsync<TData>(
             this IDocumentTopic<TData> source, DocumentKey key,
             TData initialData, Func<TData, TData> updateData) where TData : class =>
-                source.AddOrUpdateDocumentAsync(
+                source.AddOrUpdateAsync(
                     key: key,
                     addDataAsync: _ => Task.FromResult(initialData),
                     updateDataAsync: (_, data) => Task.FromResult(updateData(data)));
@@ -32,10 +32,10 @@ namespace DocumentStores
         /// adds the specfied <paramref name="initialData"/>.
         /// Else: Returns it.
         /// </summary>
-        public static Task<Result<TData>> GetOrAddDocumentAsync<TData>(
+        public static Task<Result<TData>> GetOrAddAsync<TData>(
             this IDocumentTopic<TData> source, DocumentKey key,
             TData initialData) where TData : class =>
-                source.GetOrAddDocumentAsync(
+                source.GetOrAddAsync(
                     key: key,
                     addDataAsync: _ => Task.FromResult(initialData));
 
@@ -54,7 +54,7 @@ namespace DocumentStores
 
             var resuts = await Task
                 .WhenAll(keys.Where(predicate)
-                .Select(source.GetDocumentAsync))
+                .Select(source.GetAsync))
                 .ConfigureAwait(false);
 
             return resuts

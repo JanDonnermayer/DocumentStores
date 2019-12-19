@@ -58,11 +58,11 @@ namespace DocumentStores.Test
             const string ADDRESS = "KEY";
             const string VALUE = "VALUE";
 
-            await service.PutDocumentAsync(ADDRESS, VALUE);
+            await service.PutAsync(ADDRESS, VALUE);
             var mut_addresses = await service.GetAddressesAsync<string>();
             Assert.IsTrue(mut_addresses.Contains(ADDRESS));
 
-            await service.DeleteDocumentAsync<string>(ADDRESS);
+            await service.DeleteAsync<string>(ADDRESS);
             mut_addresses = await service.GetAddressesAsync<string>();
             Assert.IsFalse(mut_addresses.Contains(ADDRESS));
         }
@@ -77,8 +77,8 @@ namespace DocumentStores.Test
             const string KEY = "KEY";
             const string VALUE = "VALUE";
 
-            var res1 = service.PutDocumentAsync(KEY, VALUE).Result;
-            var res2 = service.GetDocumentAsync<string>(KEY).Result;
+            var res1 = service.PutAsync(KEY, VALUE).Result;
+            var res2 = service.GetAsync<string>(KEY).Result;
 
             Assert.IsTrue(res1.Try());
             Assert.IsTrue(res2.Try(out string val));
@@ -94,7 +94,7 @@ namespace DocumentStores.Test
 
             const string KEY = "non-existant-key";
 
-            var res = service.GetDocumentAsync<string>(KEY).Result;
+            var res = service.GetAsync<string>(KEY).Result;
 
             Assert.IsFalse(res.Try());
         }
@@ -108,8 +108,8 @@ namespace DocumentStores.Test
             const string KEY = "KEY";
             const string VALUE = "VALUE";
 
-            var res1 = service.PutDocumentAsync(KEY, VALUE).Result;
-            var res2 = service.GetOrAddDocumentAsync<string>(KEY, VALUE).Result;
+            var res1 = service.PutAsync(KEY, VALUE).Result;
+            var res2 = service.GetOrAddAsync<string>(KEY, VALUE).Result;
 
             Assert.IsTrue(res1.Try());
             Assert.IsTrue(res2.Try(out string val));
@@ -125,7 +125,7 @@ namespace DocumentStores.Test
             const string KEY = "KEY";
             const string VALUE = "VALUE";
 
-            var res2 = service.GetOrAddDocumentAsync(KEY, VALUE).Result;
+            var res2 = service.GetOrAddAsync(KEY, VALUE).Result;
 
             Assert.IsTrue(res2.Try(out string val));
             Assert.AreEqual(VALUE, val);
@@ -149,15 +149,15 @@ namespace DocumentStores.Test
                     .Range(1, WORKER_COUNT)
                     .Select(i => Task.Run(async () => await Task
                         .WhenAll(Enumerable.Range(1, COUNT)
-                        .Select(async i => await service.AddOrUpdateDocumentAsync(
+                        .Select(async i => await service.AddOrUpdateAsync(
                             address: KEY,
                             initialData: ImmutableCounter.Default.Increment(),
                             updateData: _ => _.Increment()))))));
 
 
-            var finalCounter = (await service.GetDocumentAsync<ImmutableCounter>(KEY)).PassOrThrow();
+            var finalCounter = (await service.GetAsync<ImmutableCounter>(KEY)).PassOrThrow();
 
-            (await service.DeleteDocumentAsync<ImmutableCounter>(KEY)).PassOrThrow();
+            (await service.DeleteAsync<ImmutableCounter>(KEY)).PassOrThrow();
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
         }

@@ -1,8 +1,8 @@
-using System.IO;
+﻿using System.IO;
 
 namespace DocumentStores.Internal
 {
-    internal interface IDocumentProxyInternal<TData>
+    internal interface IDataProxy
     {
         Stream GetReadStream();
 

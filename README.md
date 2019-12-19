@@ -18,11 +18,11 @@ var proxy = new JsonFileDocumentStore("/store")
     .CreateTopic<Person>("contributors")
     .CreateProxy("maintainer");
 
-await proxy.AddOrUpdateDocumentAsync(
+await proxy.AddOrUpdateAsync(
     initialData: new Person() { name = "Jan", age = 24 },
     updateData: p => new Person() { name = p.name, age = p.age + 1 });
 
-await proxy.DeleteDocumentAsync();
+await proxy.DeleteAsync();
 ```
 
 ## Dotnet CLI

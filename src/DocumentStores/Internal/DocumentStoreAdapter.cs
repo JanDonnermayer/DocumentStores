@@ -15,9 +15,9 @@ namespace DocumentStores.Internal
 
         #region Constructor
 
-        public DocumentStoreAdapter(IDocumentSerializer serializer, IDocumentStoreInternal router)
+        public DocumentStoreAdapter(IDocumentSerializer serializer, IDataStore router)
         {
-            this.store = router ?? throw new ArgumentNullException(nameof(router));
+            this.dataStore = router ?? throw new ArgumentNullException(nameof(router));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
@@ -28,10 +28,41 @@ namespace DocumentStores.Internal
 
         private readonly IDocumentSerializer serializer;
 
-        private readonly IDocumentStoreInternal store;
+        private readonly IDataStore dataStore;
 
-        private IDocumentProxyInternal<TData> GetDocumentProxy<TData>(DocumentAddress address) =>
-            store.CreateProxy<TData>(address);
+
+        /*
+
+        private DocumentRoute GetTypedRoute<T>() =>
+            DocumentRoute
+                .Create(typeof(T)
+                    .ShortName(true)
+                    .Replace(">", "}")
+                    .Replace("<", "{"));
+
+        private DocumentRoute GetTypedRoute<T>(DocumentRoute route) =>
+            route.Prepend(GetTypedRoute<T>());
+
+        private DocumentAddress GetTypedAddress<T>(DocumentAddress address) =>
+            address.MapRoute(r => GetTypedRoute<T>(r));
+
+        */
+
+        private IDataProxy GetDataProxy(DocumentAddress address) =>
+            dataStore.CreateProxy(address);
+
+        private async Task<T> DeserializeAsync<T>(IDataProxy dataProxy) where T : class
+        {
+            using var stream = dataProxy.GetReadStream();
+            return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
+        }
+
+        private async Task SerializeAsync<T>(IDataProxy dataProxy, T data) where T : class
+        {
+            dataProxy.Delete();
+            using var stream = dataProxy.GetWriteStream();
+            await serializer.SerializeAsync<T>(stream, data).ConfigureAwait(false);
+        }
 
         private ImmutableDictionary<DocumentAddress, SemaphoreSlim> locks =
             ImmutableDictionary<DocumentAddress, SemaphoreSlim>.Empty;
@@ -50,39 +81,35 @@ namespace DocumentStores.Internal
 
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(
             DocumentRoute route, DocumentSearchOptions options, CancellationToken ct = default) where T : class =>
-                  store.GetAddressesAsync<T>(route, options, ct);
+                  dataStore.GetAddressesAsync(route, options, ct);
 
-        public async Task<T> GetDocumentAsync<T>(DocumentAddress address) where T : class
+        public async Task<T> GetAsync<T>(DocumentAddress address) where T : class
         {
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxy<T>(address);
+            var dataProxy = GetDataProxy(address);
 
-            if (!document.Exists())
+            if (!dataProxy.Exists())
                 throw new DocumentException($"No such document: {address}");
 
-            using var stream = document.GetReadStream();
-
-            return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
+            return await DeserializeAsync<T>(dataProxy);
         }
 
-        public async Task<Unit> PutDocumentAsync<T>(DocumentAddress address, T data) where T : class
+        public async Task<Unit> PutAsync<T>(DocumentAddress address, T data) where T : class
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxy<T>(address);
+            var dataProxy = GetDataProxy(address);
 
-            document.Delete();
-            using var stream = document.GetWriteStream();
-            await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
+            await SerializeAsync(dataProxy, data);
 
             return Unit.Default;
         }
 
-        public async Task<T> AddOrUpdateDocumentAsync<T>(
+        public async Task<T> AddOrUpdateAsync<T>(
             DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync,
             Func<DocumentAddress, T, Task<T>> updateDataAsync) where T : class
@@ -95,31 +122,28 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxy<T>(address);
+            var dataProxy = GetDataProxy(address);
 
             async Task<T> GetDataAsync()
             {
-                if (!document.Exists()) return await addDataAsync(address)
+                if (!dataProxy.Exists()) return await addDataAsync(address)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
-                using var stream = document.GetReadStream();
-                var data = await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
+                var data = await DeserializeAsync<T>(dataProxy);
 
-                return await updateDataAsync(address, data)
+                return await updateDataAsync(address, (T)data)
                     ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!");
             }
 
             var data = await GetDataAsync();
 
-            document.Delete();
-            using var stream = document.GetWriteStream();
-            await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
+            await SerializeAsync(dataProxy, data);
 
             return data;
         }
 
 
-        public async Task<T> GetOrAddDocumentAsync<T>(
+        public async Task<T> GetOrAddAsync<T>(
             DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync) where T : class
         {
@@ -128,36 +152,33 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxy<T>(address);
+            var dataProxy = GetDataProxy(address);
 
-            if (document.Exists())
+            if (dataProxy.Exists())
             {
-                using var stream = document.GetReadStream();
-                return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
+                return await DeserializeAsync<T>(dataProxy);
             }
             else
             {
                 var data = await addDataAsync(address)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
-                document.Delete();
-                using var stream = document.GetWriteStream();
-                await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
+                await SerializeAsync(dataProxy, data);
 
                 return data;
             }
         }
 
-        public async Task<Unit> DeleteDocumentAsync<T>(DocumentAddress address) where T : class
+        public async Task<Unit> DeleteAsync<T>(DocumentAddress address) where T : class
         {
             using var @lock = await GetLockAsync(address);
 
-            var document = GetDocumentProxy<T>(address);
+            var dataProxy = GetDataProxy(address);
 
-            if (!document.Exists())
+            if (!dataProxy.Exists())
                 throw new DocumentException($"No such document: {address}");
 
-            document.Delete();
+            dataProxy.Delete();
 
             return Unit.Default;
         }

@@ -18,26 +18,26 @@ namespace DocumentStores.Internal
             this.key = key;
         }
 
-        Task<Result<TData>> IDocumentProxy<TData>.AddOrUpdateDocumentAsync(
+        Task<Result<TData>> IDocumentProxy<TData>.AddOrUpdateAsync(
             Func<Task<TData>> addDataAsync,
             Func<TData, Task<TData>> updateDataAsync) =>
-                topic.AddOrUpdateDocumentAsync(
+                topic.AddOrUpdateAsync(
                     key: key,
                     addDataAsync: _ => addDataAsync(),
                     updateDataAsync: (_, data) => updateDataAsync(data));
 
-        Task<Result<Unit>> IDocumentProxy<TData>.DeleteDocumentAsync() => 
-            topic.DeleteDocumentAsync(key);
+        Task<Result<Unit>> IDocumentProxy<TData>.DeleteAsync() => 
+            topic.DeleteAsync(key);
 
-        Task<Result<TData>> IDocumentProxy<TData>.GetDocumentAsync() => 
-            topic.GetDocumentAsync(key);
+        Task<Result<TData>> IDocumentProxy<TData>.GetAsync() => 
+            topic.GetAsync(key);
 
-        Task<Result<TData>> IDocumentProxy<TData>.GetOrAddDocumentAsync(
+        Task<Result<TData>> IDocumentProxy<TData>.GetOrAddAsync(
             Func<Task<TData>> addDataAsync) => 
-                topic.GetOrAddDocumentAsync(key, _ => addDataAsync());
+                topic.GetOrAddAsync(key, _ => addDataAsync());
 
-        Task<Result<Unit>> IDocumentProxy<TData>.PutDocumentAsync(TData data) => 
-            topic.PutDocumentAsync(key, data);
+        Task<Result<Unit>> IDocumentProxy<TData>.PutAsync(TData data) => 
+            topic.PutAsync(key, data);
 
     }
 }

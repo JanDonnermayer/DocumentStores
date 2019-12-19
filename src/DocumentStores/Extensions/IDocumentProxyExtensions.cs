@@ -15,10 +15,10 @@ namespace DocumentStores
         /// <remarks>
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        public static Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
+        public static Task<Result<TData>> AddOrUpdateAsync<TData>(
             this IDocumentProxy<TData> source, 
             TData initialData, Func<TData, TData> updateData) where TData : class => 
-                source.AddOrUpdateDocumentAsync(
+                source.AddOrUpdateAsync(
                     () => Task.FromResult(initialData), 
                     data => Task.FromResult(updateData(data)));
 
@@ -28,10 +28,10 @@ namespace DocumentStores
         /// adds the specfied <paramref name="initialData"/>.
         /// Else: Returns it.
         /// </summary>
-        public static Task<Result<TData>> GetOrAddDocumentAsync<TData>(
+        public static Task<Result<TData>> GetOrAddAsync<TData>(
             this IDocumentProxy<TData> source,
             TData initialData) where TData : class =>
-                source.GetOrAddDocumentAsync(
+                source.GetOrAddAsync(
                     () => Task.FromResult(initialData));
     }
 }

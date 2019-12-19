@@ -46,14 +46,14 @@ namespace DocumentStores.Test
         [Test]
         public Task Put_Multiple__NotifiesObserver_Multiple() =>
             Operation_Multiple__NotifiesObserver_Multiple(
-                topic => topic.PutDocumentAsync(
+                topic => topic.PutAsync(
                     key: "KEY",
                     data: ImmutableCounter.Default));
 
         [Test]
         public Task AddOrUpdate_Multiple__NotifiesObserver_Multiple() =>
             Operation_Multiple__NotifiesObserver_Multiple(
-                topic => topic.AddOrUpdateDocumentAsync(
+                topic => topic.AddOrUpdateAsync(
                     key: "KEY",
                     initialData: ImmutableCounter.Default,
                     updateData: c => c.Increment()));
@@ -61,7 +61,7 @@ namespace DocumentStores.Test
         [Test]
         public Task Delete_Multiple__NotifiesObserver_Multiple() =>
             Operation_Multiple__NotifiesObserver_Multiple(
-                topic => topic.DeleteDocumentAsync("KEY"));
+                topic => topic.DeleteAsync("KEY"));
 
         private async Task Operation_Multiple__NotifiesObserver_Multiple(
             Func<IDocumentTopic<ImmutableCounter>, Task> operation)

@@ -17,28 +17,28 @@ namespace DocumentStores
         {
             this.documentStore = new DocumentStore(
                 new JsonFileDocumentSerializer(),
-                new FileDocumentStoreInternal(directory, ".json")
+                new FileDataStore(directory, ".json")
             );
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
+        public Task<Result<TData>> AddOrUpdateAsync<TData>(
             DocumentAddress address, Func<DocumentAddress, Task<TData>> addDataAsync,
             Func<DocumentAddress, TData, Task<TData>> updateDataAsync) where TData : class
         {
-            return documentStore.AddOrUpdateDocumentAsync(address, addDataAsync, updateDataAsync);
+            return documentStore.AddOrUpdateAsync(address, addDataAsync, updateDataAsync);
         }
 
         /// <inheritdoc/>
-        public Task<Result<Unit>> DeleteDocumentAsync<TData>(DocumentAddress address) where TData : class
+        public Task<Result<Unit>> DeleteAsync<TData>(DocumentAddress address) where TData : class
         {
-            return documentStore.DeleteDocumentAsync<TData>(address);
+            return documentStore.DeleteAsync<TData>(address);
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> GetDocumentAsync<TData>(DocumentAddress address) where TData : class
+        public Task<Result<TData>> GetAsync<TData>(DocumentAddress address) where TData : class
         {
-            return documentStore.GetDocumentAsync<TData>(address);
+            return documentStore.GetAsync<TData>(address);
         }
 
         /// <inheritdoc/>
@@ -51,16 +51,16 @@ namespace DocumentStores
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> GetOrAddDocumentAsync<TData>(DocumentAddress address,
+        public Task<Result<TData>> GetOrAddAsync<TData>(DocumentAddress address,
             Func<DocumentAddress, Task<TData>> addDataAsync) where TData : class
         {
-            return documentStore.GetOrAddDocumentAsync(address, addDataAsync);
+            return documentStore.GetOrAddAsync(address, addDataAsync);
         }
 
         /// <inheritdoc/>
-        public Task<Result<Unit>> PutDocumentAsync<TData>(DocumentAddress address, TData data) where TData : class
+        public Task<Result<Unit>> PutAsync<TData>(DocumentAddress address, TData data) where TData : class
         {
-            return documentStore.PutDocumentAsync<TData>(address, data);
+            return documentStore.PutAsync<TData>(address, data);
         }
     }
 }

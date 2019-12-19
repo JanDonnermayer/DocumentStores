@@ -20,7 +20,7 @@ namespace DocumentStores
         /// Both <paramref name="addDataAsync"/> as well as <paramref name="updateDataAsync"/> are excecuted
         /// inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> AddOrUpdateDocumentAsync(
+        Task<Result<TData>> AddOrUpdateAsync(
             Func<Task<TData>> addDataAsync,
             Func<TData, Task<TData>> updateDataAsync);
 
@@ -32,23 +32,23 @@ namespace DocumentStores
         /// <remarks>
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> GetOrAddDocumentAsync(
+        Task<Result<TData>> GetOrAddAsync(
             Func<Task<TData>> addDataAsync);
 
         /// <summary>
         /// Deletes the document.
         /// </summary>
-        Task<Result<Unit>> DeleteDocumentAsync();
+        Task<Result<Unit>> DeleteAsync();
 
         /// <summary>
         /// Returns <typeparamref name="TData"/> contained in the document.
         /// </summary>
-        Task<Result<TData>> GetDocumentAsync();
+        Task<Result<TData>> GetAsync();
 
         /// <summary>
         /// Saves the specified <paramref name="data"/> to a document.
         /// </summary>
-        Task<Result<Unit>> PutDocumentAsync(TData data);
+        Task<Result<Unit>> PutAsync(TData data);
 
     }
 

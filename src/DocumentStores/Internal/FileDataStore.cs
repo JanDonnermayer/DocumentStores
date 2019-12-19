@@ -9,42 +9,35 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal
 {
-    internal class FileDocumentStoreInternal : IDocumentStoreInternal
+    internal class FileDataStore : IDataStore
     {
-        private string GetRootDirectory<TData>() =>
-            Path.Combine(
-                rootDirectory,
-                typeof(TData)
-                    .ShortName(true)
-                    .Replace(">", "}")
-                    .Replace("<", "{")
-            );
-
+        private string GetRootDirectory() =>
+            rootDirectory;
 
         private readonly string rootDirectory;
         private readonly string fileExtension;
 
-        public FileDocumentStoreInternal(string rootDirectory, string fileExtension)
+        public FileDataStore(string rootDirectory, string fileExtension)
         {
             this.fileExtension = fileExtension;
             this.rootDirectory = rootDirectory;
         }
 
-        private string GetDirectoryPath<TData>(DocumentRoute route)
+        private string GetDirectoryPath(DocumentRoute route)
         {
             var relativePath = string.Join(
                 Path.DirectorySeparatorChar.ToString(),
                 route.Encode().Append("").ToArray());
 
             return Path.Combine(
-                GetRootDirectory<TData>(),
+                GetRootDirectory(),
                 relativePath);
         }
 
-        private string GetFilePath<TData>(DocumentAddress address)
+        private string GetFilePath(DocumentAddress address)
         {
             var path = Path.Combine(
-                GetDirectoryPath<TData>(address.Route),
+                GetDirectoryPath(address.Route),
                 address.Key.Encode());
 
             return Path.ChangeExtension(path, fileExtension);
@@ -53,10 +46,10 @@ namespace DocumentStores.Internal
 
         #region  IDocumentStoreInternal
 
-        public bool Exists<TData>(DocumentAddress address) =>
-            File.Exists(GetFilePath<TData>(address));
+        public bool Exists(DocumentAddress address) =>
+            File.Exists(GetFilePath(address));
 
-        public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
+        public Task<IEnumerable<DocumentAddress>> GetAddressesAsync(
             DocumentRoute route,
             DocumentSearchOptions options,
             CancellationToken ct = default) =>
@@ -64,7 +57,7 @@ namespace DocumentStores.Internal
                   {
                       try
                       {
-                          var directory = GetDirectoryPath<TData>(route);
+                          var directory = GetDirectoryPath(route);
                           if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentAddress>();
 
                           SearchOption searchOption = options switch
@@ -89,32 +82,31 @@ namespace DocumentStores.Internal
                   }, ct);
 
 
-        public Stream GetReadStream<TData>(DocumentAddress address)
+        public Stream GetReadStream(DocumentAddress address)
         {
-            var file = GetFilePath<TData>(address);
+            var file = GetFilePath(address);
             if (!File.Exists(file))
                 throw new DocumentException($"No such document: {address}");
 
             return File.OpenRead(file);
         }
 
-        public Stream GetWriteStream<TData>(DocumentAddress address)
+        public Stream GetWriteStream(DocumentAddress address)
         {
-            var file = GetFilePath<TData>(address);
+            var file = GetFilePath(address);
             var directory = new FileInfo(file).Directory;
             if (!directory.Exists) directory.Create();
 
             return File.OpenWrite(file);
         }
 
-        public void Delete<TData>(DocumentAddress address)
+        public void Delete(DocumentAddress address)
         {
-            var file = GetFilePath<TData>(address);
+            var file = GetFilePath(address);
             if (!File.Exists(file)) return;
 
             File.Delete(file);
         }
-
 
         #endregion
     }
