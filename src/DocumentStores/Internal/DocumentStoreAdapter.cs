@@ -17,7 +17,7 @@ namespace DocumentStores.Internal
 
         public DocumentStoreAdapter(IDocumentSerializer serializer, IDocumentStoreInternal router)
         {
-            this.router = router ?? throw new ArgumentNullException(nameof(router));
+            this.store = router ?? throw new ArgumentNullException(nameof(router));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
@@ -28,10 +28,10 @@ namespace DocumentStores.Internal
 
         private readonly IDocumentSerializer serializer;
 
-        private readonly IDocumentStoreInternal router;
+        private readonly IDocumentStoreInternal store;
 
         private IDocumentProxyInternal<TData> GetDocumentProxy<TData>(DocumentAddress address) =>
-            router.CreateProxy<TData>(address);
+            store.CreateProxy<TData>(address);
 
         private ImmutableDictionary<DocumentAddress, SemaphoreSlim> locks =
             ImmutableDictionary<DocumentAddress, SemaphoreSlim>.Empty;
@@ -50,18 +50,18 @@ namespace DocumentStores.Internal
 
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(
             DocumentRoute route, DocumentSearchOptions options, CancellationToken ct = default) where T : class =>
-                  router.GetAddressesAsync<T>(route, options, ct);
+                  store.GetAddressesAsync<T>(route, options, ct);
 
         public async Task<T> GetDocumentAsync<T>(DocumentAddress address) where T : class
         {
             using var @lock = await GetLockAsync(address);
 
-            var router = GetDocumentProxy<T>(address);
+            var document = GetDocumentProxy<T>(address);
 
-            if (!router.Exists())
+            if (!document.Exists())
                 throw new DocumentException($"No such document: {address}");
 
-            using var stream = router.GetReadStream();
+            using var stream = document.GetReadStream();
 
             return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
         }
@@ -73,10 +73,10 @@ namespace DocumentStores.Internal
 
             using var @lock = await GetLockAsync(address);
 
-            var router = GetDocumentProxy<T>(address);
+            var document = GetDocumentProxy<T>(address);
 
-            router.Delete();
-            using var stream = router.GetWriteStream();
+            document.Delete();
+            using var stream = document.GetWriteStream();
             await serializer.SerializeAsync(stream, data).ConfigureAwait(false);
 
             return Unit.Default;
