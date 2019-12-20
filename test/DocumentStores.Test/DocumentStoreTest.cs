@@ -64,7 +64,7 @@ namespace DocumentStores.Test
         {
             var service = GetService();
 
-            const string KEY = "non-existant-key";
+            const string KEY = "KEY";
 
             var res = service.GetAsync<string>(KEY).Result;
 
@@ -72,7 +72,7 @@ namespace DocumentStores.Test
         }
 
         [Test]
-        public void AddOrUpdate_NonExisting__ReturnsOk()
+        public void AddOrUpdate__ReturnsOk()
         {
             var service = GetService();
 
@@ -83,24 +83,6 @@ namespace DocumentStores.Test
 
             Assert.IsTrue(res.Try());
         }
-
-
-        [Test]
-        public void Put_And_GetOrAdd__ReturnsOk()
-        {
-            var service = GetService();
-
-            const string KEY = "KEY";
-            const string VALUE = "VALUE";
-
-            var res1 = service.PutAsync(KEY, VALUE).Result;
-            var res2 = service.GetOrAddAsync(KEY, VALUE).Result;
-
-            Assert.IsTrue(res1.Try());
-            Assert.IsTrue(res2.Try(out string val));
-            Assert.AreEqual(VALUE, val);
-        }
-
 
         [Test]
         public void GetOrAdd__ReturnsOk()
@@ -114,7 +96,6 @@ namespace DocumentStores.Test
 
             Assert.IsTrue(res2.Try(out string val));
             Assert.AreEqual(VALUE, val);
-
         }
 
 
