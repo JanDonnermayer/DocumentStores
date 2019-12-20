@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace DocumentStores.Primitives
 {
-
+    /// <InheritDoc/>
     public readonly struct DocumentRoute : IEnumerable<string>
     {
         private readonly ImmutableArray<string> segments;
@@ -17,11 +17,14 @@ namespace DocumentStores.Primitives
             this.segments = (segments ?? throw new ArgumentNullException(nameof(segments)))
                 .ToImmutableArray();
 
+        /// <InheritDoc/>
         public static DocumentRoute Default => Create(Enumerable.Empty<string>());
 
+        /// <InheritDoc/>
         public static DocumentRoute Create(IEnumerable<string> segments) =>
             new DocumentRoute(segments);
 
+        /// <InheritDoc/>
         public static DocumentRoute Create(params string[] segments) =>
             new DocumentRoute(segments);
 
@@ -38,6 +41,7 @@ namespace DocumentStores.Primitives
         internal DocumentRoute MapSegments(Func<string, string> mapper) =>
             new DocumentRoute(this.segments.Select(mapper));
 
+        /// <InheritDoc/>
         public bool StartsWith(DocumentRoute route) => 
             (route.Count() > segments.Count()) switch
             {

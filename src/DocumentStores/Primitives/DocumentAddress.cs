@@ -5,9 +5,13 @@ using System;
 
 namespace DocumentStores.Primitives
 {
+    /// <InheritDoc/>
     public readonly struct DocumentAddress
     {
+        /// <InheritDoc/>
         public readonly DocumentRoute Route;
+
+        /// <InheritDoc/>
         public readonly DocumentKey Key;
 
         private DocumentAddress(DocumentRoute route, DocumentKey key)
@@ -16,9 +20,11 @@ namespace DocumentStores.Primitives
             Key = key;
         }
 
+        /// <InheritDoc/>
         public static DocumentAddress Create(DocumentRoute route, DocumentKey key) => 
             new DocumentAddress(route, key);
 
+        /// <InheritDoc/>
         public static DocumentAddress Create(DocumentKey key) => 
             Create(DocumentRoute.Default, key);
 
@@ -31,6 +37,7 @@ namespace DocumentStores.Primitives
 
         #region Overrides
             
+        /// <InheritDoc/>
         public override string ToString() => 
             $"{nameof(Route)} : {Route}, {nameof(Key)} : {Key}";
 
@@ -38,6 +45,7 @@ namespace DocumentStores.Primitives
 
         #region Operators
 
+        /// <InheritDoc/>
         public static implicit operator DocumentAddress(string key) => Create(key);
 
 

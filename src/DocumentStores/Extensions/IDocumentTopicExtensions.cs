@@ -77,6 +77,7 @@ namespace DocumentStores
             this IDocumentTopic<TData> source) where TData : class =>
                 source.GetAllAsync(_ => true);
 
+        /// <InheritDoc/>
         public static async Task<Result<Unit>[]> SynchronizeAsync<T>(
             this IDocumentTopic<T> source, IDocumentTopic<T> target) where T : class
         {
