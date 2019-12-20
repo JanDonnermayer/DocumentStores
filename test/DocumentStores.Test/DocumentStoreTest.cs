@@ -9,68 +9,40 @@ using System.Collections.Immutable;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Reactive;
-using static DocumentStores.Test.TestEnvironment;
 using DocumentStores.Primitives;
+using DocumentStores.Internal;
 
 namespace DocumentStores.Test
 {
     [TestFixture]
     class DocumentStoreTest
     {
-        private static string GetRootTestDir() =>
-            Path.Combine(
-                Path.GetTempPath(),
-                TestContext.CurrentContext.Test.ClassName
-            );
+        private static IDocumentStore GetService() =>
+            new DocumentStore(
+                new JsonDocumentSerializer(),
+                new InMemoryDataStore());
 
-        private static string GetTestDir() =>
-            Path.Combine(
-                GetRootTestDir(),
-                TestContext.CurrentContext.Test.Name,
-                Guid.NewGuid().ToString()
-            );
-
-        private static JsonFileDocumentStore GetService() =>
-            new JsonFileDocumentStore(GetTestDir());
-
-
-        [OneTimeSetUp]
-        public void CreateTestDirectory()
-        {
-            var dir = GetRootTestDir();
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-        }
-
-
-        [OneTimeTearDown]
-        public void DeleteTestDirectory()
-        {
-            var dir = GetRootTestDir();
-            if (!Directory.Exists(dir))
-                Directory.Delete(dir, recursive: true);
-        }
 
         [Test]
-        public async Task Put_Then_Delete__ContainsCorrectAddresses()
+        public void Put_Then_Delete__ContainsCorrectAddresses()
         {
             var service = GetService();
             const string ADDRESS = "KEY";
             const string VALUE = "VALUE";
 
-            await service.PutAsync(ADDRESS, VALUE);
-            var mut_addresses = await service.GetAddressesAsync<string>();
+            service.PutAsync(ADDRESS, VALUE).Wait();
+            var mut_addresses = service.GetAddressesAsync<string>().Result;
             Assert.IsTrue(mut_addresses.Contains(ADDRESS));
 
-            await service.DeleteAsync<string>(ADDRESS);
-            mut_addresses = await service.GetAddressesAsync<string>();
+            service.DeleteAsync<string>(ADDRESS).Wait();
+            mut_addresses = service.GetAddressesAsync<string>().Result;
             Assert.IsFalse(mut_addresses.Contains(ADDRESS));
         }
 
 
 
         [Test]
-        public void Put_And_Get_SynchronousWaiting__ReturnsOk()
+        public void Put_And_Get__ReturnsOk()
         {
             var service = GetService();
 
@@ -88,7 +60,7 @@ namespace DocumentStores.Test
 
 
         [Test]
-        public void Get_NonExisting_SynchronousWaiting__ReturnsError()
+        public void Get_NonExisting__ReturnsError()
         {
             var service = GetService();
 
@@ -97,6 +69,19 @@ namespace DocumentStores.Test
             var res = service.GetAsync<string>(KEY).Result;
 
             Assert.IsFalse(res.Try());
+        }
+
+        [Test]
+        public void AddOrUpdate_NonExisting__ReturnsOk()
+        {
+            var service = GetService();
+
+            const string KEY = "KEY";
+            const string VALUE = "VALUE";
+
+            var res = service.AddOrUpdateAsync(KEY, VALUE, _ => VALUE).Result;
+
+            Assert.IsTrue(res.Try());
         }
 
 

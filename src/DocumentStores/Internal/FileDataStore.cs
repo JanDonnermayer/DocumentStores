@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -49,10 +48,10 @@ namespace DocumentStores.Internal
         public bool Exists(DocumentAddress address) =>
             File.Exists(GetFilePath(address));
 
-        public Task<IEnumerable<DocumentAddress>> GetAddressesAsync(
+        Task<IEnumerable<DocumentAddress>> IDataStore.GetAddressesAsync(
             DocumentRoute route,
             DocumentSearchOptions options,
-            CancellationToken ct = default) =>
+            CancellationToken ct) =>
                   Task.Run(() =>
                   {
                       try
@@ -82,16 +81,16 @@ namespace DocumentStores.Internal
                   }, ct);
 
 
-        public Stream GetReadStream(DocumentAddress address)
+        Stream IDataStore.GetReadStream(DocumentAddress address)
         {
             var file = GetFilePath(address);
             if (!File.Exists(file))
-                throw new DocumentException($"No such document: {address}");
+                throw new DocumentMissingException(address);
 
             return File.OpenRead(file);
         }
 
-        public Stream GetWriteStream(DocumentAddress address)
+        Stream IDataStore.GetWriteStream(DocumentAddress address)
         {
             var file = GetFilePath(address);
             var directory = new FileInfo(file).Directory;
@@ -100,12 +99,18 @@ namespace DocumentStores.Internal
             return File.OpenWrite(file);
         }
 
-        public void Delete(DocumentAddress address)
+        void IDataStore.Delete(DocumentAddress address)
         {
             var file = GetFilePath(address);
             if (!File.Exists(file)) return;
 
             File.Delete(file);
+        }
+
+        void IDataStore.Clear()
+        {
+            if (!Directory.Exists(rootDirectory)) return;
+            Directory.Delete(rootDirectory, recursive: true);
         }
 
         #endregion

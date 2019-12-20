@@ -6,7 +6,7 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
-    internal interface IDataStore
+    interface IDataStore
     {
         Task<IEnumerable<DocumentAddress>> GetAddressesAsync(
             DocumentRoute route,
@@ -20,5 +20,7 @@ namespace DocumentStores
         bool Exists(DocumentAddress address);
 
         void Delete(DocumentAddress address);
+
+        void Clear();
     }
 }

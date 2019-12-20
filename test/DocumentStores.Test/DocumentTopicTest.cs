@@ -2,45 +2,17 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System;
 using System.Reactive.Linq;
-using static DocumentStores.Test.TestEnvironment;
 using System.IO;
+using DocumentStores.Internal;
 
 namespace DocumentStores.Test
 {
     class DocumentTopicTest
     {
-        private static string GetRootTestDir() =>
-            Path.Combine(
-                Path.GetTempPath(),
-                TestContext.CurrentContext.Test.ClassName
-            );
-
-        private static string GetTestDir() =>
-            Path.Combine(
-                GetRootTestDir(),
-                TestContext.CurrentContext.Test.Name,
-                Guid.NewGuid().ToString()
-            );
-
-        private static JsonFileDocumentStore GetService() =>
-            new JsonFileDocumentStore(GetTestDir());
-
-
-        [OneTimeSetUp]
-        public void CreateTestDirectory()
-        {
-            var dir = GetRootTestDir();
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-        }
-
-        [OneTimeTearDown]
-        public void DeleteTestDirectory()
-        {
-            var dir = GetRootTestDir();
-            if (!Directory.Exists(dir))
-                Directory.Delete(dir, recursive: true);
-        }
+        private static IDocumentStore GetService() =>
+            new DocumentStore(
+                new JsonDocumentSerializer(), 
+                new InMemoryDataStore());
 
 
         [Test]

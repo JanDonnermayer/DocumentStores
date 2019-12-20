@@ -8,7 +8,7 @@ namespace DocumentStores
     /// <summary>
     /// Provides serialization.
     /// </summary>
-    internal interface IDocumentSerializer
+    interface IDocumentSerializer
     {
         /// <summary/> 
         Task<T> DeserializeAsync<T>(Stream stream) where T : class;

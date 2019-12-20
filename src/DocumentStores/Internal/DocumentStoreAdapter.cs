@@ -90,7 +90,7 @@ namespace DocumentStores.Internal
             var dataProxy = GetDataProxy(address);
 
             if (!dataProxy.Exists())
-                throw new DocumentException($"No such document: {address}");
+                throw new DocumentMissingException(address);
 
             return await DeserializeAsync<T>(dataProxy);
         }
@@ -176,7 +176,7 @@ namespace DocumentStores.Internal
             var dataProxy = GetDataProxy(address);
 
             if (!dataProxy.Exists())
-                throw new DocumentException($"No such document: {address}");
+                throw new DocumentMissingException(address);
 
             dataProxy.Delete();
 

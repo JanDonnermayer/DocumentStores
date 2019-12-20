@@ -38,23 +38,30 @@ namespace DocumentStores.Primitives
         internal DocumentRoute MapSegments(Func<string, string> mapper) =>
             new DocumentRoute(this.segments.Select(mapper));
 
+        public bool StartsWith(DocumentRoute route) => 
+            (route.Count() > segments.Count()) switch
+            {
+                true => false,
+                false => Enumerable.SequenceEqual(this.Take(route.Count()), route)
+            };
+            
 
         #region "Override"
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj)
-        {
-            return obj is DocumentRoute name &&
-                Enumerable.SequenceEqual(segments, name.segments);
-        }
+        public bool Equals(DocumentRoute other) =>
+            Enumerable.SequenceEqual(segments, other.segments);
 
         /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            return -312155673 + segments
+        public override bool Equals(object? obj) => 
+            obj is DocumentRoute name &&
+                Enumerable.SequenceEqual(segments, name.segments);
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => 
+            -312155673 + segments
                 .Select(s => s.GetHashCode())
                 .Aggregate((x, y) => x ^ y);
-        }
 
         /// <inheritdoc/>
         public override string ToString() =>
