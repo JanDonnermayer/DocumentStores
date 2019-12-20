@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using DocumentStores.Internal;
@@ -44,7 +45,7 @@ namespace DocumentStores
         /// documents associated to this instance of <see cref="IDocumentTopic{TData}"/>
         /// based on the specified <paramref name="predicate"/>.
         /// </summary>
-        public static async Task<IEnumerable<TData>> GetDocumentsAsync<TData>(
+        public static async Task<IReadOnlyDictionary<DocumentKey, TData>> GetAllAsync<TData>(
             this IDocumentTopic<TData> source,
             Func<DocumentKey, bool> predicate) where TData : class
         {
@@ -52,23 +53,52 @@ namespace DocumentStores
                 .GetKeysAsync()
                 .ConfigureAwait(false);
 
-            var resuts = await Task
-                .WhenAll(keys.Where(predicate)
-                .Select(source.GetAsync))
+            var filteredKeys = keys.Where(predicate);
+
+            async Task<KeyValuePair<DocumentKey, Result<TData>>> GetAsync(DocumentKey key) =>
+                new KeyValuePair<DocumentKey, Result<TData>>(key, await source.GetAsync(key));
+
+            var results = await Task
+                .WhenAll(filteredKeys.Select(GetAsync))
                 .ConfigureAwait(false);
 
-            return resuts
-                .Where(r => r.Try())
-                .Select(r => r.PassOrThrow());
+            return results
+                .Where(r => r.Value.Try())
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.PassOrThrow());
         }
 
         /// <summary>
         /// Returns instances of <typeparamref name="TData"/> contained within
         /// documents associated to this instance of <see cref="IDocumentTopic{TData}"/>.
         /// </summary>
-        public static Task<IEnumerable<TData>> GetDocumentsAsync<TData>(
+        public static Task<IReadOnlyDictionary<DocumentKey, TData>> GetAllAsync<TData>(
             this IDocumentTopic<TData> source) where TData : class =>
-                source.GetDocumentsAsync(_ => true);
+                source.GetAllAsync(_ => true);
+
+        public static async Task<Result<Unit>[]> SynchronizeAsync<T>(
+            this IDocumentTopic<T> source, IDocumentTopic<T> target) where T : class
+        {
+            var sourceDict = await source.GetAllAsync();
+            var targetKeys = await target.GetKeysAsync();
+
+            var surplusTargetKeys = targetKeys
+                .Except(sourceDict.Keys)
+                .ToImmutableHashSet();
+
+            var copyResults = await Task
+                .WhenAll(sourceDict.Select(kvp => target.PutAsync(kvp.Key, kvp.Value)))
+                .ConfigureAwait(false);
+
+            var deleteResults = await Task
+                .WhenAll(surplusTargetKeys.Select(target.DeleteAsync))
+                .ConfigureAwait(false);
+
+            return copyResults
+                .Concat(deleteResults)
+                .ToArray();
+        }
 
         /// <summary>
         /// Creates a proxy for the document with the specified <paramref name="key"/>
