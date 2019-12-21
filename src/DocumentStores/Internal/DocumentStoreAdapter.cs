@@ -30,24 +30,7 @@ namespace DocumentStores.Internal
 
         private readonly IDataStore dataStore;
 
-
-        /*
-
-        private DocumentRoute GetTypedRoute<T>() =>
-            DocumentRoute
-                .Create(typeof(T)
-                    .ShortName(true)
-                    .Replace(">", "}")
-                    .Replace("<", "{"));
-
-        private DocumentRoute GetTypedRoute<T>(DocumentRoute route) =>
-            route.Prepend(GetTypedRoute<T>());
-
-        private DocumentAddress GetTypedAddress<T>(DocumentAddress address) =>
-            address.MapRoute(r => GetTypedRoute<T>(r));
-
-        */
-
+  
         private IDataProxy GetDataProxy(DocumentAddress address) =>
             dataStore.CreateProxy(address);
 

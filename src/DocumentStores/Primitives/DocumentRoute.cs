@@ -35,8 +35,12 @@ namespace DocumentStores.Primitives
         internal DocumentRoute Append(DocumentRoute route) =>
             new DocumentRoute(this.segments.Concat(route.segments));
 
-        internal DocumentRoute TrimLeft(int count) =>
-            new DocumentRoute(this.segments.Skip(count));
+        internal DocumentRoute TrimLeft(DocumentRoute route) =>
+            StartsWith(route) switch
+            {
+                true => Create(segments.Skip(route.Count())),
+                false => this
+            };
 
         internal DocumentRoute MapSegments(Func<string, string> mapper) =>
             new DocumentRoute(this.segments.Select(mapper));
