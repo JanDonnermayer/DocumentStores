@@ -81,7 +81,7 @@ namespace DocumentStores.Internal
 
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(
             DocumentRoute route, DocumentSearchOptions options, CancellationToken ct = default) where T : class =>
-                  dataStore.GetAddressesAsync(route, options, ct);
+                  Task.Run(() => dataStore.GetAddresses(route, options), ct);
 
         public async Task<T> GetAsync<T>(DocumentAddress address) where T : class
         {

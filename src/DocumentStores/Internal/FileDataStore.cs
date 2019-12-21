@@ -45,47 +45,43 @@ namespace DocumentStores.Internal
 
         #region  IDocumentStoreInternal
 
-        public bool Exists(DocumentAddress address) =>
+        bool IDataStore.Exists(DocumentAddress address) =>
             File.Exists(GetFilePath(address));
 
-        Task<IEnumerable<DocumentAddress>> IDataStore.GetAddressesAsync(
+        IEnumerable<DocumentAddress> IDataStore.GetAddresses(
             DocumentRoute route,
-            DocumentSearchOptions options,
-            CancellationToken ct) =>
-                  Task.Run(() =>
-                  {
-                      try
-                      {
-                          var directory = GetDirectoryPath(route);
-                          if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentAddress>();
+            DocumentSearchOptions options)
+        {
+            try
+            {
+                var directory = GetDirectoryPath(route);
+                if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentAddress>();
 
-                          SearchOption searchOption = options switch
-                          {
-                              DocumentSearchOptions.TopLevelOnly => SearchOption.TopDirectoryOnly,
-                              DocumentSearchOptions.AllLevels => SearchOption.AllDirectories,
-                              _ => throw new ArgumentException($"Invalid {nameof(options)}: {options}")
-                          };
+                SearchOption searchOption = options switch
+                {
+                    DocumentSearchOptions.TopLevelOnly => SearchOption.TopDirectoryOnly,
+                    DocumentSearchOptions.AllLevels => SearchOption.AllDirectories,
+                    _ => throw new ArgumentException($"Invalid {nameof(options)}: {options}")
+                };
 
-                          return Directory
-                            .EnumerateFiles(
-                                path: directory,
-                                searchPattern: "*" + fileExtension,
-                                searchOption: searchOption)
-                            .Select(Path.GetFileNameWithoutExtension)
-                            .Select(k => DocumentAddress.Create(route, DocumentKey.Create(k)));
-                      }
-                      catch (Exception)
-                      {
-                          return Enumerable.Empty<DocumentAddress>();
-                      }
-                  }, ct);
-
+                return Directory
+                  .EnumerateFiles(
+                      path: directory,
+                      searchPattern: "*" + fileExtension,
+                      searchOption: searchOption)
+                  .Select(Path.GetFileNameWithoutExtension)
+                  .Select(k => DocumentAddress.Create(route, DocumentKey.Create(k)));
+            }
+            catch (Exception)
+            {
+                return Enumerable.Empty<DocumentAddress>();
+            }
+        }
 
         Stream IDataStore.GetReadStream(DocumentAddress address)
         {
             var file = GetFilePath(address);
-            if (!File.Exists(file))
-                throw new DocumentMissingException(address);
+            if (!File.Exists(file)) throw new DocumentMissingException(address);
 
             return File.OpenRead(file);
         }
@@ -112,6 +108,23 @@ namespace DocumentStores.Internal
             if (!Directory.Exists(rootDirectory)) return;
             Directory.Delete(rootDirectory, recursive: true);
         }
+           
+        DateTime IDataStore.GetVersion(DocumentAddress address)
+        {
+            var file = GetFilePath(address);
+            if (!File.Exists(file)) throw new DocumentMissingException(address);
+
+            return File.GetLastWriteTimeUtc(file);
+        }
+
+        void IDataStore.SetVersion(DocumentAddress address, DateTime version)
+        {
+            var file = GetFilePath(address);
+            if (!File.Exists(file)) throw new DocumentMissingException(address);
+
+            File.SetLastWriteTimeUtc(file, version);
+        }
+
 
         #endregion
     }

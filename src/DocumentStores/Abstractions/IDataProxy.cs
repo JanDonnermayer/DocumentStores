@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace DocumentStores.Internal
 {
@@ -7,6 +8,10 @@ namespace DocumentStores.Internal
         Stream GetReadStream();
 
         Stream GetWriteStream();
+
+        DateTime GetVersion();
+
+        void SetVersion(DateTime version);
 
         bool Exists();
 

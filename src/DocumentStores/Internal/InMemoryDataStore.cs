@@ -22,16 +22,16 @@ namespace DocumentStores.Internal
         bool IDataStore.Exists(DocumentAddress address) =>
             store.ContainsKey(address);
 
-        Task<IEnumerable<DocumentAddress>> IDataStore.GetAddressesAsync(
-            DocumentRoute route, DocumentSearchOptions options, CancellationToken ct) =>
-                Task.FromResult(options switch
+        IEnumerable<DocumentAddress> IDataStore.GetAddresses(
+            DocumentRoute route, DocumentSearchOptions options) =>
+                options switch
                 {
                     DocumentSearchOptions.AllLevels =>
                         store.Keys.Where(r => r.Route.StartsWith(route)),
                     DocumentSearchOptions.TopLevelOnly =>
                         store.Keys.Where(r => r.Equals(r)),
                     _ => throw new ArgumentException("Invaldid options!", nameof(options))
-                });
+                };
 
         Stream IDataStore.GetReadStream(DocumentAddress address) =>
             (store.TryGetValue(address, out var container)) switch
@@ -52,6 +52,22 @@ namespace DocumentStores.Internal
             store = store.Clear();
 
 
+        DateTime IDataStore.GetVersion(DocumentAddress address) =>
+            (store.TryGetValue(address, out var container)) switch
+            {
+                true => container.Version,
+                false => throw new DocumentMissingException(address)
+            };
+
+        void IDataStore.SetVersion(DocumentAddress address, DateTime version)
+        {
+            if (!store.TryGetValue(address, out var container))
+                throw new DocumentMissingException(address);
+
+            container.Version = version;
+        }
+
+
         #region  Private Types
 
         private class DataContainer
@@ -60,6 +76,8 @@ namespace DocumentStores.Internal
 
             private void SetData(byte[] _data) =>
                 this.data = _data;
+
+            public DateTime Version { get; set; }
 
             public Stream GetReadStream()
             {
