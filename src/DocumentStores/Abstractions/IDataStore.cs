@@ -16,10 +16,6 @@ namespace DocumentStores
 
         Stream GetWriteStream(DocumentAddress address);
 
-        DateTime GetVersion(DocumentAddress address);
-
-        void SetVersion(DocumentAddress address, DateTime version);
-
         bool Exists(DocumentAddress address);
 
         void Delete(DocumentAddress address);

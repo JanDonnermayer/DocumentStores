@@ -9,10 +9,6 @@ namespace DocumentStores.Internal
 
         Stream GetWriteStream();
 
-        DateTime GetVersion();
-
-        void SetVersion(DateTime version);
-
         bool Exists();
 
         void Delete();

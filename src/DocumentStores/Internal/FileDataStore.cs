@@ -109,23 +109,6 @@ namespace DocumentStores.Internal
             Directory.Delete(rootDirectory, recursive: true);
         }
            
-        DateTime IDataStore.GetVersion(DocumentAddress address)
-        {
-            var file = GetFilePath(address);
-            if (!File.Exists(file)) throw new DocumentMissingException(address);
-
-            return File.GetLastWriteTimeUtc(file);
-        }
-
-        void IDataStore.SetVersion(DocumentAddress address, DateTime version)
-        {
-            var file = GetFilePath(address);
-            if (!File.Exists(file)) throw new DocumentMissingException(address);
-
-            File.SetLastWriteTimeUtc(file, version);
-        }
-
-
         #endregion
     }
 

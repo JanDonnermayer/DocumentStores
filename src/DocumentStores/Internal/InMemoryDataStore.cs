@@ -52,22 +52,6 @@ namespace DocumentStores.Internal
             store = store.Clear();
 
 
-        DateTime IDataStore.GetVersion(DocumentAddress address) =>
-            (store.TryGetValue(address, out var container)) switch
-            {
-                true => container.Version,
-                false => throw new DocumentMissingException(address)
-            };
-
-        void IDataStore.SetVersion(DocumentAddress address, DateTime version)
-        {
-            if (!store.TryGetValue(address, out var container))
-                throw new DocumentMissingException(address);
-
-            container.Version = version;
-        }
-
-
         #region  Private Types
 
         private class DataContainer
@@ -76,8 +60,6 @@ namespace DocumentStores.Internal
 
             private void SetData(byte[] _data) =>
                 this.data = _data;
-
-            public DateTime Version { get; set; }
 
             public Stream GetReadStream()
             {
