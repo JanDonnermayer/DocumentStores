@@ -29,8 +29,8 @@ namespace DocumentStores.Internal
                     DocumentSearchOptions.AllLevels =>
                         store.Keys.Where(r => r.Route.StartsWith(route)),
                     DocumentSearchOptions.TopLevelOnly =>
-                        store.Keys.Where(r => r.Equals(r)),
-                    _ => throw new ArgumentException("Invaldid options!", nameof(options))
+                        store.Keys.Where(r => r.Route.Equals(route)),
+                    _ => throw new ArgumentException("Invalid options!", nameof(options))
                 };
 
         Stream IDataStore.GetReadStream(DocumentAddress address) =>
