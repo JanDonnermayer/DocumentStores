@@ -4,8 +4,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal

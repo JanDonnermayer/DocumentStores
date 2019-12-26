@@ -18,8 +18,10 @@ namespace DocumentStores.Internal
 
         public FileDataStore(string rootDirectory, string fileExtension)
         {
-            this.fileExtension = fileExtension;
-            this.rootDirectory = rootDirectory;
+            this.fileExtension = fileExtension 
+                ?? throw new ArgumentNullException(nameof(fileExtension));
+            this.rootDirectory = rootDirectory 
+                ?? throw new ArgumentNullException(nameof(rootDirectory));
         }
 
         private string GetDirectoryPath(DocumentRoute route)
