@@ -16,12 +16,6 @@ namespace DocumentStores.Internal
             this.address = address;
         }
 
-        DateTime IDataProxy.GetVersion() => 
-            store.GetVersion(address);
-
-        void IDataProxy.SetVersion(DateTime version) => 
-            store.SetVersion(address, version);
-
         void IDataProxy.Delete() => 
             store.Delete(address);
 

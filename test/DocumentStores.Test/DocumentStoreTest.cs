@@ -127,5 +127,154 @@ namespace DocumentStores.Test
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
         }
+
+
+        [Test]
+        public void Put_InvalidData_ThrowsArgumentException()
+        {
+            var service = GetService();
+
+            string VALID_KEY = "KEY";
+            object VALID_DATA = new object();
+            object INVALID_DATA = null;
+
+            Assert.ThrowsAsync<ArgumentException>(() =>
+                service.PutAsync<dynamic>(VALID_KEY, INVALID_DATA));
+        }
+
+        [Test]
+        public void Put_InvalidKey_ThrowsArgumentException()
+        {
+            var service = GetService();
+
+            object VALID_DATA = new object();
+            string INVALID_KEY = "";
+
+            Assert.ThrowsAsync<ArgumentException>(() =>
+                service.PutAsync<dynamic>(INVALID_KEY, VALID_DATA));
+        }
+
+
+        [Test]
+        public void Get_InvalidKey_ThrowsArgumentException()
+        {
+            var service = GetService();
+
+            string INVALID_KEY = "";
+
+            Assert.ThrowsAsync<ArgumentException>(() =>
+                service.GetAsync<dynamic>(INVALID_KEY));
+        }
+
+        [Test]
+        public void Delete_InvalidKey_ThrowsArgumentException()
+        {
+            var service = GetService();
+
+            string INVALID_KEY = "";
+
+            Assert.ThrowsAsync<ArgumentException>(() =>
+                service.DeleteAsync<dynamic>(INVALID_KEY));
+        }
+
+
+        [Test]
+        public void AddOrUpdate_InvalidKey_ThrowsArgumentException()
+        {
+            var service = GetService();
+
+            object VALID_DATA = new object();
+            string INVALID_KEY = "";
+
+            Task<object> ValidAddDataFactory(DocumentAddress address) =>
+                Task.FromResult(VALID_DATA);
+
+            Task<object> ValidUpdateDataFactory(DocumentAddress address, object data) =>
+                Task.FromResult(VALID_DATA);
+
+            Assert.ThrowsAsync<ArgumentException>(() =>
+                service.AddOrUpdateAsync(
+                    address: INVALID_KEY,
+                    addDataAsync: ValidAddDataFactory,
+                    updateDataAsync: ValidUpdateDataFactory
+                )
+            );
+        }
+
+
+        [Test]
+        public async Task AddOrUpdateExtensions_InvalidInitialData_ReturnsError()
+        {
+            var service = GetService();
+
+            string VALID_KEY = "KEY";
+            object VALID_DATA = new object();
+            object INVALID_DATA = null;
+
+            var res = await
+                IDocumentStoreExtensions.AddOrUpdateAsync(
+                    source: service,
+                    address: VALID_KEY,
+                    initialData: INVALID_DATA,
+                    updateData: _ => VALID_DATA
+                );
+
+            Assert.IsFalse(res.Try(out var _, out Exception ex));
+            Assert.IsInstanceOf<DocumentException>(ex);
+        }
+
+
+        [Test]
+        public async Task AddOrUpdate_InvalidAddDataFactory_ReturnsError()
+        {
+            var service = GetService();
+
+            string KEY = "KEY";
+            object VALID_DATA = new object();
+            object INVALID_DATA = null;
+
+            Task<object> ValidUpdateDataFactory(DocumentAddress address, object data) =>
+                Task.FromResult(VALID_DATA);
+
+            Task<object> InvalidAddDataFactory(DocumentAddress address) =>
+                Task.FromResult(INVALID_DATA);
+
+            var res = await
+                service.AddOrUpdateAsync(
+                    address: KEY,
+                    addDataAsync: InvalidAddDataFactory,
+                    updateDataAsync: ValidUpdateDataFactory
+                );
+
+            Assert.IsFalse(res.Try(out var _, out Exception ex));
+            Assert.IsInstanceOf<DocumentException>(ex);
+        }
+
+
+        [Test]
+        public async Task AddOrUpdate_InvalidUpdateDataFactory_ReturnsError()
+        {
+            var service = GetService();
+
+            string KEY = "KEY";
+            object VALID_DATA = new object();
+            object INVALID_DATA = null;
+
+            Task<object> ValidAddDataFactory(DocumentAddress address) =>
+                Task.FromResult(VALID_DATA);
+
+            Task<object> InvalidUpdateDataFactory(DocumentAddress address, object data) =>
+                Task.FromResult(INVALID_DATA);
+
+            var res = await
+                service.AddOrUpdateAsync(
+                    address: KEY,
+                    addDataAsync: ValidAddDataFactory,
+                    updateDataAsync: InvalidUpdateDataFactory
+                );
+
+            Assert.IsFalse(res.Try(out var _, out Exception ex));
+            Assert.IsInstanceOf<DocumentException>(ex);
+        }
     }
 }

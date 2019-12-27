@@ -47,10 +47,11 @@ namespace DocumentStores.Primitives
 
         /// <InheritDoc/>
         public bool StartsWith(DocumentRoute route) => 
-            (route.Count() > segments.Count()) switch
+            (route.Count(), segments.Count()) switch
             {
-                true => false,
-                false => Enumerable.SequenceEqual(this.Take(route.Count()), route)
+                (0, 0) => true,
+                (var x, var y) when x > y => false, 
+                _ => Enumerable.SequenceEqual(this.Take(route.Count()), route)
             };
             
 
@@ -65,11 +66,17 @@ namespace DocumentStores.Primitives
             obj is DocumentRoute name &&
                 Enumerable.SequenceEqual(segments, name.segments);
 
-        /// <inheritdoc/>
-        public override int GetHashCode() => 
-            -312155673 + segments
+        private int GetSegmentsHash() 
+        {
+            if (!segments.Any()) return 0;
+            return segments
                 .Select(s => s.GetHashCode())
                 .Aggregate((x, y) => x ^ y);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() => 
+            -312155673 + GetSegmentsHash();
 
         /// <inheritdoc/>
         public override string ToString() =>

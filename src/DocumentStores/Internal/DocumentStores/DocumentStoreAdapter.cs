@@ -30,7 +30,25 @@ namespace DocumentStores.Internal
 
         private readonly IDataStore dataStore;
 
-  
+        private DocumentRoute GetTypedRoute<T>() =>
+          DocumentRoute
+              .Create(typeof(T)
+                  .ShortName(true)
+                  .Replace(">", "}")
+                  .Replace("<", "{"));
+
+        private DocumentRoute PrependTypeSpecificRoute<T>(DocumentRoute route) =>
+            route.Prepend(GetTypedRoute<T>());
+
+        private DocumentAddress PrependTypeSpecificRoute<T>(DocumentAddress address) =>
+            address.MapRoute(r => PrependTypeSpecificRoute<T>(r));
+
+        private DocumentRoute RemoveTypeSpecificRoute<T>(DocumentRoute route) =>
+            route.TrimLeft(GetTypedRoute<T>());
+            
+        private DocumentAddress RemoveTypeSpecificRoute<T>(DocumentAddress address) =>
+            address.MapRoute(r => RemoveTypeSpecificRoute<T>(r));
+
         private IDataProxy GetDataProxy(DocumentAddress address) =>
             dataStore.CreateProxy(address);
 
@@ -62,12 +80,21 @@ namespace DocumentStores.Internal
 
         #region Implementation of IDocumentStoreAdapter 
 
-        public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(
-            DocumentRoute route, DocumentSearchOptions options, CancellationToken ct = default) where T : class =>
-                  Task.Run(() => dataStore.GetAddresses(route, options), ct);
-
-        public async Task<T> GetAsync<T>(DocumentAddress address) where T : class
+        public async Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(
+            DocumentRoute route, DocumentSearchOptions options, CancellationToken ct = default) where T : class
         {
+            var addresses = await Task.Run(() => dataStore
+                .GetAddresses(PrependTypeSpecificRoute<T>(route), options), ct)
+                .ConfigureAwait(false);
+                
+            return addresses
+                .Select(a => RemoveTypeSpecificRoute<T>(a));
+        }
+
+        public async Task<T> GetAsync<T>(DocumentAddress _address) where T : class
+        {
+            var address = PrependTypeSpecificRoute<T>(_address);
+
             using var @lock = await GetLockAsync(address);
 
             var dataProxy = GetDataProxy(address);
@@ -78,10 +105,12 @@ namespace DocumentStores.Internal
             return await DeserializeAsync<T>(dataProxy);
         }
 
-        public async Task<Unit> PutAsync<T>(DocumentAddress address, T data) where T : class
+        public async Task<Unit> PutAsync<T>(DocumentAddress _address, T data) where T : class
         {
             if (data == null)
-                throw new ArgumentNullException(nameof(data));
+                throw new ArgumentException("Data cannot be null!", nameof(data));
+
+            var address = PrependTypeSpecificRoute<T>(_address);
 
             using var @lock = await GetLockAsync(address);
 
@@ -93,7 +122,7 @@ namespace DocumentStores.Internal
         }
 
         public async Task<T> AddOrUpdateAsync<T>(
-            DocumentAddress address,
+            DocumentAddress _address,
             Func<DocumentAddress, Task<T>> addDataAsync,
             Func<DocumentAddress, T, Task<T>> updateDataAsync) where T : class
         {
@@ -102,6 +131,8 @@ namespace DocumentStores.Internal
 
             if (updateDataAsync is null)
                 throw new ArgumentNullException(nameof(updateDataAsync));
+
+            var address = PrependTypeSpecificRoute<T>(_address);
 
             using var @lock = await GetLockAsync(address);
 
@@ -127,11 +158,13 @@ namespace DocumentStores.Internal
 
 
         public async Task<T> GetOrAddAsync<T>(
-            DocumentAddress address,
+            DocumentAddress _address,
             Func<DocumentAddress, Task<T>> addDataAsync) where T : class
         {
             if (addDataAsync is null)
                 throw new ArgumentNullException(nameof(addDataAsync));
+
+            var address = PrependTypeSpecificRoute<T>(_address);
 
             using var @lock = await GetLockAsync(address);
 
@@ -152,8 +185,10 @@ namespace DocumentStores.Internal
             }
         }
 
-        public async Task<Unit> DeleteAsync<T>(DocumentAddress address) where T : class
+        public async Task<Unit> DeleteAsync<T>(DocumentAddress _address) where T : class
         {
+            var address = PrependTypeSpecificRoute<T>(_address);
+
             using var @lock = await GetLockAsync(address);
 
             var dataProxy = GetDataProxy(address);

@@ -42,14 +42,7 @@ namespace DocumentStores.Internal
         public Stream GetReadStream(DocumentAddress address) => 
             source.GetReadStream(TranslateIn(address));
 
-        public DateTime GetVersion(DocumentAddress address) => 
-            source.GetVersion(TranslateIn(address));
-
         public Stream GetWriteStream(DocumentAddress address) => 
             source.GetWriteStream(TranslateIn(address));
-
-        public void SetVersion(DocumentAddress address, DateTime version) => 
-            source.SetVersion(TranslateIn(address), version);
     }
-
 }
