@@ -2,6 +2,7 @@
 
 
 using System;
+using System.Collections.Generic;
 
 namespace DocumentStores.Primitives
 {
@@ -40,6 +41,23 @@ namespace DocumentStores.Primitives
         /// <InheritDoc/>
         public override string ToString() => 
             $"{nameof(Route)} : {Route}, {nameof(Key)} : {Key}";
+
+        /// <InheritDoc/>
+        public override bool Equals(object? obj)
+        {
+            return obj is DocumentAddress address &&
+                   EqualityComparer<DocumentRoute>.Default.Equals(Route, address.Route) &&
+                   EqualityComparer<DocumentKey>.Default.Equals(Key, address.Key);
+        }
+
+        /// <InheritDoc/>
+        public override int GetHashCode()
+        {
+            int hashCode = 565030266;
+            hashCode = hashCode * -1521134295 + Route.GetHashCode();
+            hashCode = hashCode * -1521134295 + Key.GetHashCode();
+            return hashCode;
+        }
 
         #endregion
 

@@ -91,30 +91,30 @@ namespace DocumentStores.Internal
                 .Select(a => RemoveTypeSpecificRoute<T>(a));
         }
 
-        public async Task<T> GetAsync<T>(DocumentAddress _address) where T : class
+        public async Task<T> GetAsync<T>(DocumentAddress address) where T : class
         {
-            var address = PrependTypeSpecificRoute<T>(_address);
+            var routedAddress = PrependTypeSpecificRoute<T>(address);
 
-            using var @lock = await GetLockAsync(address);
+            using var @lock = await GetLockAsync(routedAddress);
 
-            var dataProxy = GetDataProxy(address);
+            var dataProxy = GetDataProxy(routedAddress);
 
             if (!dataProxy.Exists())
-                throw new DocumentMissingException(address);
+                throw new DocumentMissingException(routedAddress);
 
             return await DeserializeAsync<T>(dataProxy);
         }
 
-        public async Task<Unit> PutAsync<T>(DocumentAddress _address, T data) where T : class
+        public async Task<Unit> PutAsync<T>(DocumentAddress address, T data) where T : class
         {
             if (data == null)
                 throw new ArgumentException("Data cannot be null!", nameof(data));
 
-            var address = PrependTypeSpecificRoute<T>(_address);
+            var routedAddress = PrependTypeSpecificRoute<T>(address);
 
-            using var @lock = await GetLockAsync(address);
+            using var @lock = await GetLockAsync(routedAddress);
 
-            var dataProxy = GetDataProxy(address);
+            var dataProxy = GetDataProxy(routedAddress);
 
             await SerializeAsync(dataProxy, data);
 
@@ -122,7 +122,7 @@ namespace DocumentStores.Internal
         }
 
         public async Task<T> AddOrUpdateAsync<T>(
-            DocumentAddress _address,
+            DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync,
             Func<DocumentAddress, T, Task<T>> updateDataAsync) where T : class
         {
@@ -132,11 +132,11 @@ namespace DocumentStores.Internal
             if (updateDataAsync is null)
                 throw new ArgumentNullException(nameof(updateDataAsync));
 
-            var address = PrependTypeSpecificRoute<T>(_address);
+            var routedAddress = PrependTypeSpecificRoute<T>(address);
 
-            using var @lock = await GetLockAsync(address);
+            using var @lock = await GetLockAsync(routedAddress);
 
-            var dataProxy = GetDataProxy(address);
+            var dataProxy = GetDataProxy(routedAddress);
 
             async Task<T> GetDataAsync()
             {
@@ -158,17 +158,17 @@ namespace DocumentStores.Internal
 
 
         public async Task<T> GetOrAddAsync<T>(
-            DocumentAddress _address,
+            DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync) where T : class
         {
             if (addDataAsync is null)
                 throw new ArgumentNullException(nameof(addDataAsync));
 
-            var address = PrependTypeSpecificRoute<T>(_address);
+            var routedAddress = PrependTypeSpecificRoute<T>(address);
 
-            using var @lock = await GetLockAsync(address);
+            using var @lock = await GetLockAsync(routedAddress);
 
-            var dataProxy = GetDataProxy(address);
+            var dataProxy = GetDataProxy(routedAddress);
 
             if (dataProxy.Exists())
             {
@@ -185,16 +185,16 @@ namespace DocumentStores.Internal
             }
         }
 
-        public async Task<Unit> DeleteAsync<T>(DocumentAddress _address) where T : class
+        public async Task<Unit> DeleteAsync<T>(DocumentAddress address) where T : class
         {
-            var address = PrependTypeSpecificRoute<T>(_address);
+            var routedAddress = PrependTypeSpecificRoute<T>(address);
 
-            using var @lock = await GetLockAsync(address);
+            using var @lock = await GetLockAsync(routedAddress);
 
-            var dataProxy = GetDataProxy(address);
+            var dataProxy = GetDataProxy(routedAddress);
 
             if (!dataProxy.Exists())
-                throw new DocumentMissingException(address);
+                throw new DocumentMissingException(routedAddress);
 
             dataProxy.Delete();
 

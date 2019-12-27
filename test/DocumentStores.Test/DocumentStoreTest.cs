@@ -266,6 +266,9 @@ namespace DocumentStores.Test
             Task<object> InvalidUpdateDataFactory(DocumentAddress address, object data) =>
                 Task.FromResult(INVALID_DATA);
 
+            // Put data, such that updateData is stressed
+            await service.PutAsync(KEY, VALID_DATA);
+
             var res = await
                 service.AddOrUpdateAsync(
                     address: KEY,
