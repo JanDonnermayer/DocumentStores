@@ -279,5 +279,28 @@ namespace DocumentStores.Test
             Assert.IsFalse(res.Try(out var _, out Exception ex));
             Assert.IsInstanceOf<DocumentException>(ex);
         }
+
+
+        [Test]
+        public async Task Put_And_Get_SameKey_DifferentTypes_NoCollision()
+        {
+            var service = GetService();
+
+            string KEY = "KEY";
+            var DATA_1 = new Box<int>(1);
+            var DATA_2 = new Box<string>("D2");
+
+            await service.PutAsync(KEY, DATA_1);
+            await service.PutAsync(KEY, DATA_2);
+
+            var res1 = await service.GetAsync<Box<int>>(KEY);
+            var res2 = await service.GetAsync<Box<string>>(KEY);
+
+            Assert.IsTrue(res1.Try(out Box<int> data1));
+            Assert.AreEqual(DATA_1, data1);
+
+            Assert.IsTrue(res2.Try(out Box<string> data2));
+            Assert.AreEqual(DATA_2, data2);
+        }
     }
 }
