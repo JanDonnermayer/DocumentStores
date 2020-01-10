@@ -3,6 +3,8 @@
 [![](https://github.com/JanDonnermayer/DocumentStores/workflows/UnitTests/badge.svg)](
 https://github.com/JanDonnermayer/DocumentStores/actions)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=JanDonnermayer_DocumentStores&metric=alert_status)](https://sonarcloud.io/dashboard?id=JanDonnermayer_DocumentStores)
+
 [![](https://img.shields.io/badge/nuget-v0.0.11-blue.svg)](
 https://www.nuget.org/packages/DocumentStores/)
 
