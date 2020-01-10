@@ -21,9 +21,5 @@ namespace DocumentStores.Test
 
         public static JsonFileDocumentStore GetService() =>
             new JsonFileDocumentStore(GetTestDir());
-
     }
-
-
-
 }

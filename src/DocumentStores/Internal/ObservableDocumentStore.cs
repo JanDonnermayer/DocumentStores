@@ -74,5 +74,4 @@ namespace DocumentStores.Internal
 
         public void Dispose() => disposeHandle.Dispose();
     }
-
 }

@@ -24,20 +24,20 @@ namespace DocumentStores.Internal
             Func<string, TData, Task<TData>> updateDataAsync) =>
                 store.AddOrUpdateDocumentAsync(key, addDataAsync, updateDataAsync);
 
-        Task<Result<Unit>> IDocumentChannel<TData>.DeleteDocumentAsync() => 
+        Task<Result<Unit>> IDocumentChannel<TData>.DeleteDocumentAsync() =>
             store.DeleteDocumentAsync(key);
 
-        Task<Result<TData>> IDocumentChannel<TData>.GetDocumentAsync() => 
+        Task<Result<TData>> IDocumentChannel<TData>.GetDocumentAsync() =>
             store.GetDocumentAsync(key);
 
         Task<Result<TData>> IDocumentChannel<TData>.GetOrAddDocumentAsync(
             Func<string, Task<TData>> addDataAsync) => 
                 store.GetOrAddDocumentAsync(key, addDataAsync);
 
-        Task<Result<Unit>> IDocumentChannel<TData>.PutDocumentAsync(TData data) => 
+        Task<Result<Unit>> IDocumentChannel<TData>.PutDocumentAsync(TData data) =>
             store.PutDocumentAsync(key, data);
 
-        IObservable<TData> IDocumentChannel<TData>.GetObservable() => 
+        IObservable<TData> IDocumentChannel<TData>.GetObservable() =>
             store
                 .GetKeysObservable()
                 .Where(keys => keys.Contains(key))
@@ -47,6 +47,4 @@ namespace DocumentStores.Internal
                 .Where(o => o.Try())
                 .Select(o => (TData)o);
     }
-
-
 }

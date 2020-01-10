@@ -201,16 +201,16 @@ namespace DocumentStores.Internal
 
             async Task<T> getDataAsync() => await DeserializeAsync<T>(SR) switch
             {
-                null => await addDataAsync(key)
+                null => await addDataAsync(key).ConfigureAwait(false)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!"),
-                T data => await updateDataAsync(key, data)
+                T data => await updateDataAsync(key, data).ConfigureAwait(false)
                     ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!"),
             };
 
             var data = await getDataAsync();
 
             FS.Position = 0;
-            await SerializeAsync(data, SW);
+            await SerializeAsync(data, SW).ConfigureAwait(false);
             SW.Flush();
             FS.SetLength(FS.Position);
 
@@ -225,20 +225,20 @@ namespace DocumentStores.Internal
             if (addDataAsync is null) throw new ArgumentNullException(nameof(addDataAsync));
 
             var file = GetFile<T>(key);
-            using var @lock = await GetLockAsync(file);
+            using var @lock = await GetLockAsync(file).ConfigureAwait(false);
 
-            await CreateDirectoryIfMissingAsync(file);
+            await CreateDirectoryIfMissingAsync(file).ConfigureAwait(false);
 
             using FileStream FS = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
             using StreamReader SR = new StreamReader(FS);
             using StreamWriter SW = new StreamWriter(FS);
 
-            var data = await DeserializeAsync<T>(SR)
-                ?? await addDataAsync(key)
+            var data = await DeserializeAsync<T>(SR).ConfigureAwait(false)
+                ?? await addDataAsync(key).ConfigureAwait(false)
                 ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
             FS.Position = 0;
-            await SerializeAsync(data, SW);
+            await SerializeAsync(data, SW).ConfigureAwait(false);
             SW.Flush();
             FS.SetLength(FS.Position);
 
@@ -250,7 +250,7 @@ namespace DocumentStores.Internal
             CheckKey(key);
 
             var file = GetFile<T>(key);
-            using var @lock = await GetLockAsync(file);
+            using var @lock = await GetLockAsync(file).ConfigureAwait(false);
 
             if (!File.Exists(file)) throw new DocumentException($"No such document: {key}");
 
@@ -259,7 +259,6 @@ namespace DocumentStores.Internal
         }
 
         #endregion
-    
-    }
 
+    }
 }

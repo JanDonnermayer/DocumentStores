@@ -9,6 +9,14 @@ namespace DocumentStores.Primitives
         public DocumentException(string message) : base(message)
         {
         }
+
+        public DocumentException() : base()
+        {
+        }
+
+        public DocumentException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
 }

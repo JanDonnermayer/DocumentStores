@@ -10,6 +10,18 @@ namespace DocumentStores.Primitives
             : base("Operation failed.", innerException)
         {
         }
+
+        public ResultException() : base()
+        {
+        }
+
+        public ResultException(string message) : base(message)
+        {
+        }
+
+        public ResultException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
 }

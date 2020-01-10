@@ -5,7 +5,7 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
-    /// <summary/> 
+    /// <inheritdoc/> 
     public static class IObservableDocumentStoreExtensions
     {
         /// <summary>
@@ -18,12 +18,11 @@ namespace DocumentStores
         /// </remarks>
         public static Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
             this IObservableDocumentStore<TData> source, string key,
-            TData initialData, Func<TData, TData> updateData) where TData : class => 
+            TData initialData, Func<TData, TData> updateData) where TData : class =>
                 source.AddOrUpdateDocumentAsync(
-                    key, 
-                    _ => Task.FromResult(initialData), 
-                    (_, data) => Task.FromResult(updateData(data)));
-
+                    key: key,
+                    addDataAsync: _ => Task.FromResult(initialData),
+                    updateDataAsync: (_, data) => Task.FromResult(updateData(data)));
 
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,
@@ -34,8 +33,8 @@ namespace DocumentStores
             this IObservableDocumentStore<TData> source, string key,
             TData initialData) where TData : class =>
                 source.GetOrAddDocumentAsync(
-                    key, 
-                    _ => Task.FromResult(initialData));
+                    key: key,
+                    addDataAsync: _ => Task.FromResult(initialData));
 
         /// <summary>
         /// Creates a channel for the document with the specified <paramref name="key"/>

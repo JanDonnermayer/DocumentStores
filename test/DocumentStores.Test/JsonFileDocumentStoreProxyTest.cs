@@ -2,23 +2,14 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 using System;
-using System.Linq;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using System.Collections.Immutable;
 using System.Reactive.Linq;
-using System.Threading;
-using System.Reactive;
-using DocumentStores.Primitives;
 using static DocumentStores.Test.TestEnvironment;
-
 
 namespace DocumentStores.Test
 {
     [TestFixture]
-    class JsonFileDocumentStoreChannelTest
+    internal class JsonFileDocumentStoreChannelTest
     {
-
         [OneTimeSetUp]
         public void CreateTestDirectory()
         {
@@ -32,7 +23,6 @@ namespace DocumentStores.Test
         {
             Directory.Delete(GetRootTestDir(), recursive: true);
         }
-
 
         [Test]
         public Task AddOrUpdate_Multiple__NotifiesObserver_Multiple() =>
@@ -67,20 +57,14 @@ namespace DocumentStores.Test
             var channel = service.CreateChannel(KEY);
 
             var observable = service.GetKeysObservable();
-            using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
+            using var _ = observable.Subscribe(_ => mut_ActualNotificationCount++);
 
             for (int i = 0; i < OPERATION_COUNT; i++)
-                await operation.Invoke(channel);
+                await operation.Invoke(channel).ConfigureAwait(false);
 
-            await Task.Delay(OBSERVER_DELAY_MS);
+            await Task.Delay(OBSERVER_DELAY_MS).ConfigureAwait(false);
 
             Assert.AreEqual(EXPECTED_NOTIFCATION_COUNT, mut_ActualNotificationCount);
         }
-
-
     }
-
-
-
-
 }

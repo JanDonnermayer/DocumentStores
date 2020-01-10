@@ -69,16 +69,15 @@ namespace DocumentStores.Test
             int mut_ActualNotificationCount = 0;
 
             var observable = service.GetKeysObservable();
-            using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
+            using var _ = observable.Subscribe(_ => mut_ActualNotificationCount++);
 
             for (int i = 0; i < OPERATION_COUNT; i++)
-                await operation.Invoke(service);
+                await operation.Invoke(service).ConfigureAwait(false);
 
-            await Task.Delay(OBSERVER_DELAY_MS);
+            await Task.Delay(OBSERVER_DELAY_MS).ConfigureAwait(false);
 
             Assert.AreEqual(EXPECTED_NOTIFCATION_COUNT, mut_ActualNotificationCount);
         }
-
 
         [Test]
         public void GetNonExisting_SynchronousWaiting__ReturnsError()
@@ -92,7 +91,6 @@ namespace DocumentStores.Test
 
             Assert.IsFalse(res.Try());
         }
-
 
         [Test]
         public void PutAndGet_SynchronousWaiting__ReturnsOk()
@@ -109,7 +107,6 @@ namespace DocumentStores.Test
             Assert.IsTrue(res2.Try());
         }
 
-
         [Test]
         public async Task Put_Parallel__ReturnsOk()
         {
@@ -124,17 +121,20 @@ namespace DocumentStores.Test
             await Task
                 .WhenAll(Enumerable
                     .Range(1, WORKER_COUNT)
-                    .Select(i => Task.Run(async () => await Task
-                        .WhenAll(Enumerable.Range(1, COUNT)
-                        .Select(async i => await service.AddOrUpdateDocumentAsync(
-                            KEY,
-                            ImmutableCounter.Default.Increment(),
-                            _ => _.Increment()))))));
+                    .Select(_ => Task.Run(async () => await Task
+                        .WhenAll(Enumerable
+                            .Range(1, COUNT)
+                            .Select(async _ => await service.AddOrUpdateDocumentAsync(
+                                key: KEY,
+                                initialData: ImmutableCounter.Default.Increment(),
+                                updateData: _ => _.Increment()
+                            ).ConfigureAwait(false))
+                        ).ConfigureAwait(false)))
+                ).ConfigureAwait(false);
 
+            var finalCounter = (await service.GetDocumentAsync(KEY).ConfigureAwait(false)).PassOrThrow();
 
-            var finalCounter = (await service.GetDocumentAsync(KEY)).PassOrThrow();
-
-            (await service.DeleteDocumentAsync(KEY)).PassOrThrow();
+            (await service.DeleteDocumentAsync(KEY).ConfigureAwait(false)).PassOrThrow();
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
         }

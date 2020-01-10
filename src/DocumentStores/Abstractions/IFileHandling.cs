@@ -1,5 +1,3 @@
-using System;
-using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -10,16 +8,16 @@ namespace DocumentStores
     /// </summary>
     internal interface IFileHandling
     {
-        /// <summary/> 
+        /// <inheritdoc/> 
         string FileExtension<T>() where T : class;
 
-        /// <summary/> 
+        /// <inheritdoc/> 
         string Subdirectory<T>() where T : class;
 
-        /// <summary/> 
+        /// <inheritdoc /> 
         Task<T> DeserializeAsync<T>(StreamReader reader) where T : class;
 
-        /// <summary/> 
+        /// <inheritdoc/> 
         Task SerializeAsync<T>(StreamWriter writer, T data) where T : class;
     }
 }

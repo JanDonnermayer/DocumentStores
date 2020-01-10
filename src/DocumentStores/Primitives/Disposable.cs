@@ -29,7 +29,7 @@ namespace DocumentStores.Primitives
         /// <param name="disposeAction"></param>
         public Disposable(Action disposeAction) =>
             _disposeAction = disposeAction ?? throw new ArgumentNullException(nameof(disposeAction));
-               
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Disposable"/> class,
         /// that performs the specified <paramref name="disposeAction"/> on disposal.
@@ -44,7 +44,7 @@ namespace DocumentStores.Primitives
         /// </summary>
         public static Disposable Empty => new Disposable();
 
-        /// <summary/>
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 1)

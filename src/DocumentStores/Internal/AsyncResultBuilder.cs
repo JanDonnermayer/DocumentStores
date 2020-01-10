@@ -15,7 +15,6 @@ namespace DocumentStores.Internal
     [DebuggerStepThrough]
     internal static class AsyncResultBuilder
     {
-
         /// <summary>
         /// Executes the provided function within a try-catch-block,
         /// that catches exceptions for which the specified <paramref name="exceptionFilter"/> returns true.
@@ -60,10 +59,9 @@ namespace DocumentStores.Internal
             if (retrySpanProviders is null)
                 throw new ArgumentNullException(nameof(retrySpanProviders));
 
-
             async Task<Result<T>> GetResultAsync()
             {
-                var mut_res = await source.Invoke();
+                var mut_res = await source.Invoke().ConfigureAwait(false);
                 if (mut_res.Try(out Exception? mut_ex)) return mut_res;
 
                 foreach (var retrySpanProvider in retrySpanProviders)
@@ -79,7 +77,6 @@ namespace DocumentStores.Internal
 
             return GetResultAsync;
         }
-
 
         /// <summary>
         /// If the specified async result is successful, returns it.
@@ -154,7 +151,7 @@ namespace DocumentStores.Internal
 
             return GetResultAsync;
         }
-        
+
         public static Func<Task<Result<T>>> Init<T>(
             this Func<Task<T>> source,
             Func<Func<Task<T>>, Func<Task<Result<T>>>> handler)  where T : class
@@ -168,7 +165,6 @@ namespace DocumentStores.Internal
         {
             return handler(source);
         }
-
 
         #region Private
 
