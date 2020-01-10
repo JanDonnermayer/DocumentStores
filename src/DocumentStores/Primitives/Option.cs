@@ -38,5 +38,4 @@ namespace DocumentStores.Primitives
         public static Option<T> None() =>
             new Option<T>(false, default!);
     }
-
 }

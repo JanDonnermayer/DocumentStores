@@ -1,4 +1,3 @@
-using System.Collections;
 using DocumentStores.Internal;
 
 namespace DocumentStores

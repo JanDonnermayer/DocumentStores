@@ -5,7 +5,6 @@ using System.Diagnostics;
 
 namespace DocumentStores.Primitives
 {
-
     /// <summary>
     /// Represents the result of a performed operation, with custom return data.
     /// </summary>

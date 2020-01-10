@@ -77,9 +77,9 @@ namespace DocumentStores.Primitives
         /// <inheritdoc />
         public void Dispose()
         {
-            if (System.Threading.Interlocked.Exchange(ref _disposed, 1) == 1)
+            if (Interlocked.Exchange(ref _disposed, 1) == 1)
                 throw new ObjectDisposedException(typeof(TOwner).Name);
-            while (_disposeStack.Any())
+            while (_disposeStack.Count > 0)
                 _disposeStack.Pop().Dispose();
         }
     }

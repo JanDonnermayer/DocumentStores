@@ -20,5 +20,4 @@ namespace DocumentStores.Test
             HashCode.Combine(Count);
     }
 
-
 }
