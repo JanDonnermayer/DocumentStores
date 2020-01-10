@@ -4,7 +4,7 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
-    /// <summary/> 
+    /// <inheritdoc /> 
     public static class IDocumentProxyExtensions
     {
         /// <summary>
@@ -18,9 +18,10 @@ namespace DocumentStores
         public static Task<Result<TData>> AddOrUpdateAsync<TData>(
             this IDocumentProxy<TData> source, 
             TData initialData, Func<TData, TData> updateData) where TData : class =>
-                source.AddOrUpdateAsync(
-                    () => Task.FromResult(initialData), 
-                    data => Task.FromResult(updateData(data)));
+                (source ?? throw new ArgumentNullException(nameof(source))).AddOrUpdateAsync(
+                    addDataAsync: () => Task.FromResult(initialData),
+                    updateDataAsync: data => Task.FromResult(updateData(data))
+                );
 
         /// <summary>
         /// If the document does not exist,
@@ -30,7 +31,8 @@ namespace DocumentStores
         public static Task<Result<TData>> GetOrAddAsync<TData>(
             this IDocumentProxy<TData> source,
             TData initialData) where TData : class =>
-                source.GetOrAddAsync(
-                    () => Task.FromResult(initialData));
+                (source ?? throw new ArgumentNullException(nameof(source))).GetOrAddAsync(
+                    addDataAsync: () => Task.FromResult(initialData)
+                );
     }
 }
