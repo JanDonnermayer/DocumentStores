@@ -11,7 +11,7 @@ namespace DocumentStores.Primitives
     /// [25-10-2018] - Donnermayer - Created
     /// </history>
     [DebuggerStepThrough]
-    public class Disposable : IDisposable
+    public sealed class Disposable : IDisposable
     {
         private int _disposed;
         private readonly Action _disposeAction;
@@ -47,8 +47,7 @@ namespace DocumentStores.Primitives
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (Interlocked.Exchange(ref _disposed, 1) == 1)
-                throw new ObjectDisposedException(this.GetType().Name);
+            if (Interlocked.Exchange(ref _disposed, 1) == 1) return;
             _disposeAction.Invoke();
         }
     }

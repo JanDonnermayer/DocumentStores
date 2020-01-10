@@ -5,7 +5,7 @@ using System.Reactive.Subjects;
 
 namespace DocumentStores.Internal
 {
-    class ObservableMemoryStream : MemoryStream
+    internal class ObservableMemoryStream : MemoryStream
     {
         private readonly ISubject<byte[]> subject =
             new Subject<byte[]>();
@@ -13,7 +13,7 @@ namespace DocumentStores.Internal
         public IObservable<byte[]> OnDispose() =>
             subject.AsObservable();
 
-        protected override void Dispose(bool disposing) => 
+        protected override void Dispose(bool disposing) =>
             subject.OnNext(this.ToArray());
     }
 }

@@ -11,7 +11,7 @@ namespace DocumentStores.Test
     {
         private class TestException : Exception
         {
-            public TestException(int count) => 
+            public TestException(int count) =>
                 this.Count = count;
             public int Count { get; }
         }

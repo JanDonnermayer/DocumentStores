@@ -15,13 +15,12 @@ using DocumentStores.Internal;
 namespace DocumentStores.Test
 {
     [TestFixture]
-    class DocumentStoreTest
+    internal class DocumentStoreTest
     {
         private static IDocumentStore GetService() =>
             new DocumentStore(
                 new JsonDocumentSerializer(),
                 new InMemoryDataStore());
-
 
         [Test]
         public void Put_Then_Delete__ContainsCorrectAddresses()
@@ -38,8 +37,6 @@ namespace DocumentStores.Test
             mut_addresses = service.GetAddressesAsync<string>().Result;
             Assert.IsFalse(mut_addresses.Contains(ADDRESS));
         }
-
-
 
         [Test]
         public void Put_And_Get__ReturnsOk()
@@ -110,20 +107,26 @@ namespace DocumentStores.Test
             const int COUNT = 10;
             const int WORKER_COUNT = 20;
 
-            await Task
+            _ = await Task
                 .WhenAll(Enumerable
                     .Range(1, WORKER_COUNT)
-                    .Select(i => Task.Run(async () => await Task
-                        .WhenAll(Enumerable.Range(1, COUNT)
-                        .Select(async i => await service.AddOrUpdateAsync(
-                            address: KEY,
-                            initialData: ImmutableCounter.Default.Increment(),
-                            updateData: _ => _.Increment()))))));
+                    .Select(_ =>
+                        Task.Run(() =>
+                            Task.WhenAll(Enumerable.Range(1, COUNT)
+                                .Select(_ => service.AddOrUpdateAsync(
+                                    address: KEY,
+                                    initialData: ImmutableCounter.Default.Increment(),
+                                    updateData: _ => _.Increment())
+                                )
+                            )
+                        )
+                    )
+                ).ConfigureAwait(false);
 
 
-            var finalCounter = (await service.GetAsync<ImmutableCounter>(KEY)).PassOrThrow();
+            var finalCounter = (await service.GetAsync<ImmutableCounter>(KEY).ConfigureAwait(false)).PassOrThrow();
 
-            (await service.DeleteAsync<ImmutableCounter>(KEY)).PassOrThrow();
+            (await service.DeleteAsync<ImmutableCounter>(KEY).ConfigureAwait(false)).PassOrThrow();
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
         }
@@ -148,19 +151,18 @@ namespace DocumentStores.Test
             var service = GetService();
 
             object VALID_DATA = new object();
-            string INVALID_KEY = "";
+            const string INVALID_KEY = "";
 
             Assert.ThrowsAsync<ArgumentException>(() =>
                 service.PutAsync<dynamic>(INVALID_KEY, VALID_DATA));
         }
-
 
         [Test]
         public void Get_InvalidKey_ThrowsArgumentException()
         {
             var service = GetService();
 
-            string INVALID_KEY = "";
+            const string INVALID_KEY = "";
 
             Assert.ThrowsAsync<ArgumentException>(() =>
                 service.GetAsync<dynamic>(INVALID_KEY));
@@ -171,12 +173,11 @@ namespace DocumentStores.Test
         {
             var service = GetService();
 
-            string INVALID_KEY = "";
+            const string INVALID_KEY = "";
 
             Assert.ThrowsAsync<ArgumentException>(() =>
                 service.DeleteAsync<dynamic>(INVALID_KEY));
         }
-
 
         [Test]
         public void AddOrUpdate_InvalidKey_ThrowsArgumentException()
@@ -184,7 +185,7 @@ namespace DocumentStores.Test
             var service = GetService();
 
             object VALID_DATA = new object();
-            string INVALID_KEY = "";
+            const string INVALID_KEY = "";
 
             Task<object> ValidAddDataFactory(DocumentAddress address) =>
                 Task.FromResult(VALID_DATA);
@@ -207,17 +208,18 @@ namespace DocumentStores.Test
         {
             var service = GetService();
 
-            string VALID_KEY = "KEY";
+            const string VALID_KEY = "KEY";
             object VALID_DATA = new object();
             object INVALID_DATA = null;
 
-            var res = await
-                IDocumentStoreExtensions.AddOrUpdateAsync(
+            var res = await IDocumentStoreExtensions
+                .AddOrUpdateAsync(
                     source: service,
                     address: VALID_KEY,
                     initialData: INVALID_DATA,
                     updateData: _ => VALID_DATA
-                );
+                )
+                .ConfigureAwait(false);
 
             Assert.IsFalse(res.Try(out var _, out Exception ex));
             Assert.IsInstanceOf<DocumentException>(ex);
@@ -239,12 +241,13 @@ namespace DocumentStores.Test
             Task<object> InvalidAddDataFactory(DocumentAddress address) =>
                 Task.FromResult(INVALID_DATA);
 
-            var res = await
-                service.AddOrUpdateAsync(
+            var res = await service
+                .AddOrUpdateAsync(
                     address: KEY,
                     addDataAsync: InvalidAddDataFactory,
                     updateDataAsync: ValidUpdateDataFactory
-                );
+                )
+                .ConfigureAwait(false);
 
             Assert.IsFalse(res.Try(out var _, out Exception ex));
             Assert.IsInstanceOf<DocumentException>(ex);
@@ -290,11 +293,11 @@ namespace DocumentStores.Test
             var DATA_1 = new Box<int>(1);
             var DATA_2 = new Box<string>("D2");
 
-            await service.PutAsync(KEY, DATA_1);
-            await service.PutAsync(KEY, DATA_2);
+            await service.PutAsync(KEY, DATA_1).ConfigureAwait(false);
+            await service.PutAsync(KEY, DATA_2).ConfigureAwait(false);
 
-            var res1 = await service.GetAsync<Box<int>>(KEY);
-            var res2 = await service.GetAsync<Box<string>>(KEY);
+            var res1 = await service.GetAsync<Box<int>>(KEY).ConfigureAwait(false);
+            var res2 = await service.GetAsync<Box<string>>(KEY).ConfigureAwait(false);
 
             Assert.IsTrue(res1.Try(out Box<int> data1));
             Assert.AreEqual(DATA_1, data1);

@@ -27,7 +27,7 @@ namespace DocumentStores.Internal
                 producer.Catch(
                     exceptionFilter: ex =>
                         ex is IOException 
-                        || ex is UnauthorizedAccessException 
+                        || ex is UnauthorizedAccessException
                         || ex is DocumentException);
 
         private Func<Func<Task<Result<T>>>, Func<Task<Result<T>>>> Retry<T>() where T : class =>
@@ -37,9 +37,7 @@ namespace DocumentStores.Internal
                     count: 5,
                     exceptionFilter: ex => ex is IOException);
 
-
         #endregion
-
 
         #region Implementation of IDocumentStore
 

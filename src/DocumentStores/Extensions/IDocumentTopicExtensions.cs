@@ -8,7 +8,7 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
-    /// <summary/> 
+    /// <inheritdoc/> 
     public static class IDocumentTopicExtensions
     {
         /// <summary>
@@ -25,7 +25,8 @@ namespace DocumentStores
                 source.AddOrUpdateAsync(
                     key: key,
                     addDataAsync: _ => Task.FromResult(initialData),
-                    updateDataAsync: (_, data) => Task.FromResult(updateData(data)));
+                    updateDataAsync: (_, data) => Task.FromResult(updateData(data))
+                );
 
 
         /// <summary>
@@ -36,9 +37,10 @@ namespace DocumentStores
         public static Task<Result<TData>> GetOrAddAsync<TData>(
             this IDocumentTopic<TData> source, DocumentKey key,
             TData initialData) where TData : class =>
-                source.GetOrAddAsync(
+                (source ?? throw new ArgumentNullException(nameof(source))).GetOrAddAsync(
                     key: key,
-                    addDataAsync: _ => Task.FromResult(initialData));
+                    addDataAsync: _ => Task.FromResult(initialData)
+                );
 
         /// <summary>
         /// Returns instances of <typeparamref name="TData"/> contained within
@@ -49,6 +51,12 @@ namespace DocumentStores
             this IDocumentTopic<TData> source,
             Func<DocumentKey, bool> predicate) where TData : class
         {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+
             var keys = await source
                 .GetKeysAsync()
                 .ConfigureAwait(false);
@@ -56,7 +64,10 @@ namespace DocumentStores
             var filteredKeys = keys.Where(predicate);
 
             async Task<KeyValuePair<DocumentKey, Result<TData>>> GetAsync(DocumentKey key) =>
-                new KeyValuePair<DocumentKey, Result<TData>>(key, await source.GetAsync(key));
+                new KeyValuePair<DocumentKey, Result<TData>>(
+                    key: key, 
+                    value: await source.GetAsync(key).ConfigureAwait(false)
+                );
 
             var results = await Task
                 .WhenAll(filteredKeys.Select(GetAsync))
@@ -65,8 +76,9 @@ namespace DocumentStores
             return results
                 .Where(r => r.Value.Try())
                 .ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.PassOrThrow());
+                    keySelector: kvp => kvp.Key,
+                    elementSelector: kvp => kvp.Value.PassOrThrow()
+                );
         }
 
         /// <summary>
@@ -81,8 +93,14 @@ namespace DocumentStores
         public static async Task<Result<Unit>[]> SynchronizeAsync<T>(
             this IDocumentTopic<T> source, IDocumentTopic<T> target) where T : class
         {
-            var sourceDict = await source.GetAllAsync();
-            var targetKeys = await target.GetKeysAsync();
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (target == null)
+                throw new ArgumentNullException(nameof(target));
+
+            var sourceDict = await source.GetAllAsync().ConfigureAwait(false);
+            var targetKeys = await target.GetKeysAsync().ConfigureAwait(false);
 
             var surplusTargetKeys = targetKeys
                 .Except(sourceDict.Keys)
@@ -107,6 +125,5 @@ namespace DocumentStores
         public static IDocumentProxy<TData> CreateProxy<TData>(
             this IDocumentTopic<TData> source, DocumentKey key) where TData : class =>
                 new DocumentProxy<TData>(source, key);
-
     }
 }

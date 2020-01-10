@@ -9,10 +9,8 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal
 {
-
     internal class DocumentStoreAdapter : IDocumentStoreAdapter
     {
-
         #region Constructor
 
         public DocumentStoreAdapter(IDocumentSerializer serializer, IDataStore dataStore)
@@ -22,7 +20,6 @@ namespace DocumentStores.Internal
         }
 
         #endregion
-
 
         #region Private 
 

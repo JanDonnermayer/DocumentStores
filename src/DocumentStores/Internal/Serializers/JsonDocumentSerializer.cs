@@ -14,14 +14,14 @@ namespace DocumentStores.Internal
         {
             var text = JsonConvert.SerializeObject(data, Formatting.Indented);
             var buffer = Encoding.UTF8.GetBytes(text);
-            await stream.WriteAsync(buffer, 0, buffer.Length);
+            await stream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
             stream.SetLength(stream.Position);
         }
 
         async Task<T> IDocumentSerializer.DeserializeAsync<T>(Stream stream)
         {
             var buffer = new byte[stream.Length];
-            await stream.ReadAsync(buffer, 0, buffer.Length);
+            await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
             var text = Encoding.UTF8.GetString(buffer);
             return JsonConvert.DeserializeObject<T>(text);
         }

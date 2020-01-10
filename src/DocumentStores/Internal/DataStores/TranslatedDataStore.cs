@@ -10,7 +10,7 @@ namespace DocumentStores.Internal
     {
         private readonly IDataStore source;
         private readonly Func<DocumentRoute, DocumentRoute> translateIn;
-        private readonly Func<DocumentRoute, DocumentRoute> translateOut;      
+        private readonly Func<DocumentRoute, DocumentRoute> translateOut;
 
         private DocumentAddress TranslateIn(DocumentAddress address) =>
             address.MapRoute(translateIn);
@@ -19,8 +19,8 @@ namespace DocumentStores.Internal
             address.MapRoute(translateOut);
 
         public TranslatedDataStore(
-            IDataStore source, 
-            Func<DocumentRoute, DocumentRoute> translateIn, 
+            IDataStore source,
+            Func<DocumentRoute, DocumentRoute> translateIn,
             Func<DocumentRoute, DocumentRoute> translateOut)
         {
             this.source = source;
@@ -30,19 +30,19 @@ namespace DocumentStores.Internal
 
         public void Clear() => source.Clear();
 
-        public void Delete(DocumentAddress address) => 
+        public void Delete(DocumentAddress address) =>
             source.Delete(TranslateIn(address));
 
-        public bool Exists(DocumentAddress address) => 
+        public bool Exists(DocumentAddress address) =>
             source.Exists(TranslateIn(address));
 
-        public IEnumerable<DocumentAddress> GetAddresses(DocumentRoute route, DocumentSearchOptions options) => 
+        public IEnumerable<DocumentAddress> GetAddresses(DocumentRoute route, DocumentSearchOptions options) =>
             source.GetAddresses(translateIn(route), options).Select(TranslateOut);
 
-        public Stream GetReadStream(DocumentAddress address) => 
+        public Stream GetReadStream(DocumentAddress address) =>
             source.GetReadStream(TranslateIn(address));
 
-        public Stream GetWriteStream(DocumentAddress address) => 
+        public Stream GetWriteStream(DocumentAddress address) =>
             source.GetWriteStream(TranslateIn(address));
     }
 }

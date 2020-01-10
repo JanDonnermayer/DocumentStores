@@ -2,11 +2,12 @@
 
 
 using System;
+using System.Collections.Generic;
 
 namespace DocumentStores.Primitives
 {
     /// <InheritDoc/>
-    public readonly struct DocumentKey
+    public readonly struct DocumentKey : IEquatable<DocumentKey>
     {
         /// <InheritDoc/>
         public readonly string Value;
@@ -18,14 +19,26 @@ namespace DocumentStores.Primitives
         }
 
         /// <InheritDoc/>
-        public static DocumentKey Create(string value) => new DocumentKey(value);
+        public static DocumentKey FromString(string value) => new DocumentKey(value);
 
-        internal DocumentKey MapValue(Func<string, string> mapper) => Create(mapper(Value));
+        internal DocumentKey MapValue(Func<string, string> mapper) => FromString(mapper(Value));
 
         #region  Override
 
         /// <InheritDoc/>
         public override string ToString() => Value;
+
+        /// <InheritDoc/>
+        public override bool Equals(object? obj) =>
+            obj is DocumentKey key && Equals(key);
+
+        /// <InheritDoc/>
+        public bool Equals(DocumentKey other) =>
+            Value == other.Value;
+
+        /// <InheritDoc/>
+        public override int GetHashCode() =>
+            -1937169414 + EqualityComparer<string>.Default.GetHashCode(Value);
 
         #endregion
 
@@ -35,7 +48,13 @@ namespace DocumentStores.Primitives
         public static implicit operator string(DocumentKey key) => key.Value;
 
         /// <InheritDoc/>
-        public static implicit operator DocumentKey(string value) => Create(value);
+        public static implicit operator DocumentKey(string value) => FromString(value);
+
+        /// <InheritDoc/>
+        public static bool operator ==(DocumentKey left, DocumentKey right) => left.Equals(right);
+
+        /// <InheritDoc/>
+        public static bool operator !=(DocumentKey left, DocumentKey right) => !(left == right);
 
         #endregion
     }

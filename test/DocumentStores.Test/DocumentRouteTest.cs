@@ -5,14 +5,13 @@ using NUnit.Framework;
 namespace DocumentStores.Test
 {
     [TestFixture]
-    class DocumentRouteTest
+    internal class DocumentRouteTest
     {
-
         [Test]
         public void StartsWith_Correct()
         {
-            string SEG_1 = "S1";
-            string SEG_2 = "S2";
+            const string SEG_1 = "S1";
+            const string SEG_2 = "S2";
 
             var route0 = DocumentRoute.Default;
             var route1 = DocumentRoute.Create(SEG_1);
@@ -44,8 +43,8 @@ namespace DocumentStores.Test
         [Test]
         public void Equals_Correct()
         {
-            string SEG_1 = "S1";
-            string SEG_2 = "S2";
+            const string SEG_1 = "S1";
+            const string SEG_2 = "S2";
 
             var route1 = DocumentRoute.Create(SEG_1);
             var route2 = DocumentRoute.Create(SEG_1);

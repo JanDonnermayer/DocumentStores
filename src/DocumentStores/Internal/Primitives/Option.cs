@@ -37,6 +37,5 @@ namespace DocumentStores.Primitives
         /// <inheritdoc/>
         public static Option<T> None() =>
             new Option<T>(false, default!);
-
     }
 }

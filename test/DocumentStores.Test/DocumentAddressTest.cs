@@ -6,7 +6,6 @@ namespace DocumentStores.Test
     [TestFixture]
     public class DocumentAddressTest
     {
-
         [Test]
         public void Equals_Correct()
         {

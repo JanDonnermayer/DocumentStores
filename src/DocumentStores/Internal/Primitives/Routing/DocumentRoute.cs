@@ -9,7 +9,7 @@ using System.Linq;
 namespace DocumentStores.Primitives
 {
     /// <InheritDoc/>
-    public readonly struct DocumentRoute : IEnumerable<string>
+    public readonly struct DocumentRoute : IEnumerable<string>, IEquatable<DocumentRoute>
     {
         private readonly ImmutableArray<string> segments;
 
@@ -46,14 +46,13 @@ namespace DocumentStores.Primitives
             new DocumentRoute(this.segments.Select(mapper));
 
         /// <InheritDoc/>
-        public bool StartsWith(DocumentRoute route) => 
-            (route.Count(), segments.Count()) switch
+        public bool StartsWith(DocumentRoute route) =>
+            (route.Count(), segments.Length) switch
             {
                 (0, 0) => true,
-                (var x, var y) when x > y => false, 
-                _ => Enumerable.SequenceEqual(this.Take(route.Count()), route)
+                (var x, var y) when x > y => false,
+                _ => this.Take(route.Count()).SequenceEqual(route)
             };
-            
 
         #region "Override"
 
@@ -62,11 +61,11 @@ namespace DocumentStores.Primitives
             Enumerable.SequenceEqual(segments, other.segments);
 
         /// <inheritdoc/>
-        public override bool Equals(object? obj) => 
+        public override bool Equals(object? obj) =>
             obj is DocumentRoute name &&
                 Enumerable.SequenceEqual(segments, name.segments);
 
-        private int GetSegmentsHash() 
+        private int GetSegmentsHash()
         {
             if (!segments.Any()) return 0;
             return segments
@@ -75,29 +74,40 @@ namespace DocumentStores.Primitives
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode() => 
+        public override int GetHashCode() =>
             -312155673 + GetSegmentsHash();
 
         /// <inheritdoc/>
         public override string ToString() =>
            $"[{String.Join(", ", segments.ToArray())}]";
 
-
         /// <inheritdoc/>
-        public IEnumerator<string> GetEnumerator() => 
+        public IEnumerator<string> GetEnumerator() =>
             ((IEnumerable<string>)segments).GetEnumerator();
 
-
         /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator() => 
+        IEnumerator IEnumerable.GetEnumerator() =>
             ((IEnumerable<string>)segments).GetEnumerator();
 
         #endregion
 
+        #region  Operators
+
         /// <inheritdoc/>
         public static implicit operator DocumentRoute(string segment) => DocumentRoute.Create(segment);
-      
 
+        /// <inheritdoc />
+        public static bool operator ==(DocumentRoute left, DocumentRoute right)
+        {
+            return left.Equals(right);
+        }
+
+        /// <inheritdoc />
+        public static bool operator !=(DocumentRoute left, DocumentRoute right)
+        {
+            return !(left == right);
+        }
+
+        #endregion
     }
-
 }

@@ -8,7 +8,7 @@ namespace DocumentStores.Primitives
     /// <summary>
     /// Provides helper methods for <see cref="IDisposable"/> implementations.
     /// </summary>
-    public class DisposeHandle<TOwner> : IDisposable
+    public sealed class DisposeHandle<TOwner> : IDisposable
         where TOwner : class
     {
         private int _disposed;
@@ -17,9 +17,13 @@ namespace DocumentStores.Primitives
         /// <summary>
         /// Initializes a new instance of the <see cref="DisposeHandle{TOwner}"/> class.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            category: "Reliability",
+            checkId: "CA2000:Dispose objects before losing scope",
+            Justification = "The instance is disposed in a separate routine")]
         public DisposeHandle(params IDisposable[] disposables)
         {
-             _disposeStack = new Stack<IDisposable>(disposables ?? new IDisposable[] { });
+             _disposeStack = new Stack<IDisposable>(disposables ?? Array.Empty<IDisposable>());
             CancellationTokenSource CTS = new CancellationTokenSource();
             this.CancellationToken = CTS.Token;
             _disposeStack.Push(new Disposable(() => CTS.Cancel()));
@@ -57,6 +61,10 @@ namespace DocumentStores.Primitives
         /// <returns> 
         /// The current instance for chaining.
         /// </returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            category: "Reliability",
+            checkId: "CA2000:Dispose objects before losing scope",
+            Justification = "The instance is disposed in a separate routine")]
         public DisposeHandle<TOwner> Append(Action action)
         {
             this.Test();
@@ -77,8 +85,7 @@ namespace DocumentStores.Primitives
         /// <inheritdoc />
         public void Dispose()
         {
-            if (Interlocked.Exchange(ref _disposed, 1) == 1)
-                throw new ObjectDisposedException(typeof(TOwner).Name);
+            if (Interlocked.Exchange(ref _disposed, 1) == 1) return;
             while (_disposeStack.Count > 0)
                 _disposeStack.Pop().Dispose();
         }

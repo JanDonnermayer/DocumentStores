@@ -5,12 +5,12 @@ namespace DocumentStores
 {
     /// <inheritdoc />
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public interface IDocumentTopicBuilder : IServiceCollection
+    public interface IDocumentTopicBuilderServiceCollection : IServiceCollection
     {
         ///<summary>
         /// Adds an <see cref="IDocumentTopic{TData}"/> 
         /// to the <see cref="IServiceCollection"/>
         ///</summary>
-        IDocumentTopicBuilder WithObservableOn<TData>() where TData : class;
+        IDocumentTopicBuilderServiceCollection WithObservableOn<TData>() where TData : class;
     }
 }

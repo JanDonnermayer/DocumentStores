@@ -43,7 +43,7 @@ namespace DocumentStores.Internal
             return addresses.Select(_ => _.Key);
         }
 
-        private async Task NotifyObserversAsync() => 
+        private async Task NotifyObserversAsync() =>
             observer.OnNext(await GetKeysInternalAsync());
 
         private async Task<T> WithNotification<T>(Task<T> task)

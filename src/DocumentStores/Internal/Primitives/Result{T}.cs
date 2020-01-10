@@ -94,6 +94,7 @@ namespace DocumentStores.Primitives
 
         /// <inheritdoc/>
         public static implicit operator Result<TData>(Exception exception) => Error(exception);
+  
     }
 
 }

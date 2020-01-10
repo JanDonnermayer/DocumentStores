@@ -2,10 +2,17 @@ using System.IO;
 using System.Security.Cryptography;
 
 namespace DocumentStores
-{    
-    static class StreamExtensions
+{
+    internal static class StreamExtensions
     {
-        public static byte[] GetMd5Hash(this Stream stream) => 
-            MD5.Create().ComputeHash(stream);
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            category: "Security",
+            checkId: "CA5351:Do Not Use Broken Cryptographic Algorithms",
+            Justification = "Value is not security relevant.")]
+        public static byte[] GetMd5Hash(this Stream stream)
+        {
+            using var md5 = MD5.Create();
+            return md5.ComputeHash(stream);
+        }
     }
 }

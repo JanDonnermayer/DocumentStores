@@ -16,16 +16,16 @@ namespace DocumentStores.Internal
             this.address = address;
         }
 
-        void IDataProxy.Delete() => 
+        void IDataProxy.Delete() =>
             store.Delete(address);
 
-        bool IDataProxy.Exists() => 
+        bool IDataProxy.Exists() =>
             store.Exists(address);
 
-        Stream IDataProxy.GetReadStream() => 
+        Stream IDataProxy.GetReadStream() =>
             store.GetReadStream(address);
 
-        Stream IDataProxy.GetWriteStream() => 
+        Stream IDataProxy.GetWriteStream() =>
             store.GetWriteStream(address);
     }
 

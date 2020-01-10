@@ -26,18 +26,17 @@ namespace DocumentStores.Internal
                     addDataAsync: _ => addDataAsync(),
                     updateDataAsync: (_, data) => updateDataAsync(data));
 
-        Task<Result<Unit>> IDocumentProxy<TData>.DeleteAsync() => 
+        Task<Result<Unit>> IDocumentProxy<TData>.DeleteAsync() =>
             topic.DeleteAsync(key);
 
-        Task<Result<TData>> IDocumentProxy<TData>.GetAsync() => 
+        Task<Result<TData>> IDocumentProxy<TData>.GetAsync() =>
             topic.GetAsync(key);
 
         Task<Result<TData>> IDocumentProxy<TData>.GetOrAddAsync(
-            Func<Task<TData>> addDataAsync) => 
+            Func<Task<TData>> addDataAsync) =>
                 topic.GetOrAddAsync(key, _ => addDataAsync());
 
-        Task<Result<Unit>> IDocumentProxy<TData>.PutAsync(TData data) => 
+        Task<Result<Unit>> IDocumentProxy<TData>.PutAsync(TData data) =>
             topic.PutAsync(key, data);
-
     }
 }

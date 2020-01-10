@@ -28,7 +28,7 @@ namespace DocumentStores.Internal
                         store.Keys.Where(r => r.Route.StartsWith(route)),
                     DocumentSearchOptions.TopLevelOnly =>
                         store.Keys.Where(r => r.Route.Equals(route)),
-                    _ => throw new ArgumentException("Invalid options!", nameof(options))
+                    _ => throw new InvalidDocumentSearchOptionsException(options)
                 };
 
         Stream IDataStore.GetReadStream(DocumentAddress address) =>
@@ -61,7 +61,7 @@ namespace DocumentStores.Internal
 
             public Stream GetReadStream()
             {
-                if (data is null) data = new byte[] { };
+                if (data is null) data = Array.Empty<byte>();
                 return new MemoryStream(data, writable: false);
             }
 

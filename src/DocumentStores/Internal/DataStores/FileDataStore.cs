@@ -18,17 +18,18 @@ namespace DocumentStores.Internal
 
         public FileDataStore(string rootDirectory, string fileExtension)
         {
-            this.fileExtension = fileExtension 
+            this.fileExtension = fileExtension
                 ?? throw new ArgumentNullException(nameof(fileExtension));
-            this.rootDirectory = rootDirectory 
+            this.rootDirectory = rootDirectory
                 ?? throw new ArgumentNullException(nameof(rootDirectory));
         }
 
         private string GetDirectoryPath(DocumentRoute route)
         {
             var relativePath = string.Join(
-                Path.DirectorySeparatorChar.ToString(),
-                route.Encode().Append("").ToArray());
+                Path.DirectorySeparatorChar.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                route.Encode().Append("").ToArray()
+            );
 
             return Path.Combine(
                 GetRootDirectory(),
@@ -54,30 +55,23 @@ namespace DocumentStores.Internal
             DocumentRoute route,
             DocumentSearchOptions options)
         {
-            try
-            {
-                var directory = GetDirectoryPath(route);
-                if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentAddress>();
+            var directory = GetDirectoryPath(route);
+            if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentAddress>();
 
-                SearchOption searchOption = options switch
-                {
-                    DocumentSearchOptions.TopLevelOnly => SearchOption.TopDirectoryOnly,
-                    DocumentSearchOptions.AllLevels => SearchOption.AllDirectories,
-                    _ => throw new ArgumentException($"Invalid {nameof(options)}: {options}")
-                };
-
-                return Directory
-                  .EnumerateFiles(
-                      path: directory,
-                      searchPattern: "*" + fileExtension,
-                      searchOption: searchOption)
-                  .Select(Path.GetFileNameWithoutExtension)
-                  .Select(k => DocumentAddress.Create(route, DocumentKey.Create(k)));
-            }
-            catch (Exception)
+            SearchOption searchOption = options switch
             {
-                return Enumerable.Empty<DocumentAddress>();
-            }
+                DocumentSearchOptions.TopLevelOnly => SearchOption.TopDirectoryOnly,
+                DocumentSearchOptions.AllLevels => SearchOption.AllDirectories,
+                _ => throw new ArgumentException($"Invalid {nameof(options)}: {options}")
+            };
+
+            return Directory
+              .EnumerateFiles(
+                  path: directory,
+                  searchPattern: "*" + fileExtension,
+                  searchOption: searchOption)
+              .Select(Path.GetFileNameWithoutExtension)
+              .Select(k => DocumentAddress.Create(route, DocumentKey.FromString(k)));
         }
 
         Stream IDataStore.GetReadStream(DocumentAddress address)
@@ -110,7 +104,7 @@ namespace DocumentStores.Internal
             if (!Directory.Exists(rootDirectory)) return;
             Directory.Delete(rootDirectory, recursive: true);
         }
-           
+
         #endregion
     }
 
