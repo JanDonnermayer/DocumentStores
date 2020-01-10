@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DocumentStores
 {
-    /// <summary> </summary>
+    /// <inheritdoc />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public interface IDocumentTopicBuilder : IServiceCollection
     {
@@ -13,5 +13,4 @@ namespace DocumentStores
         ///</summary>
         IDocumentTopicBuilder WithObservableOn<TData>() where TData : class;
     }
-
 }

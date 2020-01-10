@@ -4,7 +4,7 @@
 
 namespace DocumentStores.Primitives
 {
-    static class Function
+    internal static class Function
     {
         /// <summary>
         /// Creates a delegate from the specifed <paramref name="source"/> with the specified arguments applied.
@@ -23,6 +23,5 @@ namespace DocumentStores.Primitives
         /// </summary>
         public static Func<U> ApplyArgs<T1, U>(this Func<T1, U> source, T1 arg1) =>
            () => source(arg1);
-
     }
 }

@@ -6,15 +6,15 @@ using System.Collections.Generic;
 
 namespace DocumentStores
 {
-    /// <summary/> 
+    /// <inheritdoc/> 
     public static class IServiceCollectionExtensions
     {
         /// <summary>
         /// Adds an <see cref="JsonFileDocumentStore"/> as <see cref="IDocumentStore"/>
         /// to the <see cref="IServiceCollection"/>
         /// </summary>
-        /// <param name="directory">The directory that is used to store documents</param>
         /// <param name="services">The services to which the <see cref="JsonFileDocumentStore"/> is added.</param>
+        /// <param name="directory">The directory that is used to store documents</param>
         /// <returns></returns>
         public static IDocumentTopicBuilder AddJsonFileDocumentStore(this IServiceCollection services, string directory)
         {

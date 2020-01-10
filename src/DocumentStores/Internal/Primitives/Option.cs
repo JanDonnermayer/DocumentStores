@@ -8,7 +8,7 @@ namespace DocumentStores.Primitives
     /// A wrapper, that can contain a value.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Option<T> 
+    public sealed class Option<T>
     {
         private readonly bool hasValue;
         private readonly T value;
@@ -18,7 +18,7 @@ namespace DocumentStores.Primitives
             this.hasValue = hasValue;
             this.value = value;
         }
-        
+
         /// <summary>
         /// Returns, whether a value is contained.
         /// </summary>
@@ -29,15 +29,14 @@ namespace DocumentStores.Primitives
             value = this.value;
             return hasValue;
         }
-        
-        /// <summary/>
-        public static Option<T> Some(T value) => 
+
+        /// <inheritdoc/>
+        public static Option<T> Some(T value) =>
             new Option<T>(true, value ?? throw new ArgumentNullException(nameof(value)));
-        
-        /// <summary/>
+
+        /// <inheritdoc/>
         public static Option<T> None() =>
             new Option<T>(false, default!);
 
     }
-
 }

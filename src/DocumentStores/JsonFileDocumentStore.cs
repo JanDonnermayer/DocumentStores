@@ -7,12 +7,12 @@ using System.Threading;
 
 namespace DocumentStores
 {
-    /// <summary/> 
+    /// <inheritdoc/> 
     public sealed class JsonFileDocumentStore : IDocumentStore
     {
         private readonly IDocumentStore documentStore;
 
-        /// <summary/> 
+        /// <inheritdoc/> 
         public JsonFileDocumentStore(string directory)
         {
             this.documentStore = new DocumentStore(

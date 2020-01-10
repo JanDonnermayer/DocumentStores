@@ -5,7 +5,6 @@ using System.Diagnostics;
 
 namespace DocumentStores.Primitives
 {
-
     /// <summary>
     /// Represents the result of a performed operation, with custom return data.
     /// </summary>
@@ -14,7 +13,7 @@ namespace DocumentStores.Primitives
     /// var success = result.Try(out Foo data);
     /// </usage>
     [DebuggerStepThrough]
-    public class Result<TData> where TData : class
+    public sealed class Result<TData> where TData : class
     {
         private Result(TData? data = null, Exception? exception = null)
         {
@@ -81,21 +80,20 @@ namespace DocumentStores.Primitives
 
         internal static Result<TData> Error(Exception exception) =>
             new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
-        
-        /// <summary/>
-        public static implicit operator TData(Result<TData> result) => 
+
+        /// <inheritdoc/>
+        public static implicit operator TData(Result<TData> result) =>
             result.Try(out var data, out var ex) switch
             {
                 true => data!,
                 false => throw new ResultException(ex!)
             };
 
-        /// <summary/>
+        /// <inheritdoc/>
         public static implicit operator Result<TData>(TData data) => Ok(data);
-        
-        /// <summary/>
-        public static implicit operator Result<TData>(Exception exception) => Error(exception);        
 
+        /// <inheritdoc/>
+        public static implicit operator Result<TData>(Exception exception) => Error(exception);
     }
 
 }

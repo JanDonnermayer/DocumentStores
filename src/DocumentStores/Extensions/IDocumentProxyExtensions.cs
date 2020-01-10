@@ -17,11 +17,10 @@ namespace DocumentStores
         /// </remarks>
         public static Task<Result<TData>> AddOrUpdateAsync<TData>(
             this IDocumentProxy<TData> source, 
-            TData initialData, Func<TData, TData> updateData) where TData : class => 
+            TData initialData, Func<TData, TData> updateData) where TData : class =>
                 source.AddOrUpdateAsync(
                     () => Task.FromResult(initialData), 
                     data => Task.FromResult(updateData(data)));
-
 
         /// <summary>
         /// If the document does not exist,

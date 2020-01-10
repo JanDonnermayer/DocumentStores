@@ -14,7 +14,6 @@ namespace DocumentStores.Primitives
         private int _disposed;
         private readonly Stack<IDisposable> _disposeStack;
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="DisposeHandle{TOwner}"/> class.
         /// </summary>
@@ -26,7 +25,7 @@ namespace DocumentStores.Primitives
             _disposeStack.Push(new Disposable(() => CTS.Cancel()));
         }
 
-        /// <summary/>
+        /// <inheritdoc/>
         public bool IsDisposed =>
             _disposed == 1;
 
@@ -75,14 +74,13 @@ namespace DocumentStores.Primitives
                 throw new ObjectDisposedException(typeof(TOwner).Name);
         }
 
-        /// <summary/>
+        /// <inheritdoc />
         public void Dispose()
         {
-            if (System.Threading.Interlocked.Exchange(ref _disposed, 1) == 1)
+            if (Interlocked.Exchange(ref _disposed, 1) == 1)
                 throw new ObjectDisposedException(typeof(TOwner).Name);
-            while (_disposeStack.Any())
+            while (_disposeStack.Count > 0)
                 _disposeStack.Pop().Dispose();
         }
-
     }
 }
