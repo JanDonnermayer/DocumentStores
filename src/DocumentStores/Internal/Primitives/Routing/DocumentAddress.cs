@@ -41,13 +41,15 @@ namespace DocumentStores.Primitives
         public override string ToString() =>
             $"{nameof(Route)} : {Route}, {nameof(Key)} : {Key}";
 
+
         /// <InheritDoc/>
-        public override bool Equals(object? obj)
-        {
-            return obj is DocumentAddress address &&
-                   EqualityComparer<DocumentRoute>.Default.Equals(Route, address.Route) &&
-                   EqualityComparer<DocumentKey>.Default.Equals(Key, address.Key);
-        }
+        public bool Equals(DocumentAddress other) =>
+            EqualityComparer<DocumentRoute>.Default.Equals(Route, other.Route) &&
+            EqualityComparer<DocumentKey>.Default.Equals(Key, other.Key);
+
+        /// <InheritDoc/>
+        public override bool Equals(object? obj) =>
+            obj is DocumentAddress address && Equals(address);
 
         /// <InheritDoc/>
         public override int GetHashCode()
@@ -60,12 +62,6 @@ namespace DocumentStores.Primitives
 
         #endregion
 
-        #region  IEquatable
-
-        /// <inheritdoc/>
-        public bool Equals(DocumentAddress other) => this.Equals(other);
-
-        #endregion
 
         #region Operators
 
