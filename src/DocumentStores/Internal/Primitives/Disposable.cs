@@ -11,7 +11,7 @@ namespace DocumentStores.Primitives
     /// [25-10-2018] - Donnermayer - Created
     /// </history>
     [DebuggerStepThrough]
-    public sealed class Disposable : IDisposable
+    internal sealed class Disposable : IDisposable
     {
         private int _disposed;
         private readonly Action _disposeAction;
