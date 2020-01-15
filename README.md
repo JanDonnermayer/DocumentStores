@@ -16,7 +16,7 @@ class Person { public string name; public int age; }
 
 var channel = new JsonFileDocumentStore("/store")
     .ToTopic<Person>("contributors")
-    .CreateChannel("maintainer");
+    .ToChannel("maintainer");
 
 await channel.AddOrUpdateAsync(
     initialData: new Person() { name = "Jan", age = 24 },

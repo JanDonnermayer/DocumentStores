@@ -54,7 +54,7 @@ namespace DocumentStores.Internal
         }
 
         private IDataChannel GetDataChannel<T>(DocumentAddress address) =>
-            GetDataStore<T>().CreateChannel(address);
+            GetDataStore<T>().ToChannel(address);
 
         private async Task<T> DeserializeAsync<T>(IDataChannel dataChannel) where T : class
         {

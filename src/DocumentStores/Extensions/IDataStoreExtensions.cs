@@ -7,13 +7,13 @@ namespace DocumentStores
 {
     internal static class IDataStoreExtensions
     {
-        public static IDataChannel CreateChannel(this IDataStore store, DocumentAddress address) =>
+        public static IDataChannel ToChannel(this IDataStore store, DocumentAddress address) =>
             new DataChannel(store, address);
 
         public static async Task CopyAsync(this IDataStore store, DocumentAddress sourceAddress, DocumentAddress targetAddress)
         {
-            var source = store.CreateChannel(sourceAddress);
-            var target = store.CreateChannel(targetAddress);
+            var source = store.ToChannel(sourceAddress);
+            var target = store.ToChannel(targetAddress);
 
             if (target.Exists()) target.Delete();
 

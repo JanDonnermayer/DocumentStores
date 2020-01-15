@@ -126,7 +126,7 @@ namespace DocumentStores
         /// <summary>
         /// Creates a channel for the document with the specified <paramref name="key"/>
         /// </summary>
-        public static IDocumentChannel<TData> CreateChannel<TData>(
+        public static IDocumentChannel<TData> ToChannel<TData>(
             this IDocumentTopic<TData> source, DocumentKey key) where TData : class =>
                 new DocumentChannel<TData>(source, key);
     }
