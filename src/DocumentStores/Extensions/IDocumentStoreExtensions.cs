@@ -55,7 +55,7 @@ namespace DocumentStores
         /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of
         /// <see cref="IDocumentStore"/>
         /// </summary>
-        public static IDocumentTopic<TData> CreateTopic<TData>(
+        public static IDocumentTopic<TData> ToTopic<TData>(
             this IDocumentStore source, DocumentRoute route) where TData : class =>
                 new DocumentTopic<TData>(source, route);
 
@@ -63,7 +63,7 @@ namespace DocumentStores
         /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of
         /// <see cref="IDocumentStore"/>
         /// </summary>
-        public static IDocumentTopic<TData> CreateTopic<TData>(
+        public static IDocumentTopic<TData> ToTopic<TData>(
             this IDocumentStore source, params string[] routeSegments) where TData : class =>
                 new DocumentTopic<TData>(source, DocumentRoute.Create(routeSegments));
 

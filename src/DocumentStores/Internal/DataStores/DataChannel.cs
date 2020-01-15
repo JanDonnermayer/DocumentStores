@@ -4,28 +4,28 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal
 {
-    internal class DataProxy : IDataProxy
+    internal class DataChannel : IDataChannel
     {
         private readonly IDataStore store;
 
         private readonly DocumentAddress address;
 
-        public DataProxy(IDataStore router, DocumentAddress address)
+        public DataChannel(IDataStore router, DocumentAddress address)
         {
             this.store = router ?? throw new ArgumentNullException(nameof(router));
             this.address = address;
         }
 
-        void IDataProxy.Delete() =>
+        void IDataChannel.Delete() =>
             store.Delete(address);
 
-        bool IDataProxy.Exists() =>
+        bool IDataChannel.Exists() =>
             store.Exists(address);
 
-        Stream IDataProxy.GetReadStream() =>
+        Stream IDataChannel.GetReadStream() =>
             store.GetReadStream(address);
 
-        Stream IDataProxy.GetWriteStream() =>
+        Stream IDataChannel.GetWriteStream() =>
             store.GetWriteStream(address);
     }
 

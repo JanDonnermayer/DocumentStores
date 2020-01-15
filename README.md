@@ -14,15 +14,15 @@ Features include exception-handling via result-types, and semaphores for thread-
 ```csharp
 class Person { public string name; public int age; }
 
-var proxy = new JsonFileDocumentStore("/store")
-    .CreateTopic<Person>("contributors")
-    .CreateProxy("maintainer");
+var channel = new JsonFileDocumentStore("/store")
+    .ToTopic<Person>("contributors")
+    .CreateChannel("maintainer");
 
-await proxy.AddOrUpdateAsync(
+await channel.AddOrUpdateAsync(
     initialData: new Person() { name = "Jan", age = 24 },
     updateData: p => new Person() { name = p.name, age = p.age + 1 });
 
-await proxy.DeleteAsync();
+await channel.DeleteAsync();
 ```
 
 ## Dotnet CLI

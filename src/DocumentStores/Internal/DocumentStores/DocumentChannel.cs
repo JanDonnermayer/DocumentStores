@@ -6,19 +6,19 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores.Internal
 {
-    internal class DocumentProxy<TData>
-        : IDocumentProxy<TData> where TData : class
+    internal class DocumentChannel<TData>
+        : IDocumentChannel<TData> where TData : class
     {
         private readonly IDocumentTopic<TData> topic;
         private readonly DocumentKey key;
 
-        public DocumentProxy(IDocumentTopic<TData> topic, DocumentKey key)
+        public DocumentChannel(IDocumentTopic<TData> topic, DocumentKey key)
         {
             this.topic = topic ?? throw new ArgumentNullException(nameof(topic));
             this.key = key;
         }
 
-        Task<Result<TData>> IDocumentProxy<TData>.AddOrUpdateAsync(
+        Task<Result<TData>> IDocumentChannel<TData>.AddOrUpdateAsync(
             Func<Task<TData>> addDataAsync,
             Func<TData, Task<TData>> updateDataAsync) =>
                 topic.AddOrUpdateAsync(
@@ -26,17 +26,17 @@ namespace DocumentStores.Internal
                     addDataAsync: _ => addDataAsync(),
                     updateDataAsync: (_, data) => updateDataAsync(data));
 
-        Task<Result<Unit>> IDocumentProxy<TData>.DeleteAsync() =>
+        Task<Result<Unit>> IDocumentChannel<TData>.DeleteAsync() =>
             topic.DeleteAsync(key);
 
-        Task<Result<TData>> IDocumentProxy<TData>.GetAsync() =>
+        Task<Result<TData>> IDocumentChannel<TData>.GetAsync() =>
             topic.GetAsync(key);
 
-        Task<Result<TData>> IDocumentProxy<TData>.GetOrAddAsync(
+        Task<Result<TData>> IDocumentChannel<TData>.GetOrAddAsync(
             Func<Task<TData>> addDataAsync) =>
                 topic.GetOrAddAsync(key, _ => addDataAsync());
 
-        Task<Result<Unit>> IDocumentProxy<TData>.PutAsync(TData data) =>
+        Task<Result<Unit>> IDocumentChannel<TData>.PutAsync(TData data) =>
             topic.PutAsync(key, data);
     }
 }

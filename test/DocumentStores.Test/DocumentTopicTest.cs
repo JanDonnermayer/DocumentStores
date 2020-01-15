@@ -38,7 +38,7 @@ namespace DocumentStores.Test
         private async Task Operation_Multiple__NotifiesObserver_Multiple(
             Func<IDocumentTopic<ImmutableCounter>, Task> operation)
         {
-            var service = GetService().CreateTopic<ImmutableCounter>();
+            var service = GetService().ToTopic<ImmutableCounter>();
 
             string KEY = Guid.NewGuid().ToString();
             const int OBSERVER_DELAY_MS = 100;

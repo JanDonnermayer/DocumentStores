@@ -9,7 +9,7 @@ namespace DocumentStores
     /// <summary>
     /// A view on a single document.
     /// </summary>
-    public interface IDocumentProxy<TData> where TData : class
+    public interface IDocumentChannel<TData> where TData : class
     {
         /// <summary>
         /// If the documentdoes not exist,

@@ -3,7 +3,7 @@ using System.IO;
 
 namespace DocumentStores.Internal
 {
-    internal interface IDataProxy
+    internal interface IDataChannel
     {
         Stream GetReadStream();
 

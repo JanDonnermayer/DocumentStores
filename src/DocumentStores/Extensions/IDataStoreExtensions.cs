@@ -7,13 +7,13 @@ namespace DocumentStores
 {
     internal static class IDataStoreExtensions
     {
-        public static IDataProxy CreateProxy(this IDataStore store, DocumentAddress address) =>
-            new DataProxy(store, address);
+        public static IDataChannel CreateChannel(this IDataStore store, DocumentAddress address) =>
+            new DataChannel(store, address);
 
         public static async Task CopyAsync(this IDataStore store, DocumentAddress sourceAddress, DocumentAddress targetAddress)
         {
-            var source = store.CreateProxy(sourceAddress);
-            var target = store.CreateProxy(targetAddress);
+            var source = store.CreateChannel(sourceAddress);
+            var target = store.CreateChannel(targetAddress);
 
             if (target.Exists()) target.Delete();
 

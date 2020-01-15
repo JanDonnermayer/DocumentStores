@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
     /// <inheritdoc /> 
-    public static class IDocumentProxyExtensions
+    public static class IDocumentChannelExtensions
     {
         /// <summary>
         /// If the document does not exist,
@@ -16,7 +16,7 @@ namespace DocumentStores
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
         /// </remarks>
         public static Task<Result<TData>> AddOrUpdateAsync<TData>(
-            this IDocumentProxy<TData> source, 
+            this IDocumentChannel<TData> source, 
             TData initialData, Func<TData, TData> updateData) where TData : class =>
                 (source ?? throw new ArgumentNullException(nameof(source))).AddOrUpdateAsync(
                     addDataAsync: () => Task.FromResult(initialData),
@@ -29,7 +29,7 @@ namespace DocumentStores
         /// Else: Returns it.
         /// </summary>
         public static Task<Result<TData>> GetOrAddAsync<TData>(
-            this IDocumentProxy<TData> source,
+            this IDocumentChannel<TData> source,
             TData initialData) where TData : class =>
                 (source ?? throw new ArgumentNullException(nameof(source))).GetOrAddAsync(
                     addDataAsync: () => Task.FromResult(initialData)

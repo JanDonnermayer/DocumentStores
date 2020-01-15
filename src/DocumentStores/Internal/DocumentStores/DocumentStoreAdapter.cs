@@ -53,19 +53,19 @@ namespace DocumentStores.Internal
             );
         }
 
-        private IDataProxy GetDataProxy<T>(DocumentAddress address) =>
-            GetDataStore<T>().CreateProxy(address);
+        private IDataChannel GetDataChannel<T>(DocumentAddress address) =>
+            GetDataStore<T>().CreateChannel(address);
 
-        private async Task<T> DeserializeAsync<T>(IDataProxy dataProxy) where T : class
+        private async Task<T> DeserializeAsync<T>(IDataChannel dataChannel) where T : class
         {
-            using var stream = dataProxy.GetReadStream();
+            using var stream = dataChannel.GetReadStream();
             return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
         }
 
-        private async Task SerializeAsync<T>(IDataProxy dataProxy, T data) where T : class
+        private async Task SerializeAsync<T>(IDataChannel dataChannel, T data) where T : class
         {
-            dataProxy.Delete();
-            using var stream = dataProxy.GetWriteStream();
+            dataChannel.Delete();
+            using var stream = dataChannel.GetWriteStream();
             await serializer.SerializeAsync<T>(stream, data).ConfigureAwait(false);
         }
 
@@ -92,12 +92,12 @@ namespace DocumentStores.Internal
         {
             using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
-            var dataProxy = GetDataProxy<T>(address);
+            var dataChannel = GetDataChannel<T>(address);
 
-            if (!dataProxy.Exists())
+            if (!dataChannel.Exists())
                 throw new DocumentMissingException(address);
 
-            return await DeserializeAsync<T>(dataProxy).ConfigureAwait(false);
+            return await DeserializeAsync<T>(dataChannel).ConfigureAwait(false);
         }
 
         public async Task<Unit> PutAsync<T>(DocumentAddress address, T data) where T : class
@@ -107,9 +107,9 @@ namespace DocumentStores.Internal
 
             using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
-            var dataProxy = GetDataProxy<T>(address);
+            var dataChannel = GetDataChannel<T>(address);
 
-            await SerializeAsync(dataProxy, data).ConfigureAwait(false);
+            await SerializeAsync(dataChannel, data).ConfigureAwait(false);
 
             return Unit.Default;
         }
@@ -127,17 +127,17 @@ namespace DocumentStores.Internal
 
             using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
-            var dataProxy = GetDataProxy<T>(address);
+            var dataChannel = GetDataChannel<T>(address);
 
             async Task<T> GetDataAsync()
             {
-                if (!dataProxy.Exists())
+                if (!dataChannel.Exists())
                 {
                     return await addDataAsync(address).ConfigureAwait(false)
                         ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
                 }
 
-                var data = await DeserializeAsync<T>(dataProxy).ConfigureAwait(false);
+                var data = await DeserializeAsync<T>(dataChannel).ConfigureAwait(false);
 
                 return await updateDataAsync(address, (T)data).ConfigureAwait(false)
                     ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!");
@@ -145,7 +145,7 @@ namespace DocumentStores.Internal
 
             var data = await GetDataAsync().ConfigureAwait(false);
 
-            await SerializeAsync(dataProxy, data).ConfigureAwait(false);
+            await SerializeAsync(dataChannel, data).ConfigureAwait(false);
 
             return data;
         }
@@ -159,18 +159,18 @@ namespace DocumentStores.Internal
 
             using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
-            var dataProxy = GetDataProxy<T>(address);
+            var dataChannel = GetDataChannel<T>(address);
 
-            if (dataProxy.Exists())
+            if (dataChannel.Exists())
             {
-                return await DeserializeAsync<T>(dataProxy).ConfigureAwait(false);
+                return await DeserializeAsync<T>(dataChannel).ConfigureAwait(false);
             }
             else
             {
                 var data = await addDataAsync(address).ConfigureAwait(false)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
-                await SerializeAsync(dataProxy, data).ConfigureAwait(false);
+                await SerializeAsync(dataChannel, data).ConfigureAwait(false);
 
                 return data;
             }
@@ -180,12 +180,12 @@ namespace DocumentStores.Internal
         {
             using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
-            var dataProxy = GetDataProxy<T>(address);
+            var dataChannel = GetDataChannel<T>(address);
 
-            if (!dataProxy.Exists())
+            if (!dataChannel.Exists())
                 throw new DocumentMissingException(address);
 
-            dataProxy.Delete();
+            dataChannel.Delete();
 
             return Unit.Default;
         }
