@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 #nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     internal class InvalidDocumentSearchOptionsException : ArgumentException
     {

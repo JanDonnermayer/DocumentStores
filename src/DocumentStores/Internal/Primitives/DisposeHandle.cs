@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <summary>
     /// Provides helper methods for <see cref="IDisposable"/> implementations.

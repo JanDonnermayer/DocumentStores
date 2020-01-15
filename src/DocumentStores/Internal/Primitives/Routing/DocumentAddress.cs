@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <InheritDoc/>
     public readonly struct DocumentAddress : IEquatable<DocumentAddress>

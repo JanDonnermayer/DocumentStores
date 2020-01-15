@@ -2,7 +2,7 @@ using System;
 
 #nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <inheritdoc />
     public class DocumentException : Exception

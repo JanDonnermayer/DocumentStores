@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <summary>
     /// An <see cref="IDisposable"/> implementation, that executes a specified <see cref="Action"/> on disposal

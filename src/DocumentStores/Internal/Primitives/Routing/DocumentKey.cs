@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <InheritDoc/>
     public readonly struct DocumentKey : IEquatable<DocumentKey>

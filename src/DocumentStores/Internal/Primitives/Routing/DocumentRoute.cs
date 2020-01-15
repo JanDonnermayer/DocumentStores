@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <InheritDoc/>
     public readonly struct DocumentRoute : IEquatable<DocumentRoute>

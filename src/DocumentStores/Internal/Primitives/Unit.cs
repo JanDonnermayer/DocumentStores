@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     ///<summary>
     /// Represents an empty value.

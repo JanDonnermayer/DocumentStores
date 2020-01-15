@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     internal class DocumentMissingException : DocumentException
     {

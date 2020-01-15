@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Reactive;
-using DocumentStores.Primitives;
+;
 using DocumentStores.Internal;
 
 namespace DocumentStores.Test

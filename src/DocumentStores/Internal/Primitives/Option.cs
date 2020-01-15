@@ -2,7 +2,7 @@ using System;
 
 #nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <summary>
     /// A wrapper, that can contain a value.

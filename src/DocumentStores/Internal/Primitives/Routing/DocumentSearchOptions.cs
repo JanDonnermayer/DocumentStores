@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <InheritDoc/>
     public enum DocumentSearchOption

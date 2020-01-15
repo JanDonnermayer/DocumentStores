@@ -2,7 +2,7 @@ using System;
 
 #nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <summary>
     /// The exception that is thrown when a result is not successful.

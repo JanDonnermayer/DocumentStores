@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 #nullable enable
 
-namespace DocumentStores.Primitives
+namespace DocumentStores
 {
     /// <summary>
     /// Represents the result of a performed operation, with custom return data.
