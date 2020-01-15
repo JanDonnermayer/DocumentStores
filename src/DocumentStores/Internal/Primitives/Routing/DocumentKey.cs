@@ -1,6 +1,5 @@
 #nullable enable
 
-
 using System;
 using System.Collections.Generic;
 
@@ -10,7 +9,7 @@ namespace DocumentStores.Primitives
     public readonly struct DocumentKey : IEquatable<DocumentKey>
     {
         /// <InheritDoc/>
-        public readonly string Value;
+        public string Value { get; }
 
         private DocumentKey(string value)
         {

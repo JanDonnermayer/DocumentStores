@@ -8,7 +8,7 @@ namespace DocumentStores.Primitives
     /// <summary>
     /// Provides helper methods for <see cref="IDisposable"/> implementations.
     /// </summary>
-    public sealed class DisposeHandle<TOwner> : IDisposable
+    internal sealed class DisposeHandle<TOwner> : IDisposable
         where TOwner : class
     {
         private int _disposed;

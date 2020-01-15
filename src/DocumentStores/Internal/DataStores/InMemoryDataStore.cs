@@ -21,12 +21,12 @@ namespace DocumentStores.Internal
             store.ContainsKey(address);
 
         IEnumerable<DocumentAddress> IDataStore.GetAddresses(
-            DocumentRoute route, DocumentSearchOptions options) =>
+            DocumentRoute route, DocumentSearchOption options) =>
                 options switch
                 {
-                    DocumentSearchOptions.AllLevels =>
+                    DocumentSearchOption.AllLevels =>
                         store.Keys.Where(r => r.Route.StartsWith(route)),
-                    DocumentSearchOptions.TopLevelOnly =>
+                    DocumentSearchOption.TopLevelOnly =>
                         store.Keys.Where(r => r.Route.Equals(route)),
                     _ => throw new InvalidDocumentSearchOptionsException(options)
                 };
@@ -49,12 +49,11 @@ namespace DocumentStores.Internal
         void IDataStore.Clear() =>
             store = store.Clear();
 
-
         #region  Private Types
 
         private class DataContainer
         {
-            private byte[] data;
+            private byte[]? data;
 
             private void SetData(byte[] _data) =>
                 this.data = _data;
@@ -71,7 +70,6 @@ namespace DocumentStores.Internal
                 stream.OnDispose().Subscribe(SetData);
                 return stream;
             }
-
         }
 
         #endregion

@@ -7,7 +7,7 @@ using DocumentStores.Internal;
 
 namespace DocumentStores.Test
 {
-    class DocumentTopicTest
+    internal class DocumentTopicTest
     {
         private static IDocumentStore GetService() =>
             new DocumentStore(

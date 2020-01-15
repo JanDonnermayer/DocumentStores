@@ -10,10 +10,10 @@ namespace DocumentStores.Primitives
     public readonly struct DocumentAddress : IEquatable<DocumentAddress>
     {
         /// <InheritDoc/>
-        public readonly DocumentRoute Route;
+        public DocumentRoute Route { get; }
 
         /// <InheritDoc/>
-        public readonly DocumentKey Key;
+        public DocumentKey Key { get; }
 
         private DocumentAddress(DocumentRoute route, DocumentKey key)
         {
@@ -29,6 +29,10 @@ namespace DocumentStores.Primitives
         public static DocumentAddress Create(DocumentKey key) =>
             Create(DocumentRoute.Default, key);
 
+        /// <InheritDoc/>
+        public static DocumentAddress FromString(string key) =>
+            Create(DocumentRoute.Default, key);
+
         internal DocumentAddress MapRoute(Func<DocumentRoute, DocumentRoute> mapper) =>
             Create(mapper(Route), Key);
 
@@ -40,7 +44,6 @@ namespace DocumentStores.Primitives
         /// <InheritDoc/>
         public override string ToString() =>
             $"{nameof(Route)} : {Route}, {nameof(Key)} : {Key}";
-
 
         /// <InheritDoc/>
         public bool Equals(DocumentAddress other) =>
@@ -61,7 +64,6 @@ namespace DocumentStores.Primitives
         }
 
         #endregion
-
 
         #region Operators
 

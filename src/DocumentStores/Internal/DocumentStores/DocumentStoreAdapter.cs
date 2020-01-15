@@ -74,8 +74,8 @@ namespace DocumentStores.Internal
 
         private async Task<IDisposable> GetLockAsync(DocumentAddress key)
         {
-            var sem = ImmutableInterlocked.GetOrAdd(ref locks, key, s => new SemaphoreSlim(1, 1));
-            await sem.WaitAsync();
+            var sem = ImmutableInterlocked.GetOrAdd(ref locks, key, _ => new SemaphoreSlim(1, 1));
+            await sem.WaitAsync().ConfigureAwait(false);
             return new Disposable(() => sem.Release());
         }
 
@@ -85,31 +85,31 @@ namespace DocumentStores.Internal
         #region Implementation of IDocumentStoreAdapter 
 
         public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<T>(
-            DocumentRoute route, DocumentSearchOptions options, CancellationToken ct = default) where T : class =>
+            DocumentRoute route, DocumentSearchOption options, CancellationToken ct = default) where T : class =>
                 Task.Run(() => GetDataStore<T>().GetAddresses(route, options), ct);
 
         public async Task<T> GetAsync<T>(DocumentAddress address) where T : class
         {
-            using var _ = await GetLockAsync(address);
+            using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
             var dataProxy = GetDataProxy<T>(address);
 
             if (!dataProxy.Exists())
                 throw new DocumentMissingException(address);
 
-            return await DeserializeAsync<T>(dataProxy);
+            return await DeserializeAsync<T>(dataProxy).ConfigureAwait(false);
         }
 
         public async Task<Unit> PutAsync<T>(DocumentAddress address, T data) where T : class
         {
             if (data == null)
-                throw new ArgumentException("Data cannot be null!", nameof(data));
+                throw new ArgumentNullException(nameof(data));
 
-            using var _ = await GetLockAsync(address);
+            using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
             var dataProxy = GetDataProxy<T>(address);
 
-            await SerializeAsync(dataProxy, data);
+            await SerializeAsync(dataProxy, data).ConfigureAwait(false);
 
             return Unit.Default;
         }
@@ -125,28 +125,30 @@ namespace DocumentStores.Internal
             if (updateDataAsync is null)
                 throw new ArgumentNullException(nameof(updateDataAsync));
 
-            using var _ = await GetLockAsync(address);
+            using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
             var dataProxy = GetDataProxy<T>(address);
 
             async Task<T> GetDataAsync()
             {
-                if (!dataProxy.Exists()) return await addDataAsync(address)
-                    ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
+                if (!dataProxy.Exists())
+                {
+                    return await addDataAsync(address).ConfigureAwait(false)
+                        ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
+                }
 
-                var data = await DeserializeAsync<T>(dataProxy);
+                var data = await DeserializeAsync<T>(dataProxy).ConfigureAwait(false);
 
-                return await updateDataAsync(address, (T)data)
+                return await updateDataAsync(address, (T)data).ConfigureAwait(false)
                     ?? throw new DocumentException($"{nameof(updateDataAsync)} returned null!");
             }
 
-            var data = await GetDataAsync();
+            var data = await GetDataAsync().ConfigureAwait(false);
 
-            await SerializeAsync(dataProxy, data);
+            await SerializeAsync(dataProxy, data).ConfigureAwait(false);
 
             return data;
         }
-
 
         public async Task<T> GetOrAddAsync<T>(
             DocumentAddress address,
@@ -155,20 +157,20 @@ namespace DocumentStores.Internal
             if (addDataAsync is null)
                 throw new ArgumentNullException(nameof(addDataAsync));
 
-            using var _ = await GetLockAsync(address);
+            using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
             var dataProxy = GetDataProxy<T>(address);
 
             if (dataProxy.Exists())
             {
-                return await DeserializeAsync<T>(dataProxy);
+                return await DeserializeAsync<T>(dataProxy).ConfigureAwait(false);
             }
             else
             {
-                var data = await addDataAsync(address)
+                var data = await addDataAsync(address).ConfigureAwait(false)
                     ?? throw new DocumentException($"{nameof(addDataAsync)} returned null!");
 
-                await SerializeAsync(dataProxy, data);
+                await SerializeAsync(dataProxy, data).ConfigureAwait(false);
 
                 return data;
             }
@@ -176,7 +178,7 @@ namespace DocumentStores.Internal
 
         public async Task<Unit> DeleteAsync<T>(DocumentAddress address) where T : class
         {
-            using var _ = await GetLockAsync(address);
+            using var _ = await GetLockAsync(address).ConfigureAwait(false);
 
             var dataProxy = GetDataProxy<T>(address);
 

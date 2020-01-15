@@ -21,13 +21,17 @@ namespace DocumentStores
         /// </remarks>
         public static Task<Result<TData>> AddOrUpdateAsync<TData>(
             this IDocumentTopic<TData> source, DocumentKey key,
-            TData initialData, Func<TData, TData> updateData) where TData : class =>
-                source.AddOrUpdateAsync(
-                    key: key,
-                    addDataAsync: _ => Task.FromResult(initialData),
-                    updateDataAsync: (_, data) => Task.FromResult(updateData(data))
-                );
+            TData initialData, Func<TData, TData> updateData) where TData : class
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
 
+            return source.AddOrUpdateAsync(
+                key: key,
+                addDataAsync: _ => Task.FromResult(initialData),
+                updateDataAsync: (_, data) => Task.FromResult(updateData(data))
+            );
+        }
 
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,

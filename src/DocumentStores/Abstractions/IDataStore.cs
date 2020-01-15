@@ -7,10 +7,10 @@ using DocumentStores.Primitives;
 
 namespace DocumentStores
 {
-    interface IDataStore
+    internal interface IDataStore
     {
         IEnumerable<DocumentAddress> GetAddresses(
-            DocumentRoute route, DocumentSearchOptions options);
+            DocumentRoute route, DocumentSearchOption options);
 
         Stream GetReadStream(DocumentAddress address);
 

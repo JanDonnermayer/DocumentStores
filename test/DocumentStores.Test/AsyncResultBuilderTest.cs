@@ -7,7 +7,7 @@ using DocumentStores.Primitives;
 namespace DocumentStores.Test
 {
     [TestFixture]
-    class AsyncResultBuilderTest
+    internal class AsyncResultBuilderTest
     {
         private class TestException : Exception
         {
@@ -15,7 +15,6 @@ namespace DocumentStores.Test
                 this.Count = count;
             public int Count { get; }
         }
-
 
         [Test]
         public async Task SimplePipelineExecutesCorrectly()
@@ -51,7 +50,8 @@ namespace DocumentStores.Test
                     onOk: _ => { },
                     onError: tcsError.SetResult
                 )
-                .Invoke();
+                .Invoke()
+                .ConfigureAwait(false);
 
             var error = await tcsError.Task;
 
@@ -59,7 +59,7 @@ namespace DocumentStores.Test
             Assert.IsFalse(res.Try(out Exception ex));
             Assert.IsInstanceOf<TestException>(ex);
             Assert.AreEqual(
-                expected: (TRY_COUNT_EQ + 1) * (TRY_COUNT_INCR + 1) - 1,
+                expected: ((TRY_COUNT_EQ + 1) * (TRY_COUNT_INCR + 1)) - 1,
                 actual: ((TestException)ex).Count
             );
 

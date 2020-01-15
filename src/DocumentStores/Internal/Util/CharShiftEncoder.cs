@@ -27,7 +27,6 @@ namespace DocumentStores.Internal
         private static readonly Lazy<IImmutableDictionary<char, char>> decodingMap =
             new Lazy<IImmutableDictionary<char, char>>(() => _decodingMap);
 
-
         // Check whether key is null,
         // or contains anything from decoding map which would lead to collisions
         private static string CheckChars(string value)
@@ -45,7 +44,6 @@ namespace DocumentStores.Internal
         private static string Decode(string encodedValue) =>
             new string(encodedValue.Select(c => decodingMap.Value.TryGetValue(c, out var v) ? v : c).ToArray());
 
-
         public static DocumentKey Encode(this DocumentKey source) =>
             source.MapValue(CheckChars).MapValue(Encode);
 
@@ -57,8 +55,5 @@ namespace DocumentStores.Internal
 
         public static DocumentKey Decode(this DocumentKey source) =>
             source.MapValue(Decode);
-
-
     }
-
 }

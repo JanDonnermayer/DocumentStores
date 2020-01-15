@@ -7,7 +7,7 @@ namespace DocumentStores.Primitives
 {
     internal class InvalidDocumentSearchOptionsException : ArgumentException
     {
-        public InvalidDocumentSearchOptionsException(DocumentSearchOptions options) : base("InvalidOptions: " + options.ToString()) { }
+        public InvalidDocumentSearchOptionsException(DocumentSearchOption options) : base("InvalidOptions: " + options.ToString()) { }
 
         public InvalidDocumentSearchOptionsException() { }
 

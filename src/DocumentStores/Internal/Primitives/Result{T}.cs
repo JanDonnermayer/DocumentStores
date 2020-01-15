@@ -57,20 +57,15 @@ namespace DocumentStores.Primitives
             return exception == null;
         }
 
-
-#nullable restore
-
         /// <summary>
         /// If the result is successful: Passes the contained data;
         /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
         /// </summary>
         public TData PassOrThrow()
         {
-            if (!this.Try(out var res, out var ex)) throw new ResultException(ex);
-            return res;
+            if (!this.Try(out var res, out var ex)) throw new ResultException(ex!);
+            return res!;
         }
-
-#nullable enable
 
         internal static Result<TData> Ok(TData data) =>
             new Result<TData>(data ?? throw new ArgumentNullException(nameof(data)), null);
@@ -81,12 +76,18 @@ namespace DocumentStores.Primitives
         internal static Result<TData> Error(Exception exception) =>
             new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
 
+#pragma warning disable CA2225 // Ok, Error & PassOrThrow provide alternatives
+
         /// <inheritdoc/>
-        public static implicit operator TData(Result<TData> result) =>
-            result.Try(out var data, out var ex) switch
+        public static implicit operator TData?(Result<TData> result) =>
+            result switch
             {
-                true => data!,
-                false => throw new ResultException(ex!)
+                null => null,
+                Result<TData> res => res.Try(out var data, out var _) switch
+                {
+                    true => data!,
+                    false => null
+                }
             };
 
         /// <inheritdoc/>
@@ -94,7 +95,7 @@ namespace DocumentStores.Primitives
 
         /// <inheritdoc/>
         public static implicit operator Result<TData>(Exception exception) => Error(exception);
-  
-    }
 
+#pragma warning restore
+    }
 }

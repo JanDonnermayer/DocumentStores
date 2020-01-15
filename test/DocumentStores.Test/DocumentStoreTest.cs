@@ -133,7 +133,7 @@ namespace DocumentStores.Test
 
 
         [Test]
-        public void Put_InvalidData_ThrowsArgumentException()
+        public void Put_InvalidData_ThrowsArgumentNullException()
         {
             var service = GetService();
 
@@ -141,7 +141,7 @@ namespace DocumentStores.Test
             object VALID_DATA = new object();
             object INVALID_DATA = null;
 
-            Assert.ThrowsAsync<ArgumentException>(() =>
+            Assert.ThrowsAsync<ArgumentNullException>(() =>
                 service.PutAsync<dynamic>(VALID_KEY, INVALID_DATA));
         }
 

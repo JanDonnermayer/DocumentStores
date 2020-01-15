@@ -28,7 +28,7 @@ namespace DocumentStores.Internal
         {
             var relativePath = string.Join(
                 Path.DirectorySeparatorChar.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                route.Encode().Append("").ToArray()
+                route.Encode().Segments.Append("").ToArray()
             );
 
             return Path.Combine(
@@ -45,7 +45,6 @@ namespace DocumentStores.Internal
             return Path.ChangeExtension(path, fileExtension);
         }
 
-
         #region  IDocumentStoreInternal
 
         bool IDataStore.Exists(DocumentAddress address) =>
@@ -53,15 +52,15 @@ namespace DocumentStores.Internal
 
         IEnumerable<DocumentAddress> IDataStore.GetAddresses(
             DocumentRoute route,
-            DocumentSearchOptions options)
+            DocumentSearchOption options)
         {
             var directory = GetDirectoryPath(route);
             if (!Directory.Exists(directory)) return Enumerable.Empty<DocumentAddress>();
 
             SearchOption searchOption = options switch
             {
-                DocumentSearchOptions.TopLevelOnly => SearchOption.TopDirectoryOnly,
-                DocumentSearchOptions.AllLevels => SearchOption.AllDirectories,
+                DocumentSearchOption.TopLevelOnly => SearchOption.TopDirectoryOnly,
+                DocumentSearchOption.AllLevels => SearchOption.AllDirectories,
                 _ => throw new ArgumentException($"Invalid {nameof(options)}: {options}")
             };
 

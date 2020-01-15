@@ -175,8 +175,8 @@ namespace DocumentStores.Internal
                 .Select(_ => seed)
                 .Select(t => new Func<Exception, Option<TimeSpan>>((Exception ex) =>
                    (exceptionFilter ?? throw new ArgumentNullException(nameof(exceptionFilter))).Invoke(ex)
-                    ? Option<TimeSpan>.Some(t)
-                    : Option<TimeSpan>.None()));
+                    ? Option.Some(t)
+                    : Option.None<TimeSpan>()));
 
         private static IEnumerable<Func<Exception, Option<TimeSpan>>> GetIncrementalTimeSpans(
             TimeSpan seed, uint count, Func<Exception, bool> exceptionFilter) =>
@@ -185,9 +185,8 @@ namespace DocumentStores.Internal
                 .Select(i => TimeSpan.FromMilliseconds(seed.TotalMilliseconds * Math.Pow(2, i)))
                 .Select(t => new Func<Exception, Option<TimeSpan>>(ex =>
                     (exceptionFilter ?? throw new ArgumentNullException(nameof(exceptionFilter))).Invoke(ex)
-                    ? Option<TimeSpan>.Some(t)
-                    : Option<TimeSpan>.None()));
-
+                    ? Option.Some(t)
+                    : Option.None<TimeSpan>()));
 
         #endregion
     }

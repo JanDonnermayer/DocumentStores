@@ -9,9 +9,14 @@ using System.Linq;
 namespace DocumentStores.Primitives
 {
     /// <InheritDoc/>
-    public readonly struct DocumentRoute : IEnumerable<string>, IEquatable<DocumentRoute>
+    public readonly struct DocumentRoute : IEquatable<DocumentRoute>
     {
         private readonly ImmutableArray<string> segments;
+
+        /// <summary>
+        /// The segments of the route.
+        /// </summary>
+        public IEnumerable<string> Segments => segments;
 
         private DocumentRoute(IEnumerable<string> segments) =>
             this.segments = (segments ?? throw new ArgumentNullException(nameof(segments)))
@@ -28,7 +33,6 @@ namespace DocumentStores.Primitives
         public static DocumentRoute Create(params string[] segments) =>
             new DocumentRoute(segments);
 
-
         internal DocumentRoute Prepend(DocumentRoute route) =>
             new DocumentRoute(route.segments.Concat(this.segments));
 
@@ -38,7 +42,7 @@ namespace DocumentStores.Primitives
         internal DocumentRoute TrimLeft(DocumentRoute route) =>
             StartsWith(route) switch
             {
-                true => Create(segments.Skip(route.Count())),
+                true => Create(segments.Skip(route.Segments.Count())),
                 false => this
             };
 
@@ -46,13 +50,20 @@ namespace DocumentStores.Primitives
             new DocumentRoute(this.segments.Select(mapper));
 
         /// <InheritDoc/>
-        public bool StartsWith(DocumentRoute route) =>
-            (route.Count(), segments.Length) switch
+        public bool StartsWith(DocumentRoute route)
+        {
+            var segments = this.segments;
+            var otherSegments = route.Segments;
+
+            return (otherSegments.Count(), segments.Length) switch
             {
-                (0, 0) => true,
+                (0, _) => true,
                 (var x, var y) when x > y => false,
-                _ => this.Take(route.Count()).SequenceEqual(route)
+                _ => segments
+                    .Zip(otherSegments, (x,y) => (x, y))
+                    .All(z => EqualityComparer<string>.Default.Equals(z.x, z.y))
             };
+        }
 
         #region "Override"
 
@@ -81,20 +92,9 @@ namespace DocumentStores.Primitives
         public override string ToString() =>
            $"[{String.Join(", ", segments.ToArray())}]";
 
-        /// <inheritdoc/>
-        public IEnumerator<string> GetEnumerator() =>
-            ((IEnumerable<string>)segments).GetEnumerator();
-
-        /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator() =>
-            ((IEnumerable<string>)segments).GetEnumerator();
-
         #endregion
 
         #region  Operators
-
-        /// <inheritdoc/>
-        public static implicit operator DocumentRoute(string segment) => DocumentRoute.Create(segment);
 
         /// <inheritdoc />
         public static bool operator ==(DocumentRoute left, DocumentRoute right)

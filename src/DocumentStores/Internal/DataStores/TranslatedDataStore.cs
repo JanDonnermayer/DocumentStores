@@ -36,7 +36,7 @@ namespace DocumentStores.Internal
         public bool Exists(DocumentAddress address) =>
             source.Exists(TranslateIn(address));
 
-        public IEnumerable<DocumentAddress> GetAddresses(DocumentRoute route, DocumentSearchOptions options) =>
+        public IEnumerable<DocumentAddress> GetAddresses(DocumentRoute route, DocumentSearchOption options) =>
             source.GetAddresses(translateIn(route), options).Select(TranslateOut);
 
         public Stream GetReadStream(DocumentAddress address) =>

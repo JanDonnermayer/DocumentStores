@@ -53,7 +53,7 @@ namespace DocumentStores
         /// </summary>
         Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
             DocumentRoute route, 
-            DocumentSearchOptions options = DocumentSearchOptions.AllLevels,
+            DocumentSearchOption options = DocumentSearchOption.AllLevels,
             CancellationToken ct = default) where TData : class;
 
         /// <summary>

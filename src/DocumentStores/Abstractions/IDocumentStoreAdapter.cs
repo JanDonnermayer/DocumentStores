@@ -22,11 +22,9 @@ namespace DocumentStores
 
         Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
             DocumentRoute route, 
-            DocumentSearchOptions options,
+            DocumentSearchOption options,
             CancellationToken ct = default) where TData : class ;
-        
+
         Task<Unit> PutAsync<TData>(DocumentAddress address, TData data) where TData : class;
     }
-
-
 }

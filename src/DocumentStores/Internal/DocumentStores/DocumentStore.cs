@@ -43,7 +43,7 @@ namespace DocumentStores.Internal
 
         Task<IEnumerable<DocumentAddress>> IDocumentStore.GetAddressesAsync<TData>(
             DocumentRoute topicName,
-            DocumentSearchOptions options,
+            DocumentSearchOption options,
             CancellationToken ct) where TData : class =>
                 store.GetAddressesAsync<TData>(topicName, options, ct);
 

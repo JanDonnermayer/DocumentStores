@@ -1,10 +1,9 @@
 ﻿#nullable enable
 
-
 namespace DocumentStores.Primitives
 {
     /// <InheritDoc/>
-    public enum DocumentSearchOptions
+    public enum DocumentSearchOption
     {
         /// <InheritDoc/>
         TopLevelOnly = 0,
@@ -12,5 +11,4 @@ namespace DocumentStores.Primitives
         /// <InheritDoc/>
         AllLevels = 1
     }
-
 }

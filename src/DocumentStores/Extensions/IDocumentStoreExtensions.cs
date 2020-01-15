@@ -21,12 +21,17 @@ namespace DocumentStores
         /// </remarks>
         public static Task<Result<TData>> AddOrUpdateAsync<TData>(
             this IDocumentStore source, DocumentAddress address,
-            TData initialData, Func<TData, TData> updateData) where TData : class =>
-                source.AddOrUpdateAsync(
-                    address: address,
-                    addDataAsync: _ => Task.FromResult(initialData),
-                    updateDataAsync: (_, data) => Task.FromResult(updateData(data)));
+            TData initialData, Func<TData, TData> updateData) where TData : class
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
 
+            return source.AddOrUpdateAsync(
+                address: address,
+                addDataAsync: _ => Task.FromResult(initialData),
+                updateDataAsync: (_, data) => Task.FromResult(updateData(data))
+            );
+        }
 
         /// <summary>
         /// If the document with the specified <paramref name="address"/> does not exist,
@@ -35,10 +40,16 @@ namespace DocumentStores
         /// </summary>
         public static Task<Result<TData>> GetOrAddAsync<TData>(
             this IDocumentStore source, DocumentAddress address,
-            TData initialData) where TData : class =>
-                source.GetOrAddAsync(
-                    address: address,
-                    addDataAsync: _ => Task.FromResult(initialData));
+            TData initialData) where TData : class
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            return source.GetOrAddAsync(
+                address: address,
+                addDataAsync: _ => Task.FromResult(initialData)
+            );
+        }
 
         /// <summary>
         /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of
@@ -61,8 +72,13 @@ namespace DocumentStores
         /// </summary>
         public static Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
             this IDocumentStore store,
-            DocumentSearchOptions options = DocumentSearchOptions.AllLevels,
-            CancellationToken ct = default) where TData : class =>
-                store.GetAddressesAsync<TData>(DocumentRoute.Default, options, ct);
+            DocumentSearchOption options = DocumentSearchOption.AllLevels,
+            CancellationToken ct = default) where TData : class
+        {
+            if (store == null)
+                throw new ArgumentNullException(nameof(store));
+
+            return store.GetAddressesAsync<TData>(DocumentRoute.Default, options, ct);
+        }
     }
 }

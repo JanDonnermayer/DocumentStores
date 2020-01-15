@@ -19,7 +19,7 @@ namespace DocumentStores
         public static IDocumentTopicBuilderServiceCollection AddJsonFileDocumentStore(this IServiceCollection services, string directory)
         {
             if (services is null) throw new System.ArgumentNullException(nameof(services));
-            if (string.IsNullOrEmpty(directory)) throw new System.ArgumentException("message", nameof(directory));
+            if (string.IsNullOrEmpty(directory)) throw new System.ArgumentException("Value cannot be null or empty.", nameof(directory));
 
             services.AddSingleton<IDocumentStore>(_ => new JsonFileDocumentStore(directory));
             return new DocumentTopicBuilder(services);
@@ -33,7 +33,6 @@ namespace DocumentStores
 
             public DocumentTopicBuilder(IServiceCollection services) =>
                 this.services = services ?? throw new ArgumentNullException(nameof(services));
-
 
             public IDocumentTopicBuilderServiceCollection WithObservableOn<TData>() where TData : class
             {

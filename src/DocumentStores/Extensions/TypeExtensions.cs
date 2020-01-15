@@ -7,7 +7,6 @@ namespace System
 {
     internal static class TypeExtensions
     {
-
         /// <summary>
         /// Returns an C#-style string representation of the specified <see cref="Type"/>
         /// </summary>
@@ -31,11 +30,10 @@ namespace System
             if (t.IsGenericType)
             {
                 string value = t.Name;
-                if (trimArgCount && value.IndexOf("`") > -1)
-                    value = value.Substring(0, value.IndexOf("`"));
+                if (trimArgCount && value.IndexOf("`", StringComparison.InvariantCulture) > -1)
+                    value = value.Substring(0, value.IndexOf("`", StringComparison.InvariantCulture));
 
                 if (t.DeclaringType != null)
-                    // This is a nested type, build the nesting type first
                     value = ShortName(t.DeclaringType, trimArgCount, availableArguments) + "+" + value;
 
                 // Build the type arguments (if any)
@@ -58,7 +56,6 @@ namespace System
 
             return t.Name;
         }
-
     }
 }
 

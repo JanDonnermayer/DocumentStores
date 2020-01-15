@@ -17,7 +17,6 @@ namespace DocumentStores.Internal
         private readonly IObservable<IEnumerable<DocumentKey>> observable;
         private readonly IDisposable disposeHandle;
 
-
         public DocumentTopic(IDocumentStore source, DocumentRoute route)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
@@ -34,17 +33,18 @@ namespace DocumentStores.Internal
 
         private async Task<IEnumerable<DocumentKey>> GetKeysInternalAsync()
         {
+            using var cts = new CancellationTokenSource();
             var addresses = await source
                 .GetAddressesAsync<TData>(
                     route: route,
-                    options: DocumentSearchOptions.TopLevelOnly,
-                    ct: new CancellationTokenSource(2000).Token)
+                    options: DocumentSearchOption.TopLevelOnly,
+                    ct: cts.Token)
                 .ConfigureAwait(false);
             return addresses.Select(_ => _.Key);
         }
 
         private async Task NotifyObserversAsync() =>
-            observer.OnNext(await GetKeysInternalAsync());
+            observer.OnNext(await GetKeysInternalAsync().ConfigureAwait(false));
 
         private async Task<T> WithNotification<T>(Task<T> task)
         {
