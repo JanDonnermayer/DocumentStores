@@ -22,17 +22,17 @@ namespace DocumentStores
         }
 
         /// <summary>
-        /// Whether this resut is successfull.
+        /// returns whether this result is successfull.
         /// </summary>
         public bool Success => Exception is null;
 
         /// <summary>
-        /// The exception contained, when the result is not successfull.
+        /// If the result is not successful: Returns the contained exception (otherwise null).
         /// </summary>
         public Exception? Exception { get; }
 
         /// <summary>
-        /// The data contained, when the result is successfull.
+        /// If the result is successful: Returns the contained data (otherwise null).
         /// </summary>
         public TData? Data { get; }
 
@@ -70,7 +70,8 @@ namespace DocumentStores
         }
 
         /// <summary>
-        /// Deconstructs this instance into contained data.
+        /// Deconstructs the result into contained data and exception.
+        /// Either data, or an expcetion can be contained, but not both.
         /// </summary>
         public void Deconstruct(out TData? data, out Exception? exception)
         {
@@ -105,11 +106,7 @@ namespace DocumentStores
             result switch
             {
                 null => null,
-                Result<TData> res => res switch
-                {
-                    (TData data, _) => data!,
-                    _ => null
-                }
+                Result<TData> res => res.Data
             };
 
         /// <inheritdoc/>
