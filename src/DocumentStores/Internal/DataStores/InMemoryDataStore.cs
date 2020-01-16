@@ -7,9 +7,8 @@ using System.Reactive.Linq;
 
 namespace DocumentStores.Internal
 {
-    class InMemoryDataStore : IDataStore
+    internal class InMemoryDataStore : IDataStore
     {
-
         private ImmutableDictionary<DocumentAddress, DataContainer> store =
             ImmutableDictionary<DocumentAddress, DataContainer>.Empty;
 
