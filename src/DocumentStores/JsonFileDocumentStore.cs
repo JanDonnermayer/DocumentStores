@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-;
 using DocumentStores.Internal;
 using System.Collections.Generic;
 using System.Threading;

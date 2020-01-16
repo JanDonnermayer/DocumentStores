@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DocumentStores.Internal;
-;
 
 namespace DocumentStores
 {
@@ -52,6 +51,20 @@ namespace DocumentStores
         }
 
         /// <summary>
+        /// Returns addresses, associated to documents of <typeparamref name="TData"/>.
+        /// </summary>
+        public static Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
+            this IDocumentStore store,
+            DocumentSearchOption options = DocumentSearchOption.AllLevels,
+            CancellationToken ct = default) where TData : class
+        {
+            if (store == null)
+                throw new ArgumentNullException(nameof(store));
+
+            return store.GetAddressesAsync<TData>(DocumentRoute.Default, options, ct);
+        }
+
+        /// <summary>
         /// Creates an <see cref="IDocumentTopic{TData}"/> connected to this instance of
         /// <see cref="IDocumentStore"/>
         /// </summary>
@@ -66,19 +79,5 @@ namespace DocumentStores
         public static IDocumentTopic<TData> ToTopic<TData>(
             this IDocumentStore source, params string[] routeSegments) where TData : class =>
                 new DocumentTopic<TData>(source, DocumentRoute.Create(routeSegments));
-
-        /// <summary>
-        /// Returns addresses, associated to documents of <typeparamref name="TData"/>.
-        /// </summary>
-        public static Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
-            this IDocumentStore store,
-            DocumentSearchOption options = DocumentSearchOption.AllLevels,
-            CancellationToken ct = default) where TData : class
-        {
-            if (store == null)
-                throw new ArgumentNullException(nameof(store));
-
-            return store.GetAddressesAsync<TData>(DocumentRoute.Default, options, ct);
-        }
     }
 }

@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using DocumentStores.Internal;
 using System.Linq;
-;
 using System.IO;
 
 namespace DocumentStores.Test

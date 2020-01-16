@@ -2,7 +2,6 @@ using System;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using DocumentStores.Internal;
-;
 
 namespace DocumentStores.Test
 {

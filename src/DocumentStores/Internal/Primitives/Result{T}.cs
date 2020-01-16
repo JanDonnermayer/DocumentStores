@@ -17,12 +17,24 @@ namespace DocumentStores
     {
         private Result(TData? data = null, Exception? exception = null)
         {
-            this.data = data;
-            this.exception = exception;
+            this.Data = data;
+            this.Exception = exception;
         }
 
-        private readonly TData? data;
-        private readonly Exception? exception;
+        /// <summary>
+        /// Whether this resut is successfull.
+        /// </summary>
+        public bool Success => Exception is null;
+
+        /// <summary>
+        /// The exception contained, when the result is not successfull.
+        /// </summary>
+        public Exception? Exception { get; }
+
+        /// <summary>
+        /// The data contained, when the result is successfull.
+        /// </summary>
+        public TData? Data { get; }
 
         /// <summary>
         /// Tests the result for success.
@@ -37,12 +49,12 @@ namespace DocumentStores
 
         /// <summary>
         /// Tests the result for success.
-        /// If the result is not successful: Yields the contained <see cref="Exception"/> (otherwise null).
+        /// If the result is not successful: Yields the contained <see cref="System.Exception"/> (otherwise null).
         /// </summary>
         public bool Try(out Exception? ex)
         {
-            ex = this.exception;
-            return exception == null;
+            ex = this.Exception;
+            return Exception == null;
         }
 
         /// <summary>
@@ -52,18 +64,28 @@ namespace DocumentStores
         /// </summary>
         public bool Try(out TData? data, out Exception? exception)
         {
-            data = this.data;
-            exception = this.exception;
+            data = this.Data;
+            exception = this.Exception;
             return exception == null;
         }
 
         /// <summary>
+        /// Deconstructs this instance into contained data.
+        /// </summary>
+        public void Deconstruct(out TData? data, out Exception? exception)
+        {
+            data = this.Data;
+            exception = this.Exception;
+        }
+
+        /// <summary>
         /// If the result is successful: Passes the contained data;
-        /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
+        /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="System.Exception"/>
         /// </summary>
         public TData PassOrThrow()
         {
-            if (!this.Try(out var res, out var ex)) throw new ResultException(ex!);
+            if (!this.Try(out var res, out var ex))
+                throw new ResultException(ex!);
             return res!;
         }
 
@@ -76,17 +98,17 @@ namespace DocumentStores
         internal static Result<TData> Error(Exception exception) =>
             new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
 
-#pragma warning disable CA2225 // Ok, Error & PassOrThrow provide alternatives
+#pragma warning disable CA2225 // Provide alternatives for op_implicit
 
         /// <inheritdoc/>
         public static implicit operator TData?(Result<TData> result) =>
             result switch
             {
                 null => null,
-                Result<TData> res => res.Try(out var data, out var _) switch
+                Result<TData> res => res switch
                 {
-                    true => data!,
-                    false => null
+                    (TData data, _) => data!,
+                    _ => null
                 }
             };
 
