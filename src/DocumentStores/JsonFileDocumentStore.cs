@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using DocumentStores.Primitives;
 using DocumentStores.Internal;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,47 +14,52 @@ namespace DocumentStores
         /// <inheritdoc/> 
         public JsonFileDocumentStore(string directory)
         {
-            var handling = new JsonFileHandling();
-            this.documentStore = new FileDocumentStore(directory, handling);
+            this.documentStore = new DocumentStore(
+                new JsonDocumentSerializer(),
+                new FileDataStore(directory, ".json")
+            );
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> AddOrUpdateDocumentAsync<TData>(
-            string key, Func<string, Task<TData>> addDataAsync, 
-            Func<string, TData, Task<TData>> updateDataAsync) where TData : class
+        public Task<Result<TData>> AddOrUpdateAsync<TData>(
+            DocumentAddress address, Func<DocumentAddress, Task<TData>> addDataAsync,
+            Func<DocumentAddress, TData, Task<TData>> updateDataAsync) where TData : class
         {
-            return documentStore.AddOrUpdateDocumentAsync(key, addDataAsync, updateDataAsync);
+            return documentStore.AddOrUpdateAsync(address, addDataAsync, updateDataAsync);
         }
 
         /// <inheritdoc/>
-        public Task<Result<Unit>> DeleteDocumentAsync<TData>(string key) where TData : class
+        public Task<Result<Unit>> DeleteAsync<TData>(DocumentAddress address) where TData : class
         {
-            return documentStore.DeleteDocumentAsync<TData>(key);
+            return documentStore.DeleteAsync<TData>(address);
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> GetDocumentAsync<TData>(string key) where TData : class
+        public Task<Result<TData>> GetAsync<TData>(DocumentAddress address) where TData : class
         {
-            return documentStore.GetDocumentAsync<TData>(key);
+            return documentStore.GetAsync<TData>(address);
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<string>> GetKeysAsync<TData>(CancellationToken ct = default) where TData : class
+        public Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
+            DocumentRoute route,
+            DocumentSearchOption options = DocumentSearchOption.AllLevels,
+            CancellationToken ct = default) where TData : class
         {
-            return documentStore.GetKeysAsync<TData>(ct);
+            return documentStore.GetAddressesAsync<TData>(route, options, ct);
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> GetOrAddDocumentAsync<TData>(string key, 
-            Func<string, Task<TData>> addDataAsync) where TData : class
+        public Task<Result<TData>> GetOrAddAsync<TData>(DocumentAddress address,
+            Func<DocumentAddress, Task<TData>> addDataAsync) where TData : class
         {
-            return documentStore.GetOrAddDocumentAsync(key, addDataAsync);
+            return documentStore.GetOrAddAsync(address, addDataAsync);
         }
 
         /// <inheritdoc/>
-        public Task<Result<Unit>> PutDocumentAsync<TData>(string key, TData data) where TData : class
+        public Task<Result<Unit>> PutAsync<TData>(DocumentAddress address, TData data) where TData : class
         {
-            return documentStore.PutDocumentAsync<TData>(key, data);
+            return documentStore.PutAsync<TData>(address, data);
         }
     }
 }
