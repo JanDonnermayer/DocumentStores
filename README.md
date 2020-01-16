@@ -3,7 +3,7 @@
 [![](https://github.com/JanDonnermayer/DocumentStores/workflows/UnitTests/badge.svg)](
 https://github.com/JanDonnermayer/DocumentStores/actions)
 
-[![](https://img.shields.io/badge/nuget-v0.1.0-blue.svg)](
+[![](https://img.shields.io/badge/nuget-v0.1.1-blue.svg)](
 https://www.nuget.org/packages/DocumentStores/)
 
 A file-based key-value-store, using the popular Newtonsoft.Json serialization library.  
