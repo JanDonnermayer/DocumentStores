@@ -46,10 +46,10 @@ namespace DocumentStores.Internal
 
         #region  IDocumentStoreInternal
 
-        bool IDataStore.Exists(DocumentAddress address) =>
+        public bool Exists(DocumentAddress address) =>
             File.Exists(GetFilePath(address));
 
-        IEnumerable<DocumentAddress> IDataStore.GetAddresses(
+        public IEnumerable<DocumentAddress> GetAddresses(
             DocumentRoute route,
             DocumentSearchOption options)
         {
@@ -69,10 +69,10 @@ namespace DocumentStores.Internal
                   searchPattern: "*" + fileExtension,
                   searchOption: searchOption)
               .Select(Path.GetFileNameWithoutExtension)
-              .Select(k => DocumentAddress.Create(route, DocumentKey.FromString(k)));
+              .Select(k => DocumentAddress.Create(route, DocumentKey.FromString(k).Decode()));
         }
 
-        Stream IDataStore.GetReadStream(DocumentAddress address)
+        public Stream GetReadStream(DocumentAddress address)
         {
             var file = GetFilePath(address);
             if (!File.Exists(file)) throw new DocumentMissingException(address);
@@ -80,7 +80,7 @@ namespace DocumentStores.Internal
             return File.OpenRead(file);
         }
 
-        Stream IDataStore.GetWriteStream(DocumentAddress address)
+        public Stream GetWriteStream(DocumentAddress address)
         {
             var file = GetFilePath(address);
             var directory = new FileInfo(file).Directory;
@@ -89,7 +89,7 @@ namespace DocumentStores.Internal
             return File.OpenWrite(file);
         }
 
-        void IDataStore.Delete(DocumentAddress address)
+        public void Delete(DocumentAddress address)
         {
             var file = GetFilePath(address);
             if (!File.Exists(file)) return;
@@ -97,7 +97,7 @@ namespace DocumentStores.Internal
             File.Delete(file);
         }
 
-        void IDataStore.Clear()
+        public void Clear()
         {
             if (!Directory.Exists(rootDirectory)) return;
             Directory.Delete(rootDirectory, recursive: true);

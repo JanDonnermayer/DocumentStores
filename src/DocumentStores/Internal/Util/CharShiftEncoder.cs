@@ -8,10 +8,10 @@ namespace DocumentStores.Internal
 {
     internal static class CharShiftEncoder
     {
-
         private static readonly IImmutableDictionary<char, char> _encodingMap =
             Path
                 .GetInvalidFileNameChars()
+                .Append('.')
                 .Select(c => new KeyValuePair<char, char>(c, (char)(c + 1000)))
                 .ToImmutableDictionary();
 
