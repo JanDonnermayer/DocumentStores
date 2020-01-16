@@ -50,7 +50,7 @@ namespace DocumentStores.Test
             }
 
             var keys1 = store.GetAddresses(
-                route: address.Route,
+                route: route,
                 options: DocumentSearchOption.TopLevelOnly
             );
             var exists1 = store.Exists(address);
@@ -63,7 +63,7 @@ namespace DocumentStores.Test
             store.Clear();
 
             var keys2 = store.GetAddresses(
-                route: address.Route,
+                route: route,
                 options: DocumentSearchOption.TopLevelOnly
             );
             var exists2 = store.Exists(address);
