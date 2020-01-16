@@ -34,7 +34,7 @@ namespace DocumentStores
             public DocumentTopicBuilder(IServiceCollection services) =>
                 this.services = services ?? throw new ArgumentNullException(nameof(services));
 
-            public IDocumentTopicBuilderServiceCollection WithObservableOn<TData>() where TData : class
+            public IDocumentTopicBuilderServiceCollection AddTopic<TData>() where TData : class
             {
                 this.AddSingleton<IDocumentTopic<TData>, DocumentTopic<TData>>();
                 return this;

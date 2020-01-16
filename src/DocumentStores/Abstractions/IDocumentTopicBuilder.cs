@@ -11,6 +11,6 @@ namespace DocumentStores
         /// Adds an <see cref="IDocumentTopic{TData}"/> 
         /// to the <see cref="IServiceCollection"/>
         ///</summary>
-        IDocumentTopicBuilderServiceCollection WithObservableOn<TData>() where TData : class;
+        IDocumentTopicBuilderServiceCollection AddTopic<TData>() where TData : class;
     }
 }
