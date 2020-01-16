@@ -28,7 +28,6 @@ namespace DocumentStores.Internal
             foreach (var _ in observers) Task.Run(() => action(_));
         }
 
-
         void IObserver<T>.OnCompleted()
         {
             PostForEachObserver(_ => _.OnCompleted());
