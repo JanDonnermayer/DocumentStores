@@ -19,7 +19,7 @@ namespace DocumentStores.Internal
             store.Delete(address);
 
         bool IDataChannel.Exists() =>
-            store.Exists(address);
+            store.ContainsAddress(address);
 
         Stream IDataChannel.GetReadStream() =>
             store.GetReadStream(address);

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using DocumentStores.Internal;
@@ -53,10 +54,10 @@ namespace DocumentStores.Test
                 route: route,
                 options: DocumentSearchOption.TopLevelOnly
             );
-            var exists1 = store.Exists(address);
+            var contains1 = store.ContainsAddress(address);
 
             // assert1
-            Assert.IsTrue(exists1);
+            Assert.IsTrue(contains1);
             Assert.IsTrue(keys1.Contains(address));
 
             // act2
@@ -66,10 +67,10 @@ namespace DocumentStores.Test
                 route: route,
                 options: DocumentSearchOption.TopLevelOnly
             );
-            var exists2 = store.Exists(address);
+            var contains2 = store.ContainsAddress(address);
 
             // assert2
-            Assert.IsFalse(exists2);
+            Assert.IsFalse(contains2);
             Assert.IsFalse(keys2.Contains(address));
         }
 
@@ -77,7 +78,7 @@ namespace DocumentStores.Test
         public void Test_RoundTripData_Equals()
         {
             var route = DocumentRoute.Create(TestContext.CurrentContext.Test.Name);
-            var address = DocumentAddress.Create(route, "k1");
+            var address = DocumentAddress.Create(route, Guid.NewGuid().ToString());
             var data = new byte[] { 1, 2, 3 };
 
             using (var writeStream = store.GetWriteStream(address))
@@ -103,8 +104,8 @@ namespace DocumentStores.Test
             const string B = "<|.B.|>";
             var routeAB = DocumentRoute.Create(A, B).Prepend(routeRoot);
 
-            var addressA1 = DocumentAddress.Create(routeA, "k1");
-            var addressAB2 = DocumentAddress.Create(routeAB, "k2");
+            var addressA1 = DocumentAddress.Create(routeA, Guid.NewGuid().ToString());
+            var addressAB2 = DocumentAddress.Create(routeAB, Guid.NewGuid().ToString());
 
             var data = new byte[] { 1, 2, 3 };
 

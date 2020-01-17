@@ -72,7 +72,7 @@ namespace DocumentStores.Internal
 
         #region  IDocumentStoreInternal
 
-        public bool Exists(DocumentAddress address) =>
+        public bool ContainsAddress(DocumentAddress address) =>
             File.Exists(GetFilePath(address));
 
         public IEnumerable<DocumentAddress> GetAddresses(

@@ -32,8 +32,8 @@ namespace DocumentStores.Internal
         public void Delete(DocumentAddress address) =>
             source.Delete(TranslateIn(address));
 
-        public bool Exists(DocumentAddress address) =>
-            source.Exists(TranslateIn(address));
+        public bool ContainsAddress(DocumentAddress address) =>
+            source.ContainsAddress(TranslateIn(address));
 
         public IEnumerable<DocumentAddress> GetAddresses(DocumentRoute route, DocumentSearchOption options) =>
             source.GetAddresses(translateIn(route), options).Select(TranslateOut);

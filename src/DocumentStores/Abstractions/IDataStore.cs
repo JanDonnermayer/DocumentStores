@@ -15,7 +15,7 @@ namespace DocumentStores
 
         Stream GetWriteStream(DocumentAddress address);
 
-        bool Exists(DocumentAddress address);
+        bool ContainsAddress(DocumentAddress address);
 
         void Delete(DocumentAddress address);
 

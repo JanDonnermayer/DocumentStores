@@ -15,7 +15,7 @@ namespace DocumentStores.Internal
         void IDataStore.Delete(DocumentAddress address) =>
             ImmutableInterlocked.TryRemove(ref store, address, out var _);
 
-        bool IDataStore.Exists(DocumentAddress address) =>
+        bool IDataStore.ContainsAddress(DocumentAddress address) =>
             store.ContainsKey(address);
 
         IEnumerable<DocumentAddress> IDataStore.GetAddresses(
