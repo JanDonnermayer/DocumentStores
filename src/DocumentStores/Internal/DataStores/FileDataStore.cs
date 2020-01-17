@@ -27,7 +27,7 @@ namespace DocumentStores.Internal
         {
             var relativePath = string.Join(
                 Path.DirectorySeparatorChar.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                route.Encode().Segments.Append("").ToArray()
+                route.Encode().Segments.Append(string.Empty).ToArray()
             );
 
             return Path.Combine(
@@ -39,9 +39,35 @@ namespace DocumentStores.Internal
         {
             var path = Path.Combine(
                 GetDirectoryPath(address.Route),
-                address.Key.Encode());
+                address.Key.Encode()
+            );
 
             return Path.ChangeExtension(path, fileExtension);
+        }
+
+        private static DocumentAddress GetAddress(string path)
+        {
+            var fileName = Path
+                .GetFileName(path);
+
+            var segments = path
+                .Split(Path.DirectorySeparatorChar)
+                .Except(new[] { string.Empty, fileName })
+                .ToArray();
+
+            var route = DocumentRoute
+                .Create(segments)
+                .Decode();
+
+            var fileNameTrimmed = Path
+                .GetFileNameWithoutExtension(fileName);
+
+            var key = DocumentKey
+                .Create(fileNameTrimmed)
+                .Decode();
+
+            return DocumentAddress
+                .Create(route, key);
         }
 
         #region  IDocumentStoreInternal
@@ -64,12 +90,17 @@ namespace DocumentStores.Internal
             };
 
             return Directory
-              .EnumerateFiles(
-                  path: directory,
-                  searchPattern: "*" + fileExtension,
-                  searchOption: searchOption)
-              .Select(Path.GetFileNameWithoutExtension)
-              .Select(k => DocumentAddress.Create(route, DocumentKey.FromString(k).Decode()));
+                .EnumerateFiles(
+                    path: directory,
+                    searchPattern: "*" + fileExtension,
+                    searchOption: searchOption
+                )
+                .Select(path => // abs -> rel
+                    path.Replace(directory, String.Empty))
+                .Select(GetAddress)
+                .Select(relAddress => // rel -> abs
+                    relAddress.MapRoute(relRoute =>
+                        relRoute.Prepend(route)));
         }
 
         public Stream GetReadStream(DocumentAddress address)

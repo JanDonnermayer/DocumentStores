@@ -33,13 +33,16 @@ namespace DocumentStores
         public static DocumentRoute Create(params string[] segments) =>
             new DocumentRoute(segments);
 
-        internal DocumentRoute Prepend(DocumentRoute route) =>
+        /// <InheritDoc/>
+        public DocumentRoute Prepend(DocumentRoute route) =>
             new DocumentRoute(route.segments.Concat(this.segments));
 
-        internal DocumentRoute Append(DocumentRoute route) =>
+        /// <InheritDoc/>
+        public DocumentRoute Append(DocumentRoute route) =>
             new DocumentRoute(this.segments.Concat(route.segments));
 
-        internal DocumentRoute TrimLeft(DocumentRoute route) =>
+        /// <InheritDoc/>
+        public DocumentRoute TrimLeft(DocumentRoute route) =>
             StartsWith(route) switch
             {
                 true => Create(segments.Skip(route.Segments.Count())),

@@ -20,6 +20,9 @@ namespace DocumentStores
         /// <InheritDoc/>
         public static DocumentKey FromString(string value) => new DocumentKey(value);
 
+       /// <InheritDoc/>
+        public static DocumentKey Create(string value) => FromString(value);
+
         internal DocumentKey MapValue(Func<string, string> mapper) => FromString(mapper(Value));
 
         #region  Override

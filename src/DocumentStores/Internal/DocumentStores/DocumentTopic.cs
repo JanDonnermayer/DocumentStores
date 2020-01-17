@@ -32,7 +32,7 @@ namespace DocumentStores.Internal
 
         private async Task<IEnumerable<DocumentKey>> GetKeysInternalAsync()
         {
-            using var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             var addresses = await source
                 .GetAddressesAsync<TData>(
                     route: route,
