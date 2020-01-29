@@ -8,8 +8,8 @@ namespace DocumentStores
     {
         private JsonFileDocumentStoreOptions(string rootDirectory)
         {
-            if (string.IsNullOrWhiteSpace(directory))
-                throw new ArgumentException("Please provide a valid directory!", nameof(directory));
+            if (string.IsNullOrWhiteSpace(rootDirectory))
+                throw new ArgumentException("Please provide a valid directory!", nameof(rootDirectory));
 
             this.RootDirectory = rootDirectory;
         }

@@ -13,15 +13,7 @@ namespace DocumentStores
 
         /// <inheritdoc/> 
         public JsonFileDocumentStore(string directory)
-        {
-            if (string.IsNullOrWhiteSpace(directory))
-                throw new ArgumentException("Please provide a valid directory!", nameof(directory));
-
-            this.documentStore = new DocumentStore(
-                new JsonDocumentSerializer(),
-                new FileDataStore(directory, ".json")
-            );
-        }
+            : this(JsonFileDocumentStoreOptions.ForRootDirectory(directory)) { }
 
         /// <inheritdoc/> 
         public JsonFileDocumentStore(JsonFileDocumentStoreOptions options)
@@ -29,9 +21,11 @@ namespace DocumentStores
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
 
+            const string JSON_FILE_EXTENSION = ".json";
+
             this.documentStore = new DocumentStore(
                 new JsonDocumentSerializer(),
-                new FileDataStore(options.RootDirectory, ".json")
+                new FileDataStore(options.RootDirectory, JSON_FILE_EXTENSION)
             );
         }
 
