@@ -122,7 +122,7 @@ namespace DocumentStores.Test
             // A
             var addressesA = store.GetAddresses(routeA, DocumentSearchOption.TopLevelOnly);
             // A/*
-            var addressesAplus = store.GetAddresses(routeA, DocumentSearchOption.AllLevels);            
+            var addressesAPlus = store.GetAddresses(routeA, DocumentSearchOption.AllLevels);            
             // A/B
             var addressesAB = store.GetAddresses(routeAB, DocumentSearchOption.TopLevelOnly);
 
@@ -133,7 +133,7 @@ namespace DocumentStores.Test
 
             Assert.AreEqual(
                 new DocumentAddress[] { addressA1, addressAB2 },
-                addressesAplus.ToArray()
+                addressesAPlus.ToArray()
             );
 
             Assert.AreEqual(

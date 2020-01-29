@@ -4,7 +4,10 @@ using System.Reflection;
 
 namespace DocumentStores
 {
-    public class JsonFileDocumentStoreOptions
+    /// <summary>
+    /// Options for <see cref="JsonFileDocumentStore"/>.
+    /// </summary>
+    public sealed class JsonFileDocumentStoreOptions
     {
         private JsonFileDocumentStoreOptions(string rootDirectory)
         {
@@ -14,6 +17,9 @@ namespace DocumentStores
             this.RootDirectory = rootDirectory;
         }
 
+        /// <summary>
+        /// The root directory.
+        /// </summary>
         public string RootDirectory { get; }
 
         /// <summary>
