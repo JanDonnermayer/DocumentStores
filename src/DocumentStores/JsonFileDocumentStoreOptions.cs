@@ -25,7 +25,7 @@ namespace DocumentStores
             new JsonFileDocumentStoreOptions(rootDirectory);
 
         /// <summary>
-        /// Creates the default options, with RootDirectory pointing to AppData
+        /// Creates the default options, with RootDirectory pointing to AppData.
         /// </summary>
         /// <returns></returns>
         public static JsonFileDocumentStoreOptions Default =>
