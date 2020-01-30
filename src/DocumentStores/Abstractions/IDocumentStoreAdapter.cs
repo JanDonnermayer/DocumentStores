@@ -20,7 +20,7 @@ namespace DocumentStores
         Task<TData> GetAsync<TData>(DocumentAddress address) where TData : class;
 
         Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
-            DocumentRoute route, 
+            DocumentRoute route,
             DocumentSearchOption options,
             CancellationToken ct = default) where TData : class ;
 

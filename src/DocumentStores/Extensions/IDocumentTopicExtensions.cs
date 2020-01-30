@@ -92,36 +92,6 @@ namespace DocumentStores
             this IDocumentTopic<TData> source) where TData : class =>
                 source.GetAllAsync(_ => true);
 
-        /// <InheritDoc/>
-        public static async Task<Result<Unit>[]> SynchronizeAsync<T>(
-            this IDocumentTopic<T> source, IDocumentTopic<T> target) where T : class
-        {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-
-            if (target == null)
-                throw new ArgumentNullException(nameof(target));
-
-            var sourceDict = await source.GetAllAsync().ConfigureAwait(false);
-            var targetKeys = await target.GetKeysAsync().ConfigureAwait(false);
-
-            var surplusTargetKeys = targetKeys
-                .Except(sourceDict.Keys)
-                .ToImmutableHashSet();
-
-            var copyResults = await Task
-                .WhenAll(sourceDict.Select(kvp => target.PutAsync(kvp.Key, kvp.Value)))
-                .ConfigureAwait(false);
-
-            var deleteResults = await Task
-                .WhenAll(surplusTargetKeys.Select(target.DeleteAsync))
-                .ConfigureAwait(false);
-
-            return copyResults
-                .Concat(deleteResults)
-                .ToArray();
-        }
-
         /// <summary>
         /// Creates a channel for the document with the specified <paramref name="key"/>
         /// </summary>

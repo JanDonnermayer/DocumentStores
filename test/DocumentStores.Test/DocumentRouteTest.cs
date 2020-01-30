@@ -18,18 +18,18 @@ namespace DocumentStores.Test
 
             var expectedStartsWithTrueRelations =
                 new List<(DocumentRoute, DocumentRoute)>(){
-                (route0, route0),
-                (route1, route0),
-                (route1, route1),
-                (route2, route0),
-                (route2, route1)
+                    (route0, route0),
+                    (route1, route0),
+                    (route1, route1),
+                    (route2, route0),
+                    (route2, route1)
             };
 
             var expectedStartsWithFalseRelations =
                 new List<(DocumentRoute, DocumentRoute)>(){
-                (route0, route1),
-                (route0, route2),
-                (route1, route2)
+                    (route0, route1),
+                    (route0, route2),
+                    (route1, route2)
             };
 
             foreach (var rel in expectedStartsWithTrueRelations)

@@ -43,7 +43,7 @@ namespace DocumentStores.Test
             string KEY = Guid.NewGuid().ToString();
             const int OBSERVER_DELAY_MS = 100;
             const int OPERATION_COUNT = 3;
-            const int EXPECTED_NOTIFCATION_COUNT = OPERATION_COUNT + 1; // 1 is initial
+            const int EXPECTED_NOTIFICATION_COUNT = OPERATION_COUNT + 1; // 1 is initial
 
             int mut_ActualNotificationCount = 0;
 
@@ -55,7 +55,7 @@ namespace DocumentStores.Test
 
             await Task.Delay(OBSERVER_DELAY_MS);
 
-            Assert.AreEqual(EXPECTED_NOTIFCATION_COUNT, mut_ActualNotificationCount);
+            Assert.AreEqual(EXPECTED_NOTIFICATION_COUNT, mut_ActualNotificationCount);
         }
     }
 }
