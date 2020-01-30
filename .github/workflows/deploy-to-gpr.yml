@@ -1,9 +1,9 @@
 name: Deploy to GPR
 
-on: 
+on:   
   release:
-    branches:
-      - master
+    types: 
+      - published
 
 jobs:
   build:
