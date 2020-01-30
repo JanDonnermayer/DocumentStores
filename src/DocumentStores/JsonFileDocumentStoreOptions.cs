@@ -31,9 +31,10 @@ namespace DocumentStores
             new JsonFileDocumentStoreOptions(rootDirectory);
 
         /// <summary>
-        /// Creates the default options, with RootDirectory pointing to AppData.
+        /// Creates a new instance of <see cref="JsonFileDocumentStoreOptions"/>,
+        /// featuring default values. 
+        /// The default value for <see cref="RootDirectory"/> is $(ApplicationData)/$(AssemblyName).
         /// </summary>
-        /// <returns></returns>
         public static JsonFileDocumentStoreOptions Default =>
             new JsonFileDocumentStoreOptions(
                 rootDirectory: Path.Combine(
