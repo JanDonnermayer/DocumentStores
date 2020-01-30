@@ -1,0 +1,29 @@
+name: Deploy to GPR
+
+on: 
+  release:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+        source-url: https://nuget.pkg.github.com/jandonnermayer/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Build 
+      run: dotnet build --configuration Release
+    - name: Test 
+      run: dotnet test --configuration Release
+    - name: Pack 
+      run: dotnet pack --configuration Release 
+    - name: Publish 
+      run: dotnet nuget push "src/DocumentStores/bin/Release/*.nupkg"
