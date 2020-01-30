@@ -62,5 +62,4 @@ namespace DocumentStores
         /// </summary>
         Task<Result<Unit>> PutAsync(DocumentKey key, TData data);
     }
-
 }

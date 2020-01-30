@@ -11,12 +11,36 @@ namespace DocumentStores
     {
         private readonly IDocumentStore documentStore;
 
-        /// <inheritdoc/> 
-        public JsonFileDocumentStore(string directory)
+        /// <summary>
+        /// Creates a new instance of the <see cref="JsonFileDocumentStore"/>class,
+        /// using default <see cref="JsonFileDocumentStoreOptions"/>.
+        /// </summary>
+        public JsonFileDocumentStore()
+            : this(JsonFileDocumentStoreOptions.Default) { }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="JsonFileDocumentStore"/>class,
+        /// storing json documents in the specified <paramref name="rootDirectory"/>.
+        /// </summary>
+        /// <param name="rootDirectory">The directory in which to store the json documents.</param>
+        public JsonFileDocumentStore(string rootDirectory)
+            : this(JsonFileDocumentStoreOptions.ForRootDirectory(rootDirectory)) { }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="JsonFileDocumentStore"/>class,
+        /// using the specified <paramref name="options"/>.
+        /// </summary>
+        /// <param name="options">The options to use.</param>
+        public JsonFileDocumentStore(JsonFileDocumentStoreOptions options)
         {
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
+
+            const string JSON_FILE_EXTENSION = ".json";
+
             this.documentStore = new DocumentStore(
                 new JsonDocumentSerializer(),
-                new FileDataStore(directory, ".json")
+                new FileDataStore(options.RootDirectory, JSON_FILE_EXTENSION)
             );
         }
 

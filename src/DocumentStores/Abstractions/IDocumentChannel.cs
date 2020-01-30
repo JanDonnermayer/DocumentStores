@@ -48,7 +48,5 @@ namespace DocumentStores
         /// Saves the specified <paramref name="data"/> to a document.
         /// </summary>
         Task<Result<Unit>> PutAsync(TData data);
-
     }
-
 }

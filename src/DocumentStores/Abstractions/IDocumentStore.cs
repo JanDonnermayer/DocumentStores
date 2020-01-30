@@ -51,7 +51,7 @@ namespace DocumentStores
         /// Returns addresses, associated to documents of <typeparamref name="TData"/>.
         /// </summary>
         Task<IEnumerable<DocumentAddress>> GetAddressesAsync<TData>(
-            DocumentRoute route, 
+            DocumentRoute route,
             DocumentSearchOption options = DocumentSearchOption.AllLevels,
             CancellationToken ct = default) where TData : class;
 
@@ -60,6 +60,4 @@ namespace DocumentStores
         /// </summary>
         Task<Result<Unit>> PutAsync<TData>(DocumentAddress address, TData data) where TData : class;
     }
-
-
 }
