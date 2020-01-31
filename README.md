@@ -20,7 +20,8 @@ var channel = new JsonFileDocumentStore("/store")
 
 await channel.AddOrUpdateAsync(
     initialData: new Person() { name = "Jan", age = 24 },
-    updateData: p => new Person() { name = p.name, age = p.age + 1 });
+    updateData: p => new Person() { name = p.name, age = p.age + 1 }
+);
 
 await channel.DeleteAsync();
 ```
