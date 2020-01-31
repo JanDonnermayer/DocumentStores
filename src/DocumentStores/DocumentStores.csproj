@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <id>DocumentStores</id>
-    <Version>0.1.3-pre1</Version>
+    <Version>0.1.3-pre2</Version>
     <Authors>Jan Donnermayer</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A file-based key-value-store, using the popular Newtonsoft.Json serialization library.</Description>
