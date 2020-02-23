@@ -38,9 +38,13 @@ namespace DocumentStores
 
             const string JSON_FILE_EXTENSION = ".json";
 
+            var internalStore = new DocumentStoreInternal(
+                serializer: new JsonDocumentSerializer(),
+                dataStore: new FileDataStore(options.RootDirectory, JSON_FILE_EXTENSION)
+            );
+
             this.documentStore = new DocumentStore(
-                new JsonDocumentSerializer(),
-                new FileDataStore(options.RootDirectory, JSON_FILE_EXTENSION)
+                internalStore
             );
         }
 
