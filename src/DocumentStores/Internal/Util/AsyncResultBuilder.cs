@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using static DocumentStores.Result;
 
 #nullable enable
 
@@ -33,7 +34,7 @@ namespace DocumentStores.Internal
                 try
                 {
                     var result = await source().ConfigureAwait(false);
-                    return Result<T>.Ok(result);
+                    return Ok(result);
                 }
                 catch (Exception _) when (exceptionFilter(_))
                 {
@@ -46,7 +47,7 @@ namespace DocumentStores.Internal
 
         /// <summary>
         /// If the specified async result is successful, returns it.
-        /// Else: Retries the operation within intervals prvided by the specified <paramref name="retrySpanProviders"/>
+        /// Else: Retries the operation within intervals provided by the specified <paramref name="retrySpanProviders"/>
         /// until the result is successful or the sequence is exhausted.
         /// </summary>
         public static Func<Task<Result<T>>> Retry<T>(
