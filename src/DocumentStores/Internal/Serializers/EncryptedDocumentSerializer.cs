@@ -1,36 +1,38 @@
 using System.IO;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using System.Linq;
+using System;
 
 namespace DocumentStores.Internal
 {
-    internal class EncryptedDocumentSerializer : IDocumentSerializer
+    internal class RijndaelEncryptedDocumentSerializer : IDocumentSerializer
     {
         private readonly IDocumentSerializer serializer;
         private readonly byte[] key;
-        private readonly byte[] IV;
+        private readonly byte[] iV;
 
-        public EncryptedDocumentSerializer(IDocumentSerializer serializer, byte[] key, byte[] IV)
+        public RijndaelEncryptedDocumentSerializer(IDocumentSerializer internalSerializer, byte[]? key = null, byte[]? iV = null)
         {
-            this.serializer = serializer
-                ?? throw new System.ArgumentNullException(nameof(serializer));
+            this.serializer = internalSerializer
+                ?? throw new System.ArgumentNullException(nameof(internalSerializer));
 
-            this.key = key;
-            this.IV = IV;
+            var _key = key ?? Enumerable.Range(0, 32).Select(i => (byte)(i)).ToArray();
+            var _iV = iV ?? Enumerable.Range(0, 16).Select(i => (byte)(i)).ToArray();
+
+            var acceptedKeySizes = new int[] { 16, 24, 32 };
+            if (!acceptedKeySizes.Contains(_key.Length))
+                throw new ArgumentException($"Key-size must be in: [{String.Join(", ", acceptedKeySizes)}] bytes.");
+
+            const int acceptedIVSize = 16;
+            if (_iV.Length != acceptedIVSize)
+                throw new ArgumentException($"IV-size must be exactly {acceptedIVSize} bytes.");
+
+            this.key = _key;
+            this.iV = _iV;
         }
 
-        public async Task<T> DeserializeAsync<T>(Stream stream) where T : class
-        {
-            if (stream is null)
-                throw new System.ArgumentNullException(nameof(stream));
-
-            using var rijndael = Rijndael.Create();
-            var encryptor = rijndael.CreateDecryptor(key, IV);
-            using var cryptoStream = new CryptoStream(stream, encryptor, CryptoStreamMode.Read);
-            return await serializer.DeserializeAsync<T>(cryptoStream).ConfigureAwait(false);
-        }
-
-        public async Task SerializeAsync<T>(Stream stream, T data) where T : class
+        async Task IDocumentSerializer.SerializeAsync<T>(Stream stream, T data) where T : class
         {
             if (stream is null)
                 throw new System.ArgumentNullException(nameof(stream));
@@ -39,9 +41,21 @@ namespace DocumentStores.Internal
                 throw new System.ArgumentNullException(nameof(data));
 
             using var rijndael = Rijndael.Create();
-            var encryptor = rijndael.CreateEncryptor(key, IV);
+            var encryptor = rijndael.CreateEncryptor(key, iV);
             using var cryptoStream = new CryptoStream(stream, encryptor, CryptoStreamMode.Write);
             await serializer.SerializeAsync(cryptoStream, data).ConfigureAwait(false);
+            if (stream.CanSeek) stream.Position = 0; // Truncate surplus content. 
+        }
+
+        async Task<T> IDocumentSerializer.DeserializeAsync<T>(Stream stream) where T : class
+        {
+            if (stream is null)
+                throw new System.ArgumentNullException(nameof(stream));
+
+            using var rijndael = Rijndael.Create();
+            var encryptor = rijndael.CreateDecryptor(key, iV);
+            using var cryptoStream = new CryptoStream(stream, encryptor, CryptoStreamMode.Read);
+            return await serializer.DeserializeAsync<T>(cryptoStream).ConfigureAwait(false);
         }
     }
 }
