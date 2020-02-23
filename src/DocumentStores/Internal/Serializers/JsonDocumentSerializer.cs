@@ -11,6 +11,12 @@ namespace DocumentStores.Internal
     {
         async Task IDocumentSerializer.SerializeAsync<T>(Stream stream, T data)
         {
+            if (stream is null)
+                throw new System.ArgumentNullException(nameof(stream));
+
+            if (data is null)
+                throw new System.ArgumentNullException(nameof(data));
+
             var text = JsonConvert.SerializeObject(data, Formatting.Indented);
             var buffer = Encoding.UTF8.GetBytes(text);
             await stream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
@@ -19,6 +25,9 @@ namespace DocumentStores.Internal
 
         async Task<T> IDocumentSerializer.DeserializeAsync<T>(Stream stream)
         {
+            if (stream is null)
+                throw new System.ArgumentNullException(nameof(stream));
+
             var buffer = new byte[stream.Length];
             await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
             var text = Encoding.UTF8.GetString(buffer);
