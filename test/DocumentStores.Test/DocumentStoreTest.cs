@@ -18,8 +18,11 @@ namespace DocumentStores.Test
     {
         private static IDocumentStore GetService() =>
             new DocumentStore(
-                new JsonDocumentSerializer(),
-                new InMemoryDataStore());
+                new DocumentStoreInternal(
+                    new JsonDocumentSerializer(),
+                    new InMemoryDataStore()
+                )
+            );
 
         [Test]
         public void Put_Then_Delete__ContainsCorrectAddresses()
@@ -51,7 +54,6 @@ namespace DocumentStores.Test
             Assert.IsTrue(res1.Try());
             Assert.IsTrue(res2.Try(out string val));
             Assert.AreEqual(VALUE, val);
-
         }
 
 

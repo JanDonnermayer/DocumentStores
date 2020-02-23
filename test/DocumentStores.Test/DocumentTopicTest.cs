@@ -3,42 +3,58 @@ using NUnit.Framework;
 using System;
 using System.Reactive.Linq;
 using System.IO;
-using DocumentStores.Internal;
+using DocumentStores;
+using Moq;
+
+using static DocumentStores.Result;
+using System.Collections.Generic;
 
 namespace DocumentStores.Test
 {
     internal class DocumentTopicTest
     {
-        private static IDocumentStore GetService() =>
-            new DocumentStore(
-                new JsonDocumentSerializer(), 
-                new InMemoryDataStore());
+        IDocumentStore storeMock;
 
+        [SetUp]
+        public void SetUp()
+        {
+            storeMock = Mock.Of<IDocumentStore>();
+        }
 
         [Test]
-        public Task Put_Multiple__NotifiesObserver_Multiple() =>
-            Operation_Multiple__NotifiesObserver_Multiple(
+        public Task Test_Put_Multiple__NotifiesObserver_Multiple() =>
+            Test_Operation_Multiple__NotifiesObserver_Multiple(
                 topic => topic.PutAsync(
                     key: "KEY",
                     data: ImmutableCounter.Default));
 
         [Test]
-        public Task AddOrUpdate_Multiple__NotifiesObserver_Multiple() =>
-            Operation_Multiple__NotifiesObserver_Multiple(
+        public Task Test_AddOrUpdate_Multiple__NotifiesObserver_Multiple() =>
+            Test_Operation_Multiple__NotifiesObserver_Multiple(
                 topic => topic.AddOrUpdateAsync(
                     key: "KEY",
                     initialData: ImmutableCounter.Default,
                     updateData: c => c.Increment()));
 
         [Test]
-        public Task Delete_Multiple__NotifiesObserver_Multiple() =>
-            Operation_Multiple__NotifiesObserver_Multiple(
+        public Task Test_Delete_Multiple__NotifiesObserver_Multiple() =>
+            Test_Operation_Multiple__NotifiesObserver_Multiple(
                 topic => topic.DeleteAsync("KEY"));
 
-        private async Task Operation_Multiple__NotifiesObserver_Multiple(
-            Func<IDocumentTopic<ImmutableCounter>, Task> operation)
+        private async Task Test_Operation_Multiple__NotifiesObserver_Multiple<TReturnData>(
+            Func<IDocumentTopic<ImmutableCounter>, Task<Result<TReturnData>>> operation) 
+            where TReturnData : class
         {
-            var service = GetService().ToTopic<ImmutableCounter>();
+            Mock.Get(storeMock)
+                .SetReturnsDefault(Task.FromResult(Ok()));
+
+            Mock.Get(storeMock)
+                .SetReturnsDefault(Task.FromResult(Ok(ImmutableCounter.Default)));
+
+            Mock.Get(storeMock)
+                .SetReturnsDefault(Task.FromResult<IEnumerable<DocumentKey>>(new DocumentKey[] {}));
+
+            var topic = storeMock.ToTopic<ImmutableCounter>();
 
             string KEY = Guid.NewGuid().ToString();
             const int OBSERVER_DELAY_MS = 100;
@@ -47,11 +63,14 @@ namespace DocumentStores.Test
 
             int mut_ActualNotificationCount = 0;
 
-            var observable = service.GetKeysObservable();
-            using var _ = observable.Subscribe(_ => mut_ActualNotificationCount += 1);
+            var observable = topic.GetKeysObservable();
+            using var _ = observable.Subscribe(
+                _ => mut_ActualNotificationCount += 1,
+                e => throw e
+            );
 
             for (int i = 0; i < OPERATION_COUNT; i++)
-                await operation.Invoke(service);
+                (await operation.Invoke(topic)).PassOrThrow();
 
             await Task.Delay(OBSERVER_DELAY_MS);
 
