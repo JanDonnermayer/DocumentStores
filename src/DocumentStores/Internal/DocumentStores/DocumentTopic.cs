@@ -20,7 +20,7 @@ namespace DocumentStores.Internal
         {
             this.store = source ?? throw new ArgumentNullException(nameof(source));
             this.route = route;
-            var subject = new TaskPoolBehaviourSubject<IEnumerable<DocumentKey>>(initial: GetKeysInternalAsync().Result);
+            var subject = new TaskPoolBehaviorSubject<IEnumerable<DocumentKey>>(initial: GetKeysInternalAsync().Result);
 
             observer = subject;
             observable = subject;

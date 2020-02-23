@@ -44,7 +44,7 @@ namespace DocumentStores.Internal
             var encryptor = rijndael.CreateEncryptor(key, iV);
             using var cryptoStream = new CryptoStream(stream, encryptor, CryptoStreamMode.Write);
             await serializer.SerializeAsync(cryptoStream, data).ConfigureAwait(false);
-            if (stream.CanSeek) stream.Position = 0; // Truncate surplus content. 
+            await stream.FlushAsync().ConfigureAwait(false);
         }
 
         async Task<T> IDocumentSerializer.DeserializeAsync<T>(Stream stream) where T : class

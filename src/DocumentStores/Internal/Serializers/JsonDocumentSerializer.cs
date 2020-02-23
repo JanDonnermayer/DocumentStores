@@ -14,16 +14,13 @@ namespace DocumentStores.Internal
             if (stream is null)
                 throw new System.ArgumentNullException(nameof(stream));
 
-            if (!stream.CanSeek)
-                throw new System.ArgumentException("Stream does not support seeking!");
-
             if (data is null)
                 throw new System.ArgumentNullException(nameof(data));
 
             var text = JsonConvert.SerializeObject(data, Formatting.Indented);
             var buffer = Encoding.UTF8.GetBytes(text);
             await stream.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-            stream.SetLength(stream.Position); // Truncate surplus content.
+            await stream.FlushAsync().ConfigureAwait(false);
         }
 
         async Task<T> IDocumentSerializer.DeserializeAsync<T>(Stream stream)
@@ -31,10 +28,11 @@ namespace DocumentStores.Internal
             if (stream is null)
                 throw new System.ArgumentNullException(nameof(stream));
 
-            var buffer = new byte[stream.Length];
-            await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+            using var memStream = new MemoryStream();
+            await stream.CopyToAsync(memStream).ConfigureAwait(false);
+            var buffer = memStream.ToArray();
             var text = Encoding.UTF8.GetString(buffer);
-            return JsonConvert.DeserializeObject<T>(text); 
+            return JsonConvert.DeserializeObject<T>(text);
         }
     }
 }
