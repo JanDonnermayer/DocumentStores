@@ -2,5 +2,4 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("DocumentStores.Test")]
-namespace DocumentStores.Internal{ }
-
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")] // Moq
