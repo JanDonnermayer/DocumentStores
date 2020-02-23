@@ -11,20 +11,18 @@ namespace DocumentStores.Test
     [TestFixture]
     class EncryptedDocumentSerializerTest
     {
-        private IDocumentSerializer documentSerializerMock;
+        private IDocumentSerializer internalSerializerMock;
 
-        private EncryptedDocumentSerializer encryptedDocumentSerializer;
+        private IDocumentSerializer serializer;
 
 
 
         [SetUp]
         public void SetUp()
         {
-            documentSerializerMock = Mock.Of<IDocumentSerializer>();
-            encryptedDocumentSerializer = new EncryptedDocumentSerializer(
-                serializer: documentSerializerMock,
-                key: Enumerable.Range(0, 16).Select(i => (byte)(i)).ToArray(),
-                IV: Enumerable.Range(0, 16).Select(i => (byte)(i)).ToArray()
+            internalSerializerMock = Mock.Of<IDocumentSerializer>();
+            serializer = new RijndaelEncryptedDocumentSerializer(
+                internalSerializer: internalSerializerMock
             );
         }
 
@@ -32,14 +30,14 @@ namespace DocumentStores.Test
         public async Task Test_Serialize_WritesToStream()
         {
             // Arrange
-            Mock.Get(documentSerializerMock)
+            Mock.Get(internalSerializerMock)
                 .SetReturnsDefault(Task.CompletedTask);
 
             var writeStream = new MemoryStream();
             var testData = "ABC";
 
             // Act
-            await encryptedDocumentSerializer.SerializeAsync(
+            await serializer.SerializeAsync(
                 stream: writeStream,
                 data: testData
             );
@@ -56,14 +54,30 @@ namespace DocumentStores.Test
 
             // Act & Assert
             Assert.DoesNotThrowAsync(
-                () => encryptedDocumentSerializer.DeserializeAsync<string>(readStream)
+                () => serializer.DeserializeAsync<string>(readStream)
             );
         }
 
         [Test]
-        public async Task Test_Roundtrip_DataEquals()
+        public void Test_New_InvalidKeySize_ThrowsArgumentException()
         {
-            var stream = new MemoryStream();
+            Assert.Throws<ArgumentException>(
+                () => new RijndaelEncryptedDocumentSerializer(
+                    internalSerializer: internalSerializerMock,
+                    key: Array.Empty<byte>()
+                )
+            );
+        }
+
+        [Test]
+        public void Test_New_InvalidIVSize_ThrowsArgumentException()
+        {
+            Assert.Throws<ArgumentException>(
+                () => new RijndaelEncryptedDocumentSerializer(
+                    internalSerializer: internalSerializerMock,
+                    iV: Array.Empty<byte>()
+                )
+            );
         }
     }
 }
