@@ -8,11 +8,11 @@ using System.Collections.Immutable;
 
 namespace DocumentStores.Internal
 {
-    internal class DocumentStoreAdapter : IDocumentStoreAdapter
+    internal class DocumentStoreInternal : IDocumentStoreInternal
     {
         #region Constructor
 
-        public DocumentStoreAdapter(IDocumentSerializer serializer, IDataStore dataStore)
+        public DocumentStoreInternal(IDocumentSerializer serializer, IDataStore dataStore)
         {
             this.rootDataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
