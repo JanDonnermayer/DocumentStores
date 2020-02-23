@@ -14,12 +14,14 @@ using DocumentStores.Internal;
 namespace DocumentStores.Test
 {
     [TestFixture]
-    internal class DocumentStoreTest
+    internal class DocumentStoreIntegrationTest
     {
         private static IDocumentStore GetService() =>
             new DocumentStore(
                 new DocumentStoreInternal(
-                    new JsonDocumentSerializer(),
+                    new RijndaelEncryptedDocumentSerializer(
+                        new JsonDocumentSerializer()
+                    ),
                     new InMemoryDataStore()
                 )
             );
