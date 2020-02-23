@@ -56,8 +56,7 @@ namespace DocumentStores.Internal
             observer.OnNext(Latest);
             return Disposable.Create(() => ImmutableInterlocked.Update(ref observers, _ => _.Remove(observer)));
         }
+
         public void Dispose() => ReleaseObservers();
-
     }
-
 }
