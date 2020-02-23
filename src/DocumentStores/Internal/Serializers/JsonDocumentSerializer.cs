@@ -15,7 +15,7 @@ namespace DocumentStores.Internal
                 throw new System.ArgumentNullException(nameof(stream));
 
             if (!stream.CanSeek)
-                throw new System.ArgumentException("stream does not support seeking!");
+                throw new System.ArgumentException("Stream does not support seeking!");
 
             if (data is null)
                 throw new System.ArgumentNullException(nameof(data));
