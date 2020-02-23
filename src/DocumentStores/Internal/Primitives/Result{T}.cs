@@ -5,6 +5,19 @@ using System.Diagnostics;
 
 namespace DocumentStores
 {
+    [DebuggerStepThrough]
+    internal static class Result
+    {
+        public static Result<TData> Ok<TData>(TData data) where TData : class =>
+            new Result<TData>(data ?? throw new ArgumentNullException(nameof(data)), null);
+
+        public static Result<Unit> Ok() =>
+            new Result<Unit>(Unit.Default);
+
+        public static Result<TData> Error<TData>(Exception exception) where TData : class =>
+            new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
+    }
+
     /// <summary>
     /// Represents the result of a performed operation, with custom return data.
     /// </summary>
@@ -15,7 +28,7 @@ namespace DocumentStores
     [DebuggerStepThrough]
     public sealed class Result<TData> where TData : class
     {
-        private Result(TData? data = null, Exception? exception = null)
+        internal Result(TData? data = null, Exception? exception = null)
         {
             this.Data = data;
             this.Exception = exception;
@@ -90,15 +103,6 @@ namespace DocumentStores
             return res!;
         }
 
-        internal static Result<TData> Ok(TData data) =>
-            new Result<TData>(data ?? throw new ArgumentNullException(nameof(data)), null);
-
-        internal static Result<Unit> Ok() =>
-            new Result<Unit>(Unit.Default);
-
-        internal static Result<TData> Error(Exception exception) =>
-            new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
-
 #pragma warning disable CA2225 // Provide alternatives for op_implicit
 
         /// <inheritdoc/>
@@ -110,10 +114,10 @@ namespace DocumentStores
             };
 
         /// <inheritdoc/>
-        public static implicit operator Result<TData>(TData data) => Ok(data);
+        public static implicit operator Result<TData>(TData data) => Result.Ok(data);
 
         /// <inheritdoc/>
-        public static implicit operator Result<TData>(Exception exception) => Error(exception);
+        public static implicit operator Result<TData>(Exception exception) => Result.Error<TData>(exception);
 
 #pragma warning restore
     }
