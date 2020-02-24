@@ -12,13 +12,13 @@ namespace DocumentStores
     {
         internal EncryptionOptions(IEnumerable<byte> key, IEnumerable<byte> iV)
         {
-            Key = ImmutableArray.CreateRange(key ?? throw new ArgumentNullException(nameof(key)));
-            IV = ImmutableArray.CreateRange(iV ?? throw new ArgumentNullException(nameof(iV)));
+            Key = ImmutableList.CreateRange(key ?? throw new ArgumentNullException(nameof(key)));
+            IV = ImmutableList.CreateRange(iV ?? throw new ArgumentNullException(nameof(iV)));
         }
 
-        internal ImmutableArray<byte> Key { get; }
+        internal IEnumerable<byte> Key { get; }
 
-        internal ImmutableArray<byte> IV { get; }
+        internal IEnumerable<byte> IV { get; }
 
         /// <summary>
         /// Creates options for AES-encryption,

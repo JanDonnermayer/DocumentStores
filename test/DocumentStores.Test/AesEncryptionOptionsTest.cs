@@ -30,7 +30,7 @@ namespace DocumentStores.Test
         [Test]
         public void Test_New_NullStringKey_ThrowsArgumentNullException()
         {
-            string key = null;
+            const string key = null;
             Assert.Throws<ArgumentNullException>(
                 () => new AesEncryptionOptions(key: key)
             );
@@ -72,6 +72,18 @@ namespace DocumentStores.Test
             Assert.DoesNotThrow(
                 () => new AesEncryptionOptions(iV: iV)
             );
+        }
+
+        [Test]
+        public void Test_ValidKey_ValidIV_Maintained()
+        {
+            var key = Enumerable.Range(0, 16).Select(i => (byte)i);
+            var iv = Enumerable.Range(0, 16).Select(i => (byte)i);
+
+            var options = new AesEncryptionOptions(key, iv);
+
+            Assert.That(key.SequenceEqual(options.Key));
+            Assert.That(iv.SequenceEqual(options.IV));
         }
     }
 }
