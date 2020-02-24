@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace DocumentStores.Test
 {
     [TestFixture]
-    public class SerializerIntegrationTest
+    public class DocumentSerializerIntegrationTest
     {
         private IDocumentSerializer GetSerializer(IEnumerable<byte> key, IEnumerable<byte> iv) =>
             new AesEncryptedDocumentSerializer(
