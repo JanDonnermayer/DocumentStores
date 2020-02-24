@@ -9,12 +9,18 @@ namespace DocumentStores
     /// </summary>
     public sealed class JsonFileDocumentStoreOptions
     {
-        private JsonFileDocumentStoreOptions(string rootDirectory)
+        /// <summary>
+        /// Creates a new instance of <see cref="JsonFileDocumentStoreOptions"/>,
+        /// featuring the specified <paramref name="rootDirectory"/>,
+        /// optionally using the specified <paramref name="encryptionOptions"/>
+        /// /// </summary>
+        public JsonFileDocumentStoreOptions(string rootDirectory, EncryptionOptions? encryptionOptions = null)
         {
             if (string.IsNullOrWhiteSpace(rootDirectory))
                 throw new ArgumentException("Please provide a valid directory!", nameof(rootDirectory));
 
             this.RootDirectory = rootDirectory;
+            this.EncryptionOptions = encryptionOptions ?? EncryptionOptions.None;
         }
 
         /// <summary>
@@ -23,12 +29,10 @@ namespace DocumentStores
         public string RootDirectory { get; }
 
         /// <summary>
-        /// Creates a new instance of <see cref="JsonFileDocumentStoreOptions"/>,
-        /// featuring the specified <paramref name="rootDirectory"/>.
+        /// The encryption options.
         /// </summary>
-        /// <param name="rootDirectory">The root directory for the stored documents.</param>
-        public static JsonFileDocumentStoreOptions ForRootDirectory(string rootDirectory) =>
-            new JsonFileDocumentStoreOptions(rootDirectory);
+        /// <value></value>
+        public EncryptionOptions EncryptionOptions { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="JsonFileDocumentStoreOptions"/>,

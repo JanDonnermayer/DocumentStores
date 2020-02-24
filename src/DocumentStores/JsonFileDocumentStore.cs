@@ -24,7 +24,17 @@ namespace DocumentStores
         /// </summary>
         /// <param name="rootDirectory">The directory in which to store the json documents.</param>
         public JsonFileDocumentStore(string rootDirectory)
-            : this(JsonFileDocumentStoreOptions.ForRootDirectory(rootDirectory)) { }
+            : this(new JsonFileDocumentStoreOptions(rootDirectory)) { }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="JsonFileDocumentStore"/>class,
+        /// storing json documents in the specified <paramref name="rootDirectory"/>,
+        /// applying AES-encryption using the specified <paramref name="password"/>.
+        /// </summary>
+        /// <param name="rootDirectory">The directory in which to store the json documents.</param>
+        /// <param name="password">The password to use for AES encryption.</param>
+        public JsonFileDocumentStore(string rootDirectory, string password)
+            : this(new JsonFileDocumentStoreOptions(rootDirectory, new AesEncryptionOptions(password))) { }
 
         /// <summary>
         /// Creates a new instance of the <see cref="JsonFileDocumentStore"/>class,
@@ -38,8 +48,18 @@ namespace DocumentStores
 
             const string JSON_FILE_EXTENSION = ".json";
 
+            IDocumentSerializer serializer = options.EncryptionOptions switch
+            {
+                AesEncryptionOptions opt => new AesEncryptedDocumentSerializer(
+                    internalSerializer: new JsonDocumentSerializer(),
+                    options: opt
+                ),
+                NoEncryptionOptions _ => new JsonDocumentSerializer(),
+                _ => throw new ArgumentException("Invalid encryption options!")
+            };
+
             var internalStore = new DocumentStoreInternal(
-                serializer: new JsonDocumentSerializer(),
+                serializer: serializer,
                 dataStore: new FileDataStore(options.RootDirectory, JSON_FILE_EXTENSION)
             );
 
