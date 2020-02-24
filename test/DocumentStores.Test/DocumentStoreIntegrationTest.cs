@@ -21,7 +21,10 @@ namespace DocumentStores.Test
                 new DocumentStoreInternal(
                     new AesEncryptedDocumentSerializer(
                         new JsonDocumentSerializer(),
-                        new AesEncryptionOptions("myPassword")
+                        new AesEncryptionOptions(
+                            key: new byte[] { 1, 2, 3 },
+                            iV: new byte[] { 4, 5, 6 }
+                        )
                     ),
                     new InMemoryDataStore()
                 )

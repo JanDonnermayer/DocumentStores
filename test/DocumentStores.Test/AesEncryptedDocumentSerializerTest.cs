@@ -69,6 +69,5 @@ namespace DocumentStores.Test
                 () => serializer.DeserializeAsync<string>(readStream)
             );
         }
-
     }
 }
