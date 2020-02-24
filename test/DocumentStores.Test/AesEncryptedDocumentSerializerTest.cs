@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,13 +14,11 @@ namespace DocumentStores.Test
 
         private IDocumentSerializer serializer;
 
-
-
         [SetUp]
         public void SetUp()
         {
             internalSerializerMock = Mock.Of<IDocumentSerializer>();
-            serializer = new RijndaelEncryptedDocumentSerializer(
+            serializer = new AesEncryptedDocumentSerializer(
                 internalSerializer: internalSerializerMock
             );
         }
@@ -58,26 +55,5 @@ namespace DocumentStores.Test
             );
         }
 
-        [Test]
-        public void Test_New_InvalidKeySize_ThrowsArgumentException()
-        {
-            Assert.Throws<ArgumentException>(
-                () => new RijndaelEncryptedDocumentSerializer(
-                    internalSerializer: internalSerializerMock,
-                    key: Array.Empty<byte>()
-                )
-            );
-        }
-
-        [Test]
-        public void Test_New_InvalidIVSize_ThrowsArgumentException()
-        {
-            Assert.Throws<ArgumentException>(
-                () => new RijndaelEncryptedDocumentSerializer(
-                    internalSerializer: internalSerializerMock,
-                    iV: Array.Empty<byte>()
-                )
-            );
-        }
     }
 }
