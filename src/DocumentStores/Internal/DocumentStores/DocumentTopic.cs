@@ -10,7 +10,7 @@ namespace DocumentStores.Internal
     internal class DocumentTopic<TData>
         : IDisposable, IDocumentTopic<TData> where TData : class
     {
-        private readonly IDocumentStore source;
+        private readonly IDocumentStore store;
         private readonly DocumentRoute route;
         private readonly IObserver<IEnumerable<DocumentKey>> observer;
         private readonly IObservable<IEnumerable<DocumentKey>> observable;
@@ -18,9 +18,9 @@ namespace DocumentStores.Internal
 
         public DocumentTopic(IDocumentStore source, DocumentRoute route)
         {
-            this.source = source ?? throw new ArgumentNullException(nameof(source));
+            this.store = source ?? throw new ArgumentNullException(nameof(source));
             this.route = route;
-            var subject = new TaskPoolBehaviourSubject<IEnumerable<DocumentKey>>(initial: GetKeysInternalAsync().Result);
+            var subject = new TaskPoolBehaviorSubject<IEnumerable<DocumentKey>>(initial: GetKeysInternalAsync().Result);
 
             observer = subject;
             observable = subject;
@@ -33,7 +33,7 @@ namespace DocumentStores.Internal
         private async Task<IEnumerable<DocumentKey>> GetKeysInternalAsync()
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            var addresses = await source
+            var addresses = await store
                 .GetAddressesAsync<TData>(
                     route: route,
                     options: DocumentSearchOption.TopLevelOnly,
@@ -59,31 +59,35 @@ namespace DocumentStores.Internal
               DocumentKey key,
               Func<DocumentKey, Task<TData>> addDataAsync,
               Func<DocumentKey, TData, Task<TData>> updateDataAsync) =>
-                await source.AddOrUpdateAsync(
-                    Combine(route, key),
-                    (s) => WithNotification(addDataAsync(s.Key)),
-                    (s, d) => WithNotification(updateDataAsync(s.Key, d)))
-                    .ConfigureAwait(false);
+                await WithNotification(
+                    store.AddOrUpdateAsync(
+                        address: Combine(route, key),
+                        addDataAsync: (s) => addDataAsync(s.Key),
+                        updateDataAsync: (s, d) => updateDataAsync(s.Key, d)
+                    )
+                ).ConfigureAwait(false);
 
         async Task<Result<TData>> IDocumentTopic<TData>.GetOrAddAsync(
               DocumentKey key,
               Func<DocumentKey, Task<TData>> addDataAsync) =>
-                await source.GetOrAddAsync(
-                    Combine(route, key),
-                    (s) => WithNotification(addDataAsync(s.Key)))
-                    .ConfigureAwait(false);
+                await WithNotification(
+                    store.GetOrAddAsync(
+                        address: Combine(route, key),
+                        addDataAsync: (s) => addDataAsync(s.Key)
+                    )
+                ).ConfigureAwait(false);
 
         async Task<Result<Unit>> IDocumentTopic<TData>.DeleteAsync(DocumentKey key) =>
-            await WithNotification(source.DeleteAsync<TData>(Combine(route, key))).ConfigureAwait(false);
+            await WithNotification(store.DeleteAsync<TData>(Combine(route, key))).ConfigureAwait(false);
 
         async Task<Result<TData>> IDocumentTopic<TData>.GetAsync(DocumentKey key) =>
-            await source.GetAsync<TData>(Combine(route, key)).ConfigureAwait(false);
+            await store.GetAsync<TData>(Combine(route, key)).ConfigureAwait(false);
 
         async Task<IEnumerable<DocumentKey>> IDocumentTopic<TData>.GetKeysAsync() =>
             await GetKeysInternalAsync().ConfigureAwait(false);
 
         async Task<Result<Unit>> IDocumentTopic<TData>.PutAsync(DocumentKey key, TData data) =>
-            await WithNotification(source.PutAsync(Combine(route, key), data)).ConfigureAwait(false);
+            await WithNotification(store.PutAsync(Combine(route, key), data)).ConfigureAwait(false);
 
         public void Dispose() => disposeHandle.Dispose();
     }

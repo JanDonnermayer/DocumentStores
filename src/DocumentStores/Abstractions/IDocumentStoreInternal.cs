@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DocumentStores
 {
-    internal interface IDocumentStoreAdapter
+    internal interface IDocumentStoreInternal
     {
         Task<TData> AddOrUpdateAsync<TData>(
             DocumentAddress address,

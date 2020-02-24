@@ -5,17 +5,17 @@ using System.Threading.Tasks;
 namespace DocumentStores.Internal
 {
     /// <summary>
-    /// A Subject{T} that enqueues notifictaions on the taskpool 
+    /// A Subject{T} that enqueues notifications on the taskpool 
     /// and replays the latest notification.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class TaskPoolBehaviourSubject<T>
+    internal class TaskPoolBehaviorSubject<T>
         : IObservable<T>, IObserver<T>, IDisposable
     {
         private ImmutableHashSet<IObserver<T>> observers =
             ImmutableHashSet<IObserver<T>>.Empty;
 
-        public TaskPoolBehaviourSubject(T initial) =>
+        public TaskPoolBehaviorSubject(T initial) =>
             Latest = initial;
 
         private T Latest { get; set; }
@@ -56,8 +56,7 @@ namespace DocumentStores.Internal
             observer.OnNext(Latest);
             return Disposable.Create(() => ImmutableInterlocked.Update(ref observers, _ => _.Remove(observer)));
         }
+
         public void Dispose() => ReleaseObservers();
-
     }
-
 }

@@ -1,6 +1,8 @@
 using System;
 using NUnit.Framework;
 
+using static DocumentStores.Result;
+
 namespace DocumentStores.Test
 {
     [TestFixture]
@@ -10,7 +12,7 @@ namespace DocumentStores.Test
         public void Test_GetData()
         {
             var data = "dat";
-            var result = Result<string>.Ok(data);
+            var result = Ok(data);
 
             Assert.IsTrue(result.Success);
             Assert.AreEqual(data, result.Data);
@@ -20,7 +22,7 @@ namespace DocumentStores.Test
         public void Test_GetException()
         {
             var ex = new Exception();
-            var result = Result<string>.Error(ex);
+            var result = Result.Error<string>(ex);
 
             Assert.False(result.Success);
             Assert.AreEqual(ex, result.Exception);
@@ -30,7 +32,7 @@ namespace DocumentStores.Test
         public void Test_Deconstruct_Data()
         {
             var expectedData = "dat";
-            var result = Result<string>.Ok(expectedData);
+            var result = Ok(expectedData);
 
             result.Deconstruct(out var actualData, out var _);
 
@@ -41,7 +43,7 @@ namespace DocumentStores.Test
         public void Test_Deconstruct_Exception()
         {
             var expectedEx = new Exception();
-            var result = Result<string>.Error(expectedEx);
+            var result = Error<string>(expectedEx);
 
             result.Deconstruct(out var _, out var actualEx);
 
@@ -52,7 +54,7 @@ namespace DocumentStores.Test
         public void Test_Try_Data()
         {
             var expectedData = "dat";
-            var result = Result<string>.Ok(expectedData);
+            var result = Ok(expectedData);
 
             var success = result.Try(out var actualData, out var _);
 
@@ -64,7 +66,7 @@ namespace DocumentStores.Test
         public void Test_Try_Exception()
         {
             var expectedEx = new Exception();
-            var result = Result<string>.Error(expectedEx);
+            var result = Error<string>(expectedEx);
 
             var success = result.Try(out var _, out var actualEx);
 

@@ -24,8 +24,6 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary",
                 "-c:Release",
-                //"--include-source:true",
-                //"--include-symbols:true",
                 "-p:PackageVersion=${input:packageVersion}",
                 "-o://mucfs/project/TOOLS/Mupe/Private/Development/.NuGet"
             ],
@@ -42,7 +40,6 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary",
                 "-c:Release",
-                "-p:AssemblyVersion=${input:packageVersion}",
                 "-p:PackageVersion=${input:packageVersion}",
                 "-o:C:/Users/${env:USERNAME}/.nuget/packages.local/DocumentStores"
             ],
