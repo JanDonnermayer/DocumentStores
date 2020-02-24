@@ -37,6 +37,7 @@ namespace DocumentStores.Test
                 data: data1
             ).ConfigureAwait(false);
 
+            // The serializer flushes the stream.
             using var stream2 = new MemoryStream(buffer);
             var data2 = "test";
 
