@@ -19,8 +19,9 @@ namespace DocumentStores.Test
         private static IDocumentStore GetService() =>
             new DocumentStore(
                 new DocumentStoreInternal(
-                    new RijndaelEncryptedDocumentSerializer(
-                        new JsonDocumentSerializer()
+                    new AesEncryptedDocumentSerializer(
+                        new JsonDocumentSerializer(),
+                        new AesEncryptionOptions("myPassword")
                     ),
                     new InMemoryDataStore()
                 )
