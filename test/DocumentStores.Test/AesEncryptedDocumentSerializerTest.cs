@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,23 +14,31 @@ namespace DocumentStores.Test
     {
         private IDocumentSerializer internalSerializerMock;
 
-        private IDocumentSerializer serializer;
-
-        [SetUp]
-        public void SetUp()
+        private IDocumentSerializer GetSerializer(IEnumerable<byte> key, IEnumerable<byte> iv)
         {
             internalSerializerMock = Mock.Of<IDocumentSerializer>();
-            serializer = new AesEncryptedDocumentSerializer(
-                internalSerializer: internalSerializerMock
+            var options = new AesEncryptionOptions(key, iv);
+
+            return new AesEncryptedDocumentSerializer(
+                internalSerializer: internalSerializerMock,
+                options
             );
         }
 
-        [Test]
-        public async Task Test_Serialize_WritesToStream()
+        [TestCase(0, 16)]
+        [TestCase(16, 0)]
+        [TestCase(1000, 16)]
+        [TestCase(16, 1000)]
+        public async Task Test_Serialize_WritesToStream(int keyLength, int ivLength)
         {
             // Arrange
             Mock.Get(internalSerializerMock)
                 .SetReturnsDefault(Task.CompletedTask);
+
+            var serializer = GetSerializer(
+                Enumerable.Repeat((byte)0, keyLength),
+                Enumerable.Repeat((byte)0, ivLength)
+            );
 
             var writeStream = new MemoryStream();
             var testData = "ABC";
@@ -48,6 +58,11 @@ namespace DocumentStores.Test
         {
             // Arrange
             var readStream = new MemoryStream(new byte[] { 1, 2, 3 });
+
+            var serializer = GetSerializer(
+                Enumerable.Repeat((byte)0, 16),
+                Enumerable.Repeat((byte)0, 16)
+            );
 
             // Act & Assert
             Assert.DoesNotThrowAsync(

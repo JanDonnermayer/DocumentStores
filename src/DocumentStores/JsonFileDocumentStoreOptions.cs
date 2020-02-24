@@ -13,7 +13,7 @@ namespace DocumentStores
         /// Creates a new instance of <see cref="JsonFileDocumentStoreOptions"/>,
         /// featuring the specified <paramref name="rootDirectory"/>,
         /// optionally using the specified <paramref name="encryptionOptions"/>
-        /// /// </summary>
+        /// </summary>
         public JsonFileDocumentStoreOptions(string rootDirectory, EncryptionOptions? encryptionOptions = null)
         {
             if (string.IsNullOrWhiteSpace(rootDirectory))
@@ -31,7 +31,6 @@ namespace DocumentStores
         /// <summary>
         /// The encryption options.
         /// </summary>
-        /// <value></value>
         public EncryptionOptions EncryptionOptions { get; }
 
         /// <summary>

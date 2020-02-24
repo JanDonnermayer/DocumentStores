@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace DocumentStores.Internal
 {
-    internal sealed class AesEncryptionOptions : EncryptionOptions
+    internal class AesEncryptionOptions : EncryptionOptions
     {
         private readonly static IEnumerable<int> acceptedIVLengths =
             ImmutableList.Create(16);
@@ -31,9 +31,9 @@ namespace DocumentStores.Internal
         private static byte[] GetBytes(string value) =>
             System.Text.Encoding.UTF8.GetBytes(value);
 
-        private static byte[] GetSHA512Hash(byte[] source)
+        private static byte[] GetHash(byte[] source)
         {
-            using var sha = SHA512.Create();
+            using var sha = SHA256.Create();
             return sha.ComputeHash(source);
         }
 
@@ -46,7 +46,7 @@ namespace DocumentStores.Internal
             ) switch
             {
                 true => extended,
-                false => GetSHA512Hash(key.ToArray())
+                false => GetHash(key.ToArray()).Take(32)
             };
 
         private static IEnumerable<byte> GetDefaultIV() =>
@@ -58,7 +58,7 @@ namespace DocumentStores.Internal
             ) switch
             {
                 true => extended,
-                false => GetSHA512Hash(iV.ToArray())
+                false => GetHash(iV.ToArray()).Take(16)
             };
 
         public static AesEncryptionOptions Default =>
