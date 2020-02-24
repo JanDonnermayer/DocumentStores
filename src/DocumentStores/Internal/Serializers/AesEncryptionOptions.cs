@@ -45,7 +45,7 @@ namespace DocumentStores.Internal
                 key, acceptedKeyLengths, (byte)0, out var extended
             ) switch
             {
-                true => extended, 
+                true => extended,
                 false => GetSHA512Hash(key.ToArray())
             };
 
@@ -57,7 +57,7 @@ namespace DocumentStores.Internal
                 iV, acceptedIVLengths, (byte)0, out var extended
             ) switch
             {
-                true => extended, 
+                true => extended,
                 false => GetSHA512Hash(iV.ToArray())
             };
 
