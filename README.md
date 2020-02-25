@@ -92,12 +92,12 @@ For caching scenarios, the _.GetOrAdd()_ method comes in handy.
 var data = await dataTopic.GetOrAddAsync("id", id => api.GetAsync(id));
 ```
 
-When working with settings files, give _.AddOrUpdate()_ a try.
+The _.AddOrUpdate()_ is useful when storing collections.
 
 ```csharp
 await settingsChannel.AddOrUpdateAsync(
-    initialData: Settings.Default.WithValue("val"),
-    updateData: settings => settings.WithValue("val")
+    initialData: ImmutableList.Create("val"),
+    updateData: list => list.Add("val")
 );
 ```
 
@@ -131,5 +131,3 @@ var options = JsonFileDocumentStoreOptions
 
 var store = new JsonFileDocumentStore(options);
 ```
-
-
