@@ -95,7 +95,10 @@ var data = await dataTopic.GetOrAddAsync("id", id => api.GetAsync(id));
 When working with settings files, give _.AddOrUpdate()_ a try.
 
 ```csharp
-await settingsChannel.AddOrUpdate(Settings.CreateNew(), settings => settings.WithLastVisited(now));
+await settingsChannel.AddOrUpdateAsync(
+    initialData: Settings.Default.WithValue("val"),
+    updateData: settings => settings.WithValue("val")
+);
 ```
 
 ## Advanced Configuration
@@ -103,7 +106,7 @@ await settingsChannel.AddOrUpdate(Settings.CreateNew(), settings => settings.Wit
 To chose a different location for the store, initialize it like so:
 
 ```csharp
-var store = new JsonFileDocumentStore(rootDirectory: "C:\Store");
+var store = new JsonFileDocumentStore(rootDirectory: "C:/Store");
 ```
 
 As of Version 0.1.3, encryption will be supported.
@@ -112,3 +115,21 @@ The specified password serves as key for AES.
 ```csharp
 var store = new JsonFileDocumentStore(password: "myPassword");
 ```
+
+More can be configured by using the options:
+
+```csharp
+var options = JsonFileDocumentStoreOptions
+    .Default
+    .WithRootDirectory("C:/Temp")
+    .WithEncryptionOptions(
+        EncryptionOptions.Aes(
+            key: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
+            iV: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }
+        )
+    );
+
+var store = new JsonFileDocumentStore(options);
+```
+
+
