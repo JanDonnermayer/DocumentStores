@@ -109,10 +109,8 @@ To chose a different location for the store, initialize it like so:
 var store = new JsonFileDocumentStore(rootDirectory: "C:/Store");
 ```
 
-v0.1.3-preview3 supports encryption.
-The specified password serves as key for AES.
-Note that either all data is encrypted or none.
-More fine-grained configuration will be added soon.
+Since v0.1.3-preview3, encryption is supported.
+The provided password serves as key for Rijndael algorithm. 
 
 ```csharp
 var store = new JsonFileDocumentStore(password: "myPassword");
