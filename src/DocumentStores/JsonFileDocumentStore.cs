@@ -51,7 +51,12 @@ namespace DocumentStores
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
 
-            const string JSON_FILE_EXTENSION = ".json";
+            string fileExtension = options.EncryptionOptions switch
+            {
+                AesEncryptionOptions _ => ".json.crypt",
+                NoEncryptionOptions _ => ".json",
+                _ => throw new ArgumentException("Invalid encryption options!")
+            };
 
             IDocumentSerializer serializer = options.EncryptionOptions switch
             {
@@ -65,7 +70,7 @@ namespace DocumentStores
 
             var internalStore = new DocumentStoreInternal(
                 serializer: serializer,
-                dataStore: new FileDataStore(options.RootDirectory, JSON_FILE_EXTENSION)
+                dataStore: new FileDataStore(options.RootDirectory, fileExtension)
             );
 
             this.documentStore = new DocumentStore(
