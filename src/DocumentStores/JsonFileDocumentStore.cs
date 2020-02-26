@@ -20,21 +20,26 @@ namespace DocumentStores
 
         /// <summary>
         /// Creates a new instance of the <see cref="JsonFileDocumentStore"/>class,
-        /// storing json documents in the specified <paramref name="rootDirectory"/>.
-        /// </summary>
-        /// <param name="rootDirectory">The directory in which to store the json documents.</param>
-        public JsonFileDocumentStore(string rootDirectory)
-            : this(new JsonFileDocumentStoreOptions(rootDirectory)) { }
-
-        /// <summary>
-        /// Creates a new instance of the <see cref="JsonFileDocumentStore"/>class,
-        /// storing json documents in the specified <paramref name="rootDirectory"/>,
-        /// applying AES-encryption using the specified <paramref name="password"/>.
+        /// optionally storing json documents in the specified <paramref name="rootDirectory"/>,
+        /// optionally applying AES-encryption using the specified <paramref name="password"/>.
         /// </summary>
         /// <param name="rootDirectory">The directory in which to store the json documents.</param>
         /// <param name="password">The password to use for AES encryption.</param>
-        public JsonFileDocumentStore(string rootDirectory, string password)
-            : this(new JsonFileDocumentStoreOptions(rootDirectory, new AesEncryptionOptions(password))) { }
+        public JsonFileDocumentStore(string? rootDirectory = null, string? password = null)
+            : this(
+                (rootDirectory, password, JsonFileDocumentStoreOptions.Default) switch
+                {
+                    (string dir, string pw, var opt ) => opt
+                        .WithEncryptionOptions(EncryptionOptions.Aes(pw))
+                        .WithRootDirectory(dir),
+                    (_, string pw, var opt) => opt
+                        .WithEncryptionOptions(EncryptionOptions.Aes(pw)),
+                    (string dir, _, var opt) => opt
+                        .WithRootDirectory(dir),
+                    (_, _, var opt) => opt
+                }
+            )
+        { }
 
         /// <summary>
         /// Creates a new instance of the <see cref="JsonFileDocumentStore"/>class,
@@ -46,7 +51,12 @@ namespace DocumentStores
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
 
-            const string JSON_FILE_EXTENSION = ".json";
+            string fileExtension = options.EncryptionOptions switch
+            {
+                AesEncryptionOptions _ => ".json.crypt",
+                NoEncryptionOptions _ => ".json",
+                _ => throw new ArgumentException("Invalid encryption options!")
+            };
 
             IDocumentSerializer serializer = options.EncryptionOptions switch
             {
@@ -60,7 +70,7 @@ namespace DocumentStores
 
             var internalStore = new DocumentStoreInternal(
                 serializer: serializer,
-                dataStore: new FileDataStore(options.RootDirectory, JSON_FILE_EXTENSION)
+                dataStore: new FileDataStore(options.RootDirectory, fileExtension)
             );
 
             this.documentStore = new DocumentStore(

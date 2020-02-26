@@ -21,7 +21,10 @@ namespace DocumentStores.Test
                 new DocumentStoreInternal(
                     new AesEncryptedDocumentSerializer(
                         new JsonDocumentSerializer(),
-                        new AesEncryptionOptions("myPassword")
+                        new AesEncryptionOptions(
+                            key: new byte[] { 1, 2, 3 },
+                            iV: new byte[] { 4, 5, 6 }
+                        )
                     ),
                     new InMemoryDataStore()
                 )
@@ -216,9 +219,8 @@ namespace DocumentStores.Test
             object VALID_DATA = new object();
             object INVALID_DATA = null;
 
-            var res = await IDocumentStoreExtensions
+            var res = await service
                 .AddOrUpdateAsync(
-                    source: service,
                     address: VALID_KEY,
                     initialData: INVALID_DATA,
                     updateData: _ => VALID_DATA
@@ -235,7 +237,7 @@ namespace DocumentStores.Test
         {
             var service = GetService();
 
-            string KEY = "KEY";
+            const string KEY = "KEY";
             object VALID_DATA = new object();
             object INVALID_DATA = null;
 
@@ -263,7 +265,7 @@ namespace DocumentStores.Test
         {
             var service = GetService();
 
-            string KEY = "KEY";
+            const string KEY = "KEY";
             object VALID_DATA = new object();
             object INVALID_DATA = null;
 
@@ -281,7 +283,7 @@ namespace DocumentStores.Test
                     address: KEY,
                     addDataAsync: ValidAddDataFactory,
                     updateDataAsync: InvalidUpdateDataFactory
-                );
+                ).ConfigureAwait(false);
 
             Assert.IsFalse(res.Try(out var _, out Exception ex));
             Assert.IsInstanceOf<DocumentException>(ex);
@@ -293,7 +295,7 @@ namespace DocumentStores.Test
         {
             var service = GetService();
 
-            string KEY = "KEY";
+            const string KEY = "KEY";
             var DATA_1 = new Box<int>(1);
             var DATA_2 = new Box<string>("D2");
 
