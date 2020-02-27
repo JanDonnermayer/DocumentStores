@@ -76,7 +76,8 @@ await maintainerTopic.PutAsync("elisa", new Person { name = "Elisa", age = 22 })
 var maintainers = await maintainerTopic.GetAllAsync();
 ```
 
-If you repeatedly access a single document, create a _Channel_.
+If you repeatedly access a single document, create a _Channel_,
+a syntactic shortcut for omitting the key.
 
 ```csharp
 var ownerChannel = maintainerTopic.ToChannel("jan");
