@@ -20,7 +20,7 @@ namespace DocumentStores.Test
             );
 
         [Test]
-        public async Task Test_Overwrite_Roundtrip_Equals()
+        public async Task Test_Overwrite_Roundtrip_DataEquals()
         {
             // Arrange
             var serializer = GetSerializer(
