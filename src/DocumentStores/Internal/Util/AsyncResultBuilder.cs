@@ -18,7 +18,7 @@ namespace DocumentStores.Internal
         /// <summary>
         /// Executes the provided function within a try-catch-block,
         /// that catches exceptions for which the specified <paramref name="exceptionFilter"/> returns true.
-        /// If an exception occurs, an error-result is returned, containg the exception.
+        /// If an exception occurs, an error-result is returned, containing the exception.
         /// Else: an ok-result is returned, containing <typeparamref name="T"/> data.
         /// </summary>
         public static Func<Task<Result<T>>> Catch<T>(this Func<Task<T>> source,
@@ -44,6 +44,50 @@ namespace DocumentStores.Internal
 
             return GetResultAsync;
         }
+
+        /// <summary>
+        /// Executes the provided function within a try-catch-block,
+        /// that catches exceptions of type TException.
+        /// If an exception occurs, an error-result is returned, containing the exception.
+        /// Else: an ok-result is returned, containing <typeparamref name="T"/> data.
+        /// </summary>
+        public static Func<Task<Result<T>>> Catch<T, TException>(this Func<Task<T>> source) where T : class =>
+           Catch(source, ex => ex.GetType() == typeof(TException));
+
+        /// <summary>
+        /// Executes the provided function within a try-catch-block.
+        /// If an exception occurs, an error-result is returned, containing the exception.
+        /// Else: an ok-result is returned, containing <typeparamref name="T"/> data.
+        /// </summary>
+        public static Func<Task<Result<T>>> Catch<T>(this Func<Task<T>> source) where T : class =>
+           Catch(source, _ => true);
+
+        /// <summary>
+        /// Executes the provided action within a try-catch-block,
+        /// that catches exceptions for which the specified <paramref name="exceptionFilter"/> returns true.
+        /// If an exception occurs, an error-result is returned, containing the exception.
+        /// Else: an ok-result is returned.
+        /// </summary>
+        public static Func<Task<Result<Unit>>> Catch(this Func<Task> source,
+            Func<Exception, bool> exceptionFilter)
+            => Catch(() => source().ContinueWith(_ => Unit.Default, TaskScheduler.Default), exceptionFilter);
+
+        /// <summary>
+        /// Executes the provided function within a try-catch-block,
+        /// that catches exceptions of type TException.
+        /// If an exception occurs, an error-result is returned, containing the exception.
+        /// Else: an ok-result is returned.
+        /// </summary>
+        public static Func<Task<Result<Unit>>> Catch<TException>(this Func<Task> source) =>
+           Catch(source, ex => ex.GetType() == typeof(TException));
+
+        /// <summary>
+        /// Executes the provided function within a try-catch-block.
+        /// If an exception occurs, an error-result is returned, containing the exception.
+        /// Else: an ok-result is returned.
+        /// </summary>
+        public static Func<Task<Result<Unit>>> Catch(this Func<Task> source) =>
+           Catch(source, _ => true);
 
         /// <summary>
         /// If the specified async result is successful, returns it.
@@ -154,14 +198,14 @@ namespace DocumentStores.Internal
 
         public static Func<Task<Result<T>>> Init<T>(
             this Func<Task<T>> source,
-            Func<Func<Task<T>>, Func<Task<Result<T>>>> handler)  where T : class
+            Func<Func<Task<T>>, Func<Task<Result<T>>>> handler) where T : class
         {
             return handler(source);
         }
 
         public static Func<Task<Result<T>>> Pipe<T>(
             this Func<Task<Result<T>>> source,
-            Func<Func<Task<Result<T>>>, Func<Task<Result<T>>>> handler)  where T : class
+            Func<Func<Task<Result<T>>>, Func<Task<Result<T>>>> handler) where T : class
         {
             return handler(source);
         }

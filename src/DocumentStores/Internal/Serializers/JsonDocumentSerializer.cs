@@ -32,6 +32,7 @@ namespace DocumentStores.Internal
             await stream.CopyToAsync(memStream).ConfigureAwait(false);
             var buffer = memStream.ToArray();
             var text = Encoding.UTF8.GetString(buffer);
+
             return JsonConvert.DeserializeObject<T>(text);
         }
     }

@@ -22,6 +22,7 @@ namespace DocumentStores.Test
         [Test]
         public async Task Test_Overwrite_Roundtrip_Equals()
         {
+            // Arrange
             var serializer = GetSerializer(
                 key: new byte[] { 1, 2, 4 },
                 iv: new byte[] { 1, 4, 5 }
@@ -32,27 +33,50 @@ namespace DocumentStores.Test
             using var stream1 = new MemoryStream(buffer);
             var data1 = "testData";
 
+            // Act
             await serializer.SerializeAsync(
                 stream: stream1,
                 data: data1
             ).ConfigureAwait(false);
 
-            // The serializer flushes the stream.
+            // Arrange
             using var stream2 = new MemoryStream(buffer);
             var data2 = "test";
 
+            // Act
             await serializer.SerializeAsync(
                 stream: stream2,
                 data: data2
             ).ConfigureAwait(false);
 
+            // Arrange
             using var stream3 = new MemoryStream(buffer.TakeWhile(b => b != (byte)0).ToArray());
 
+            // Act
             var result = await serializer.DeserializeAsync<string>(
                 stream: stream3
             ).ConfigureAwait(false);
 
+            // Assert
             Assert.AreEqual(data2, result);
+        }
+
+        [Test]
+        public void Test_InvalidEncryptedData_ThrowsSerializationException()
+        {
+            // Arrange
+            var serializer = GetSerializer(
+                key: new byte[] { 1, 2, 4 },
+                iv: new byte[] { 1, 4, 5 }
+            );
+
+            var buffer = new byte[] { 1, 2, 4 };
+            using var stream = new MemoryStream(buffer);
+
+            // Act & Assert
+            Assert.ThrowsAsync<SerializationException>(
+                () => serializer.DeserializeAsync<string>(stream)
+            );
         }
     }
 }
