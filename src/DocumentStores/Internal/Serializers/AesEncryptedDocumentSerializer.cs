@@ -27,8 +27,16 @@ namespace DocumentStores.Internal
             using var rijndael = Rijndael.Create();
             var encryptor = rijndael.CreateEncryptor(options.Key.ToArray(), options.IV.ToArray());
             using var cryptoStream = new CryptoStream(stream, encryptor, CryptoStreamMode.Write);
-            await serializer.SerializeAsync(cryptoStream, data).ConfigureAwait(false);
-            await stream.FlushAsync().ConfigureAwait(false);
+
+            try
+            {
+                await serializer.SerializeAsync(cryptoStream, data).ConfigureAwait(false);
+                await stream.FlushAsync().ConfigureAwait(false);
+            }
+            catch (CryptographicException ex)
+            {
+                throw new SerializationException("Decryption failed. Make sure to use correct key.", ex);
+            }
         }
 
         async Task<T> IDocumentSerializer.DeserializeAsync<T>(Stream stream) where T : class
@@ -39,7 +47,15 @@ namespace DocumentStores.Internal
             using var rijndael = Rijndael.Create();
             var encryptor = rijndael.CreateDecryptor(options.Key.ToArray(), options.IV.ToArray());
             using var cryptoStream = new CryptoStream(stream, encryptor, CryptoStreamMode.Read);
-            return await serializer.DeserializeAsync<T>(cryptoStream).ConfigureAwait(false);
+
+            try
+            {
+                return await serializer.DeserializeAsync<T>(cryptoStream).ConfigureAwait(false);
+            }
+            catch (CryptographicException ex)
+            {
+                throw new SerializationException("Decryption failed. Make sure to use correct key.", ex);
+            }
         }
     }
 }

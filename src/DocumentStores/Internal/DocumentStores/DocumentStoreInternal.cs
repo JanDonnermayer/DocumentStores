@@ -58,14 +58,34 @@ namespace DocumentStores.Internal
         private async Task<T> DeserializeAsync<T>(IDataChannel dataChannel) where T : class
         {
             using var stream = dataChannel.GetReadStream();
-            return await serializer.DeserializeAsync<T>(stream).ConfigureAwait(false);
+
+            var result = await Function
+                .ApplyArgs(serializer.DeserializeAsync<T>, stream)
+                .Catch<T, SerializationException>()
+                .Invoke()
+                .ConfigureAwait(false);
+
+            if (result.Try(out var data, out var ex))
+                return data!;
+            else
+                throw new DocumentException("Deserialization failed: " + ex!.Message, ex!);
         }
 
         private async Task SerializeAsync<T>(IDataChannel dataChannel, T data) where T : class
         {
             dataChannel.Delete();
             using var stream = dataChannel.GetWriteStream();
-            await serializer.SerializeAsync<T>(stream, data).ConfigureAwait(false);
+
+            var result = await Function
+                .ApplyArgs(serializer.SerializeAsync, stream, data)
+                .Catch<SerializationException>()
+                .Invoke()
+                .ConfigureAwait(false);
+
+            if (result.Try(out var _, out var ex))
+                return;
+            else
+                throw new DocumentException("Serialization failed! " + ex!.Message, ex!);
         }
 
         private ImmutableDictionary<DocumentAddress, SemaphoreSlim> locks =
@@ -79,7 +99,6 @@ namespace DocumentStores.Internal
         }
 
         #endregion
-
 
         #region Implementation of IDocumentStoreAdapter 
 

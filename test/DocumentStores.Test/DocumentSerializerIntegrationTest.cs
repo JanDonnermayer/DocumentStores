@@ -22,6 +22,7 @@ namespace DocumentStores.Test
         [Test]
         public async Task Test_Roundtrip_Equals()
         {
+            // Arrange
             var serializer = GetSerializer(
                 key: new byte[] { 1, 2, 4 },
                 iv: new byte[] { 1, 4, 5 }
@@ -42,6 +43,24 @@ namespace DocumentStores.Test
 
             // Assert
             Assert.AreEqual(testData, roundtrippedData);
+        }
+
+        [Test]
+        public void Test_InvalidEncryptedData_ThrowsSerializationException()
+        {
+            // Arrange
+            var serializer = GetSerializer(
+                key: new byte[] { 1, 2, 4 },
+                iv: new byte[] { 1, 4, 5 }
+            );
+
+            var buffer = new byte[] { 1, 2, 4 };
+            using var stream = new MemoryStream(buffer);
+
+            // Act & Assert
+            Assert.ThrowsAsync<SerializationException>(
+                () => serializer.DeserializeAsync<string>(stream)
+            );
         }
     }
 }

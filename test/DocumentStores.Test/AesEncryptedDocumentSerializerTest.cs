@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using DocumentStores.Internal;
 using Moq;
@@ -10,9 +11,11 @@ using NUnit.Framework;
 namespace DocumentStores.Test
 {
     [TestFixture]
-    class EncryptedDocumentSerializerTest
+    class AesEncryptedDocumentSerializerTest
     {
         private IDocumentSerializer internalSerializerMock;
+
+        private IDocumentSerializer serializer;
 
         private IDocumentSerializer GetSerializer(IEnumerable<byte> key, IEnumerable<byte> iv)
         {
@@ -22,6 +25,15 @@ namespace DocumentStores.Test
             return new AesEncryptedDocumentSerializer(
                 internalSerializer: internalSerializerMock,
                 options
+            );
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            serializer = GetSerializer(
+                Enumerable.Repeat((byte)0, 3),
+                Enumerable.Repeat((byte)0, 3)
             );
         }
 
@@ -35,7 +47,7 @@ namespace DocumentStores.Test
             Mock.Get(internalSerializerMock)
                 .SetReturnsDefault(Task.CompletedTask);
 
-            var serializer = GetSerializer(
+            serializer = GetSerializer(
                 Enumerable.Repeat((byte)0, keyLength),
                 Enumerable.Repeat((byte)0, ivLength)
             );
@@ -57,16 +69,26 @@ namespace DocumentStores.Test
         public void Test_Deserialize_DoesNotThrow()
         {
             // Arrange
-            var readStream = new MemoryStream(new byte[] { 1, 2, 3 });
-
-            var serializer = GetSerializer(
-                Enumerable.Repeat((byte)0, 16),
-                Enumerable.Repeat((byte)0, 16)
-            );
+            Mock.Get(internalSerializerMock)
+                .SetReturnsDefault(Task.FromResult(string.Empty));
 
             // Act & Assert
             Assert.DoesNotThrowAsync(
-                () => serializer.DeserializeAsync<string>(readStream)
+                () => serializer.DeserializeAsync<dynamic>(new MemoryStream())
+            );
+        }
+
+        [Test]
+        public void Test_when_InternalSerializer_Throws_CryptographicException_then_ThrowsSerializationException()
+        {
+            // Arrange
+            Mock.Get(internalSerializerMock)
+                .Setup(s => s.DeserializeAsync<dynamic>(It.IsAny<Stream>()))
+                .ThrowsAsync(new CryptographicException());
+
+            // Act & Assert
+            Assert.ThrowsAsync<SerializationException>(
+                () => serializer.DeserializeAsync<dynamic>(new MemoryStream())
             );
         }
     }
