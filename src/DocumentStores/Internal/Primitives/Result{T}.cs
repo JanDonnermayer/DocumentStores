@@ -84,7 +84,7 @@ namespace DocumentStores
 
         /// <summary>
         /// Deconstructs the result into contained data and exception.
-        /// Either data, or an expcetion can be contained, but not both.
+        /// Either data, or an exception can be contained, but not both.
         /// </summary>
         public void Deconstruct(out TData? data, out Exception? exception)
         {
