@@ -20,39 +20,28 @@ namespace DocumentStores.Test
             );
 
         [Test]
-        public async Task Test_Overwrite_Roundtrip_Equals()
+        public async Task Test_Roundtrip_Equals()
         {
             var serializer = GetSerializer(
                 key: new byte[] { 1, 2, 4 },
                 iv: new byte[] { 1, 4, 5 }
             );
 
-            var buffer = new byte[1000];
+            // Arrange
+            var testData = "ABC";
+            var stream = new ObservableMemoryStream();
 
-            using var stream1 = new MemoryStream(buffer);
-            var data1 = "testData";
+            var resultBuffer = Array.Empty<byte>();
+            stream.OnDispose().Subscribe(_ => resultBuffer = _);
+            
 
-            await serializer.SerializeAsync(
-                stream: stream1,
-                data: data1
-            ).ConfigureAwait(false);
+            // Act
+            await serializer.SerializeAsync(stream, testData);
+            var resultStream = new MemoryStream(resultBuffer);
+            var roundtrippedData = await serializer.DeserializeAsync<string>(resultStream);
 
-            // The serializer flushes the stream.
-            using var stream2 = new MemoryStream(buffer);
-            var data2 = "test";
-
-            await serializer.SerializeAsync(
-                stream: stream2,
-                data: data2
-            ).ConfigureAwait(false);
-
-            using var stream3 = new MemoryStream(buffer.TakeWhile(b => b != (byte)0).ToArray());
-
-            var result = await serializer.DeserializeAsync<string>(
-                stream: stream3
-            ).ConfigureAwait(false);
-
-            Assert.AreEqual(data2, result);
+            // Assert
+            Assert.AreEqual(testData, roundtrippedData);
         }
     }
 }
