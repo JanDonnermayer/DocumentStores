@@ -37,13 +37,13 @@ namespace DocumentStores.Test
             static Task<IResult<string>> Map(object o) =>
                 Task.FromResult(Result.Ok(o.ToString()));
 
-            const int TRY_COUNT_EQ = 3;
-            const int TRY_COUNT_INCR = 3;
+            const int TRY_COUNT_EQ = 2;
+            const int TRY_COUNT_INCR = 2;
 
             var res = await GetSourceFunction()
                 .Catch(ShouldCatch)
-                .RetryEquitemporal(TimeSpan.FromMilliseconds(50), TRY_COUNT_EQ, ShouldRetry)
-                .RetryIncrementally(TimeSpan.FromMilliseconds(50), TRY_COUNT_INCR, ShouldRetry)
+                .RetryEquitemporal(TimeSpan.FromMilliseconds(10), TRY_COUNT_EQ, ShouldRetry)
+                .RetryIncrementally(TimeSpan.FromMilliseconds(10), TRY_COUNT_INCR, ShouldRetry)
                 .Map(Map)
                 .Do(
                     onOk: _ => { },
