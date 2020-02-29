@@ -24,7 +24,7 @@ namespace DocumentStores.Internal
             producer =>
                 producer.Catch(
                     exceptionFilter: ex =>
-                        ex is IOException 
+                        ex is IOException
                         || ex is UnauthorizedAccessException
                         || ex is DocumentException);
 
@@ -84,5 +84,4 @@ namespace DocumentStores.Internal
 
         #endregion
     }
-
 }

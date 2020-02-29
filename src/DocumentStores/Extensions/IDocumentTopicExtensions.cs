@@ -68,7 +68,7 @@ namespace DocumentStores
 
             async Task<KeyValuePair<DocumentKey, Result<TData>>> GetAsync(DocumentKey key) =>
                 new KeyValuePair<DocumentKey, Result<TData>>(
-                    key: key, 
+                    key: key,
                     value: await source.GetAsync(key).ConfigureAwait(false)
                 );
 
