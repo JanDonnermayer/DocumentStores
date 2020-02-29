@@ -20,7 +20,7 @@ namespace DocumentStores
         /// Both <paramref name="addDataAsync"/> as well as <paramref name="updateDataAsync"/> are excecuted
         /// inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> AddOrUpdateAsync<TData>(
+        Task<IResult<TData>> AddOrUpdateAsync<TData>(
             DocumentAddress address,
             Func<DocumentAddress, Task<TData>> addDataAsync,
             Func<DocumentAddress, TData, Task<TData>> updateDataAsync) where TData : class;
@@ -33,19 +33,19 @@ namespace DocumentStores
         /// <remarks>
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> GetOrAddAsync<TData>(
+        Task<IResult<TData>> GetOrAddAsync<TData>(
             DocumentAddress address,
             Func<DocumentAddress, Task<TData>> addDataAsync) where TData : class;
 
         /// <summary>
         /// Deletes the document with the specified <paramref name="address"/>.
         /// </summary>
-        Task<Result<Unit>> DeleteAsync<TData>(DocumentAddress address) where TData : class;
+        Task<IResult<Unit>> DeleteAsync<TData>(DocumentAddress address) where TData : class;
 
         /// <summary>
         /// Returns <typeparamref name="TData"/> contained in the document with the specified <paramref name="address"/>.
         /// </summary>
-        Task<Result<TData>> GetAsync<TData>(DocumentAddress address) where TData : class;
+        Task<IResult<TData>> GetAsync<TData>(DocumentAddress address) where TData : class;
 
         /// <summary>
         /// Returns addresses, associated to documents of <typeparamref name="TData"/>.
@@ -58,6 +58,6 @@ namespace DocumentStores
         /// <summary>
         /// Saves the specified <paramref name="data"/> to a document with the specified <paramref name="address"/>
         /// </summary>
-        Task<Result<Unit>> PutAsync<TData>(DocumentAddress address, TData data) where TData : class;
+        Task<IResult<Unit>> PutAsync<TData>(DocumentAddress address, TData data) where TData : class;
     }
 }

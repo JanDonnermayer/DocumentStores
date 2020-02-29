@@ -57,7 +57,7 @@ namespace DocumentStores.Test
             var res1 = service.PutAsync(KEY, VALUE).Result;
             var res2 = service.GetAsync<string>(KEY).Result;
 
-            Assert.IsTrue(res1.Try());
+            Assert.IsTrue(res1.Success);
             Assert.IsTrue(res2.Try(out string val));
             Assert.AreEqual(VALUE, val);
         }
@@ -72,7 +72,7 @@ namespace DocumentStores.Test
 
             var res = service.GetAsync<string>(KEY).Result;
 
-            Assert.IsFalse(res.Try());
+            Assert.IsFalse(res.Success);
         }
 
         [Test]
@@ -85,7 +85,7 @@ namespace DocumentStores.Test
 
             var res = service.AddOrUpdateAsync(KEY, VALUE, _ => VALUE).Result;
 
-            Assert.IsTrue(res.Try());
+            Assert.IsTrue(res.Success);
         }
 
         [Test]

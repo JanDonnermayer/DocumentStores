@@ -24,7 +24,7 @@ namespace DocumentStores
         /// Both <paramref name="addDataAsync"/> as well as <paramref name="updateDataAsync"/> are excecuted
         /// inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> AddOrUpdateAsync(
+        Task<IResult<TData>> AddOrUpdateAsync(
             DocumentKey key,
             Func<DocumentKey, Task<TData>> addDataAsync,
             Func<DocumentKey, TData, Task<TData>> updateDataAsync);
@@ -37,19 +37,19 @@ namespace DocumentStores
         /// <remarks>
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        Task<Result<TData>> GetOrAddAsync(
+        Task<IResult<TData>> GetOrAddAsync(
             DocumentKey key,
             Func<DocumentKey, Task<TData>> addDataAsync);
 
         /// <summary>
         /// Deletes the document with the specified <paramref name="key"/>.
         /// </summary>
-        Task<Result<Unit>> DeleteAsync(DocumentKey key);
+        Task<IResult<Unit>> DeleteAsync(DocumentKey key);
 
         /// <summary>
         /// Returns <typeparamref name="TData"/> from the document with the specified <paramref name="key"/>.
         /// </summary>
-        Task<Result<TData>> GetAsync(DocumentKey key);
+        Task<IResult<TData>> GetAsync(DocumentKey key);
 
         /// <summary>
         /// Returns all keys, associated to documents of <typeparamref name="TData"/>.
@@ -60,6 +60,6 @@ namespace DocumentStores
         /// Saves the specified <paramref name="data"/> to the document with the specified <paramref name="key"/>.
         /// If the document does not exist: Creates it.
         /// </summary>
-        Task<Result<Unit>> PutAsync(DocumentKey key, TData data);
+        Task<IResult<Unit>> PutAsync(DocumentKey key, TData data);
     }
 }
