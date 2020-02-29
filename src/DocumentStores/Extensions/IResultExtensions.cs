@@ -60,7 +60,7 @@ namespace System
         /// If successful: Passes the contained data;
         /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="System.Exception"/>
         /// </summary>
-        public static TData PassOrThrow<TData>(this IResult<TData> result) where TData : class
+        public static TData Validate<TData>(this IResult<TData> result) where TData : class
         {
             if (result is null) throw new ArgumentNullException(nameof(result));
 
@@ -68,6 +68,19 @@ namespace System
                 return data!;
             else
                 throw new ResultException(ex!);
+        }
+
+        /// <summary>
+        /// Executes the specified <paramref name="resultTask"/> asynchronously,
+        /// and test its result for success.
+        /// If successful: Passes the contained data;
+        /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="System.Exception"/>
+        /// </summary>
+        public static async Task<TData> ValidateAsync<TData>(this Task<IResult<TData>> resultTask) where TData : class
+        {
+            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+
+            return Validate(await resultTask.ConfigureAwait(false));
         }
 
         /// <summary>

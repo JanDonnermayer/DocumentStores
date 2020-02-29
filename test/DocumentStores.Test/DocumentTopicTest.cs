@@ -70,7 +70,7 @@ namespace DocumentStores.Test
             );
 
             for (int i = 0; i < OPERATION_COUNT; i++)
-                (await operation.Invoke(topic)).PassOrThrow();
+                (await operation.Invoke(topic)).Validate();
 
             await Task.Delay(OBSERVER_DELAY_MS);
 

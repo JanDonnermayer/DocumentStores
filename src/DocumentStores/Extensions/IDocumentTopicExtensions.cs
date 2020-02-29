@@ -80,7 +80,7 @@ namespace DocumentStores
                 .Where(r => r.Value.Success)
                 .ToDictionary(
                     keySelector: kvp => kvp.Key,
-                    elementSelector: kvp => kvp.Value.PassOrThrow()
+                    elementSelector: kvp => kvp.Value.Validate()
                 );
         }
 

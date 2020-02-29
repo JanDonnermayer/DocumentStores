@@ -131,9 +131,9 @@ namespace DocumentStores.Test
                 ).ConfigureAwait(false);
 
 
-            var finalCounter = (await service.GetAsync<ImmutableCounter>(KEY).ConfigureAwait(false)).PassOrThrow();
+            var finalCounter = (await service.GetAsync<ImmutableCounter>(KEY).ConfigureAwait(false)).Validate();
 
-            (await service.DeleteAsync<ImmutableCounter>(KEY).ConfigureAwait(false)).PassOrThrow();
+            (await service.DeleteAsync<ImmutableCounter>(KEY).ConfigureAwait(false)).Validate();
 
             Assert.AreEqual(COUNT * WORKER_COUNT, finalCounter.Count);
         }
