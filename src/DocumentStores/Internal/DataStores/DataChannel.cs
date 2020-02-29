@@ -27,5 +27,4 @@ namespace DocumentStores.Internal
         Stream IDataChannel.GetWriteStream() =>
             store.GetWriteStream(address);
     }
-
 }

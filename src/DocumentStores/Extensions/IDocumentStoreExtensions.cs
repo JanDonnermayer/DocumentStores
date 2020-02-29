@@ -12,7 +12,7 @@ namespace DocumentStores
     {
         /// <summary>
         /// If the document with the specified <paramref name="address"/> does not exist,
-        /// adds the specfied <paramref name="initialData"/>.
+        /// adds the specified <paramref name="initialData"/>.
         /// Else: Updates it using the specified <paramref name="updateData"/> delegate.
         /// </summary>
         /// <remarks>
@@ -34,7 +34,7 @@ namespace DocumentStores
 
         /// <summary>
         /// If the document with the specified <paramref name="address"/> does not exist,
-        /// adds the specfied <paramref name="initialData"/>.
+        /// adds the specified <paramref name="initialData"/>.
         /// Else: Returns it.
         /// </summary>
         public static Task<Result<TData>> GetOrAddAsync<TData>(
