@@ -55,7 +55,7 @@ namespace DocumentStores.Internal
         IObservable<IEnumerable<DocumentKey>> IDocumentTopic<TData>.GetKeysObservable() =>
             this.observable;
 
-        async Task<Result<TData>> IDocumentTopic<TData>.AddOrUpdateAsync(
+        async Task<IResult<TData>> IDocumentTopic<TData>.AddOrUpdateAsync(
               DocumentKey key,
               Func<DocumentKey, Task<TData>> addDataAsync,
               Func<DocumentKey, TData, Task<TData>> updateDataAsync) =>
@@ -67,7 +67,7 @@ namespace DocumentStores.Internal
                     )
                 ).ConfigureAwait(false);
 
-        async Task<Result<TData>> IDocumentTopic<TData>.GetOrAddAsync(
+        async Task<IResult<TData>> IDocumentTopic<TData>.GetOrAddAsync(
               DocumentKey key,
               Func<DocumentKey, Task<TData>> addDataAsync) =>
                 await WithNotification(
@@ -77,16 +77,16 @@ namespace DocumentStores.Internal
                     )
                 ).ConfigureAwait(false);
 
-        async Task<Result<Unit>> IDocumentTopic<TData>.DeleteAsync(DocumentKey key) =>
+        async Task<IResult<Unit>> IDocumentTopic<TData>.DeleteAsync(DocumentKey key) =>
             await WithNotification(store.DeleteAsync<TData>(Combine(route, key))).ConfigureAwait(false);
 
-        async Task<Result<TData>> IDocumentTopic<TData>.GetAsync(DocumentKey key) =>
+        async Task<IResult<TData>> IDocumentTopic<TData>.GetAsync(DocumentKey key) =>
             await store.GetAsync<TData>(Combine(route, key)).ConfigureAwait(false);
 
         async Task<IEnumerable<DocumentKey>> IDocumentTopic<TData>.GetKeysAsync() =>
             await GetKeysInternalAsync().ConfigureAwait(false);
 
-        async Task<Result<Unit>> IDocumentTopic<TData>.PutAsync(DocumentKey key, TData data) =>
+        async Task<IResult<Unit>> IDocumentTopic<TData>.PutAsync(DocumentKey key, TData data) =>
             await WithNotification(store.PutAsync(Combine(route, key), data)).ConfigureAwait(false);
 
         public void Dispose() => disposeHandle.Dispose();

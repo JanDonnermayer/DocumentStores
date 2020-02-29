@@ -8,16 +8,15 @@ namespace DocumentStores
     [DebuggerStepThrough]
     internal static class Result
     {
-        public static Result<TData> Ok<TData>(TData data) where TData : class =>
+        public static IResult<TData> Ok<TData>(TData data) where TData : class =>
             new Result<TData>(data ?? throw new ArgumentNullException(nameof(data)), null);
 
-        public static Result<Unit> Ok() =>
+        public static IResult<Unit> Ok() =>
             new Result<Unit>(Unit.Default);
 
-        public static Result<TData> Error<TData>(Exception exception) where TData : class =>
+        public static IResult<TData> Error<TData>(Exception exception) where TData : class =>
             new Result<TData>(exception: exception ?? throw new ArgumentNullException(nameof(exception)));
     }
-
 
     [DebuggerStepThrough]
     internal sealed class Result<TData> : IResult<TData> where TData : class
