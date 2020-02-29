@@ -41,19 +41,15 @@ Using the .Try method
 
 ```csharp
 if (result.Try(out var person, out var ex))
-    Process(person)
+    HandleData(person)
 else
     HandleError(ex);
 ```
 
-Or with C# 8.0 Recursive Patterns
+Or with Extension Methods
 
 ```csharp
-_ = result switch
-{
-    (Person person, _) => Process(person),
-    (_, Exception ex) => HandleError(ex)
-}
+result.Handle(HandleData, HandleError);
 ```
 
 If you are a fan of null-pointers, feel free to direct cast or use .Data property
