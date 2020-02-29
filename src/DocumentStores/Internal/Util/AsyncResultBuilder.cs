@@ -144,7 +144,7 @@ namespace DocumentStores.Internal
 
         /// <summary>
         /// If the specified async result is successful, passes the specified <paramref name="continuation"/>;
-        /// Else: Returns a result containg the Error.
+        /// Else: Returns a result containing the Error.
         /// </summary>
         public static Func<Task<Result<V>>> Map<T, V>(
             this Func<Task<Result<T>>> source,
