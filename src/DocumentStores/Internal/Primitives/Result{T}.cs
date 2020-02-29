@@ -35,7 +35,7 @@ namespace DocumentStores
         }
 
         /// <summary>
-        /// returns whether this result is successfull.
+        /// Returns whether this result is successfull.
         /// </summary>
         public bool Success => Exception is null;
 
