@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{1C669CE0-9
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentStores.Test", "test\DocumentStores.Test\DocumentStores.Test.csproj", "{480F39A3-F945-4CDF-A1C4-D7007311A8C2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{D42C8CE1-2BBE-4F9D-BC58-D3863D8D4A52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentStores.SampleApp", "app\DocumentStores.SampleApp\DocumentStores.SampleApp.csproj", "{22A89C40-E001-4B3A-B681-CBA472302A0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,9 +52,22 @@ Global
 		{480F39A3-F945-4CDF-A1C4-D7007311A8C2}.Release|x64.Build.0 = Release|Any CPU
 		{480F39A3-F945-4CDF-A1C4-D7007311A8C2}.Release|x86.ActiveCfg = Release|Any CPU
 		{480F39A3-F945-4CDF-A1C4-D7007311A8C2}.Release|x86.Build.0 = Release|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Debug|x64.Build.0 = Debug|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Debug|x86.Build.0 = Debug|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Release|x64.ActiveCfg = Release|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Release|x64.Build.0 = Release|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Release|x86.ActiveCfg = Release|Any CPU
+		{22A89C40-E001-4B3A-B681-CBA472302A0A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2226F6C8-13FD-4B3E-9ADC-F2332D7A4403} = {D80B0353-4D5C-4C45-A2FF-D5E47AC0BF8C}
 		{480F39A3-F945-4CDF-A1C4-D7007311A8C2} = {1C669CE0-93F7-44BB-9E61-A15E275BF795}
+		{22A89C40-E001-4B3A-B681-CBA472302A0A} = {D42C8CE1-2BBE-4F9D-BC58-D3863D8D4A52}
 	EndGlobalSection
 EndGlobal
