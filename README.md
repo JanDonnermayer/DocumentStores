@@ -55,7 +55,7 @@ result.Handle(HandleData, HandleError);
 Person person = result.Validate();
 ```
 
-Equivalent methods exist for result-tasks,
+Equivalent methods exist for result-tasks.
 
 ```csharp
 await GetDocumentAsync(...).HandleAsync(HandleData, HandleError);
@@ -63,16 +63,6 @@ await GetDocumentAsync(...).HandleAsync(HandleData, HandleError);
 
 ```csharp
 Person person = await GetDocumentAsync(...).ValidateAsync();
-```
-
-... as well as synchronous wrappers.
-
-```csharp
-GetDocumentAsync(...).Handle(HandleData, HandleError);
-```
-
-```csharp
-Person person = GetDocumentAsync(...).Validate();
 ```
 
 ## Optimized Usage
