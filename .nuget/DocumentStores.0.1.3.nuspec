@@ -12,7 +12,7 @@
       A file-based key-value-store, using the popular Newtonsoft.Json serialization library.
     </summary>
     <releaseNotes>
-      - Added support for encryption. 
+      - Added support for encryption.
       - Reworked result-processing. (Breaking change!)
     </releaseNotes>
     <projectUrl>https://github.com/JanDonnermayer/DocumentStores</projectUrl>
