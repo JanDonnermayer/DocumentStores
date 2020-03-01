@@ -30,10 +30,10 @@ namespace DocumentStores
                 (rootDirectory, password, JsonFileDocumentStoreOptions.Default) switch
                 {
                     (string dir, string pw, var opt ) => opt
-                        .WithEncryptionOptions(EncryptionOptions.Aes(pw))
+                        .WithEncryptionOptions(EncryptionOptions.Aes.WithKey(pw))
                         .WithRootDirectory(dir),
                     (_, string pw, var opt) => opt
-                        .WithEncryptionOptions(EncryptionOptions.Aes(pw)),
+                        .WithEncryptionOptions(EncryptionOptions.Aes.WithKey(pw)),
                     (string dir, _, var opt) => opt
                         .WithRootDirectory(dir),
                     (_, _, var opt) => opt

@@ -124,9 +124,9 @@ var options = JsonFileDocumentStoreOptions
     .Default
     .WithRootDirectory("C:/Temp")
     .WithEncryptionOptions(
-        EncryptionOptions.Aes(
-            key: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
-            iV: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }
+        EncryptionOptions.Aes
+            .WithKey(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 })
+            .WithIV(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 })
         )
     );
 

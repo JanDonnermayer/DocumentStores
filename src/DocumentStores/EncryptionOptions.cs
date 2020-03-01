@@ -21,18 +21,26 @@ namespace DocumentStores
         internal IEnumerable<byte> IV { get; }
 
         /// <summary>
-        /// Creates options for AES-encryption,
-        /// optionally using the specified key and initialization-vector.
+        /// Applies the specified <paramref name="key"/>.
         /// </summary>
-        public static EncryptionOptions Aes(byte[]? key = null, byte[]? iV = null) =>
-            new AesEncryptionOptions(key, iV);
+        public abstract EncryptionOptions WithKey(IEnumerable<byte> key);
 
         /// <summary>
-        /// Creates options for AES-encryption,
-        /// using the specified key and optionally the specified initialization-vector.
+        /// Applies the specified <paramref name="key"/>.
         /// </summary>
-        public static EncryptionOptions Aes(string key, byte[]? iV = null) =>
-            new AesEncryptionOptions(key, iV);
+        public EncryptionOptions WithKey(string key) =>
+            this.WithKey(System.Text.Encoding.UTF8.GetBytes(key));
+
+        /// <summary>
+        /// Applies the specified <paramref name="iv"/>.
+        /// </summary>
+        public abstract EncryptionOptions WithIV(IEnumerable<byte> iv);
+
+        /// <summary>
+        /// Creates default options for AES-encryption,
+        /// </summary>
+        public static EncryptionOptions Aes =>
+            AesEncryptionOptions.Default;
 
         /// <summary>
         /// Creates options for no encryption.
