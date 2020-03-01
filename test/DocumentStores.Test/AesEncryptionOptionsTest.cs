@@ -85,5 +85,17 @@ namespace DocumentStores.Test
             Assert.That(key.SequenceEqual(options.Key));
             Assert.That(iv.SequenceEqual(options.IV));
         }
+
+        [Test]
+        public void Test_ValidKey_ValidIV_WithSyntax_Maintained()
+        {
+            var key = Enumerable.Range(0, 16).Select(i => (byte)i);
+            var iv = Enumerable.Range(0, 16).Select(i => (byte)i);
+
+            var options = EncryptionOptions.Aes.WithKey(key).WithIV(iv);
+
+            Assert.That(key.SequenceEqual(options.Key));
+            Assert.That(iv.SequenceEqual(options.IV));
+        }
     }
 }
