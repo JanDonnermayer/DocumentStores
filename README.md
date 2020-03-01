@@ -30,9 +30,12 @@ await store.PutDocumentAsync("person1", new Person { name = "Jan", age = 24 });
 // Read the data.
 // The store does not throw Exceptions (but ArgumentExceptions). All methods return results.
 var result = await store.GetDocumentAsync<Person>("person1");
+
+// Access the data or throw exception in case of errors.
+Person person = result.Validate();
 ```
 
-You can process the result in various ways:
+You can process the result in more sophisticated ways.
 
 Using the _Try_-method,
 
@@ -43,26 +46,20 @@ else
     HandleError(ex!);
 ```
 
-... the _Handle_-method,
+... or the _Handle_-method,
 
 ```csharp
 result.Handle(HandleData, HandleError);
 ```
 
-... or the _Validate_-method, which can throw exceptions.
-
-```csharp
-Person person = result.Validate();
-```
-
-Equivalent methods exist for result-tasks.
-
-```csharp
-await store.GetDocumentAsync(...).HandleAsync(HandleData, HandleError);
-```
+Similar methods exist for result-tasks.
 
 ```csharp
 Person person = await store.GetDocumentAsync(...).ValidateAsync();
+```
+
+```csharp
+await store.GetDocumentAsync(...).HandleAsync(HandleData, HandleError);
 ```
 
 ## Optimized Usage
@@ -72,8 +69,8 @@ You can define type-bound partitions within a store, so-called _Topics_.
 ```csharp
 var maintainerTopic = store.ToTopic<Person>("maintainers");
 
-await maintainerTopic.PutAsync("jan", new Person { name = "Jan", age = 24 });
-await maintainerTopic.PutAsync("elisa", new Person { name = "Elisa", age = 22 });
+await maintainerTopic.PutAsync("jan", new Person { name = "Jan", age = 24 }).ValidateAsync();
+await maintainerTopic.PutAsync("elisa", new Person { name = "Elisa", age = 22 }).ValidateAsync();
 
 var maintainers = await maintainerTopic.GetAllAsync();
 ```
@@ -84,7 +81,7 @@ a syntactic shortcut for omitting the key.
 ```csharp
 var ownerChannel = maintainerTopic.ToChannel("jan");
 
-Person owner = await ownerChannel.GetAsync();
+Person owner = await ownerChannel.GetAsync().ValidateAsync();
 owner.age += 1;
 await ownerChannel.PutAsync(owner);
 ```
@@ -126,9 +123,9 @@ var options = JsonFileDocumentStoreOptions
     .Default
     .WithRootDirectory("C:/Temp")
     .WithEncryptionOptions(
-        EncryptionOptions.Aes(
-            key: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
-            iV: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }
+        EncryptionOptions.Aes
+            .WithKey(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 })
+            .WithIV(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 })
         )
     );
 
