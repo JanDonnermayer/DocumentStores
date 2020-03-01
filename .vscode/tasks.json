@@ -9,42 +9,43 @@
                 "build",
                 "${workspaceFolder}/DocumentStores.sln",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "/consoleloggerparameters:NoSummary",
+                "-c:Release"
             ],
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "pack.arrk",
-            "command": "dotnet",
+            "label": "nuget.pack",
+            "command": "nuget",
             "type": "process",
-            "dependsOn" : "test",
+            "dependsOn": [
+                "build",
+                "test"
+            ],
             "args": [
                 "pack",
-                "${workspaceFolder}/src/DocumentStores/DocumentStores.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary",
-                "-c:Release",
-                "-p:PackageVersion=${input:packageVersion}",
-                "-o://mucfs/project/TOOLS/Mupe/Private/Development/.NuGet"
+                "${workspaceFolder}/.nuget/DocumentStores.${input:packageVersion}.nuspec",
+                "-OutputDirectory",
+                "${workspaceFolder}/.nuget/"
             ],
             "problemMatcher": "$msCompile"
-        },       
+        },
         {
-            "label": "pack.local",
-            "command": "dotnet",
+            "label": "nuget.pack.local",
+            "command": "nuget",
             "type": "process",
-            "dependsOn" : "test",
+            "dependsOn": [
+                "build",
+                "test"
+            ],
             "args": [
                 "pack",
-                "${workspaceFolder}/src/DocumentStores/DocumentStores.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary",
-                "-c:Release",
-                "-p:PackageVersion=${input:packageVersion}",
-                "-o:C:/Users/${env:USERNAME}/.nuget/packages.local/DocumentStores"
+                "${workspaceFolder}/.nuget/DocumentStores.${input:packageVersion}.nuspec",
+                "-OutputDirectory",
+                "C:/Users/${env:USERNAME}/.nuget/packages.local/DocumentStores/"
             ],
             "problemMatcher": "$msCompile"
-        },   
+        },
         {
             "label": "test",
             "command": "dotnet",
