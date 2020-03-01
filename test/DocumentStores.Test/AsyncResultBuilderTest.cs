@@ -34,7 +34,7 @@ namespace DocumentStores.Test
 
             static bool ShouldRetry(Exception ex) => ex is TestException;
 
-            static Task<Result<string>> Map(object o) =>
+            static Task<IResult<string>> Map(object o) =>
                 Task.FromResult(Result.Ok(o.ToString()));
 
             const int TRY_COUNT_EQ = 2;

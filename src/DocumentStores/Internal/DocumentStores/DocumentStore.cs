@@ -20,10 +20,10 @@ namespace DocumentStores.Internal
 
         #region Private members
 
-        private Func<Func<Task<T>>, Func<Task<Result<T>>>> Catch<T>() where T : class =>
+        private Func<Func<Task<T>>, Func<Task<IResult<T>>>> Catch<T>() where T : class =>
             producer => producer.Catch(exceptionFilter: ex => !(ex is ArgumentException));
 
-        private Func<Func<Task<Result<T>>>, Func<Task<Result<T>>>> Retry<T>() where T : class =>
+        private Func<Func<Task<IResult<T>>>, Func<Task<IResult<T>>>> Retry<T>() where T : class =>
             producer =>
                 producer.RetryIncrementally(
                     frequencySeed: TimeSpan.FromMilliseconds(50),
@@ -41,7 +41,7 @@ namespace DocumentStores.Internal
             CancellationToken ct) where TData : class =>
                 store.GetAddressesAsync<TData>(topicName, options, ct);
 
-        async Task<Result<T>> IDocumentStore.AddOrUpdateAsync<T>(DocumentAddress address,
+        async Task<IResult<T>> IDocumentStore.AddOrUpdateAsync<T>(DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync, Func<DocumentAddress, T, Task<T>> updateDataAsync) where T : class =>
                  await Function.ApplyArgs(store.AddOrUpdateAsync, address, addDataAsync, updateDataAsync)
                         .Init(Catch<T>())
@@ -49,7 +49,7 @@ namespace DocumentStores.Internal
                         .Invoke()
                         .ConfigureAwait(false);
 
-        async Task<Result<T>> IDocumentStore.GetOrAddAsync<T>(DocumentAddress address,
+        async Task<IResult<T>> IDocumentStore.GetOrAddAsync<T>(DocumentAddress address,
             Func<DocumentAddress, Task<T>> addDataAsync) where T : class =>
                 await Function.ApplyArgs(store.GetOrAddAsync, address, addDataAsync)
                         .Init(Catch<T>())
@@ -57,21 +57,21 @@ namespace DocumentStores.Internal
                         .Invoke()
                         .ConfigureAwait(false);
 
-        async Task<Result<T>> IDocumentStore.GetAsync<T>(DocumentAddress address) where T : class =>
+        async Task<IResult<T>> IDocumentStore.GetAsync<T>(DocumentAddress address) where T : class =>
             await Function.ApplyArgs(store.GetAsync<T>, address)
                     .Init(Catch<T>())
                     .Pipe(Retry<T>())
                     .Invoke()
                     .ConfigureAwait(false);
 
-        async Task<Result<Unit>> IDocumentStore.DeleteAsync<T>(DocumentAddress address) where T : class =>
+        async Task<IResult<Unit>> IDocumentStore.DeleteAsync<T>(DocumentAddress address) where T : class =>
             await Function.ApplyArgs(store.DeleteAsync<T>, address)
                     .Init(Catch<Unit>())
                     .Pipe(Retry<Unit>())
                     .Invoke()
                     .ConfigureAwait(false);
 
-        async Task<Result<Unit>> IDocumentStore.PutAsync<T>(DocumentAddress address, T data) where T : class =>
+        async Task<IResult<Unit>> IDocumentStore.PutAsync<T>(DocumentAddress address, T data) where T : class =>
             await Function.ApplyArgs(store.PutAsync, address, data)
                     .Init(Catch<Unit>())
                     .Pipe(Retry<Unit>())

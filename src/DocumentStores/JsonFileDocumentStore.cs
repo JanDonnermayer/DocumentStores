@@ -79,7 +79,7 @@ namespace DocumentStores
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> AddOrUpdateAsync<TData>(
+        public Task<IResult<TData>> AddOrUpdateAsync<TData>(
             DocumentAddress address, Func<DocumentAddress, Task<TData>> addDataAsync,
             Func<DocumentAddress, TData, Task<TData>> updateDataAsync) where TData : class
         {
@@ -87,13 +87,13 @@ namespace DocumentStores
         }
 
         /// <inheritdoc/>
-        public Task<Result<Unit>> DeleteAsync<TData>(DocumentAddress address) where TData : class
+        public Task<IResult<Unit>> DeleteAsync<TData>(DocumentAddress address) where TData : class
         {
             return documentStore.DeleteAsync<TData>(address);
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> GetAsync<TData>(DocumentAddress address) where TData : class
+        public Task<IResult<TData>> GetAsync<TData>(DocumentAddress address) where TData : class
         {
             return documentStore.GetAsync<TData>(address);
         }
@@ -108,14 +108,14 @@ namespace DocumentStores
         }
 
         /// <inheritdoc/>
-        public Task<Result<TData>> GetOrAddAsync<TData>(DocumentAddress address,
+        public Task<IResult<TData>> GetOrAddAsync<TData>(DocumentAddress address,
             Func<DocumentAddress, Task<TData>> addDataAsync) where TData : class
         {
             return documentStore.GetOrAddAsync(address, addDataAsync);
         }
 
         /// <inheritdoc/>
-        public Task<Result<Unit>> PutAsync<TData>(DocumentAddress address, TData data) where TData : class
+        public Task<IResult<Unit>> PutAsync<TData>(DocumentAddress address, TData data) where TData : class
         {
             return documentStore.PutAsync<TData>(address, data);
         }

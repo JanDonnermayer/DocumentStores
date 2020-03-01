@@ -42,7 +42,7 @@ namespace DocumentStores.Test
                 topic => topic.DeleteAsync("KEY"));
 
         private async Task Test_Operation_Multiple__NotifiesObserver_Multiple<TReturnData>(
-            Func<IDocumentTopic<ImmutableCounter>, Task<Result<TReturnData>>> operation)
+            Func<IDocumentTopic<ImmutableCounter>, Task<IResult<TReturnData>>> operation)
             where TReturnData : class
         {
             Mock.Get(storeMock)
@@ -70,7 +70,7 @@ namespace DocumentStores.Test
             );
 
             for (int i = 0; i < OPERATION_COUNT; i++)
-                (await operation.Invoke(topic)).PassOrThrow();
+                (await operation.Invoke(topic)).Validate();
 
             await Task.Delay(OBSERVER_DELAY_MS);
 

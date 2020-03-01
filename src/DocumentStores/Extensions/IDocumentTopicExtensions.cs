@@ -12,13 +12,13 @@ namespace DocumentStores
     {
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,
-        /// adds the specfied <paramref name="initialData"/>.
-        /// Else: Updates it using the specified <paramref name="updateData"/> delegate.
+        /// adds the specified <paramref name="initialData"/>.
+        /// Else, Updates it using the specified <paramref name="updateData"/> delegate.
         /// </summary>
         /// <remarks>
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        public static Task<Result<TData>> AddOrUpdateAsync<TData>(
+        public static Task<IResult<TData>> AddOrUpdateAsync<TData>(
             this IDocumentTopic<TData> source, DocumentKey key,
             TData initialData, Func<TData, TData> updateData) where TData : class
         {
@@ -34,10 +34,10 @@ namespace DocumentStores
 
         /// <summary>
         /// If the document with the specified <paramref name="key"/> does not exist,
-        /// adds the specfied <paramref name="initialData"/>.
-        /// Else: Returns it.
+        /// adds the specified <paramref name="initialData"/>.
+        /// Else, returns it.
         /// </summary>
-        public static Task<Result<TData>> GetOrAddAsync<TData>(
+        public static Task<IResult<TData>> GetOrAddAsync<TData>(
             this IDocumentTopic<TData> source, DocumentKey key,
             TData initialData) where TData : class =>
                 (source ?? throw new ArgumentNullException(nameof(source))).GetOrAddAsync(
@@ -66,8 +66,8 @@ namespace DocumentStores
 
             var filteredKeys = keys.Where(predicate);
 
-            async Task<KeyValuePair<DocumentKey, Result<TData>>> GetAsync(DocumentKey key) =>
-                new KeyValuePair<DocumentKey, Result<TData>>(
+            async Task<KeyValuePair<DocumentKey, IResult<TData>>> GetAsync(DocumentKey key) =>
+                new KeyValuePair<DocumentKey, IResult<TData>>(
                     key: key,
                     value: await source.GetAsync(key).ConfigureAwait(false)
                 );
@@ -77,10 +77,10 @@ namespace DocumentStores
                 .ConfigureAwait(false);
 
             return results
-                .Where(r => r.Value.Try())
+                .Where(r => r.Value.Success)
                 .ToDictionary(
                     keySelector: kvp => kvp.Key,
-                    elementSelector: kvp => kvp.Value.PassOrThrow()
+                    elementSelector: kvp => kvp.Value.Validate()
                 );
         }
 
