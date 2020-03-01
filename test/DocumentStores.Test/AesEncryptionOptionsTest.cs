@@ -14,7 +14,7 @@ namespace DocumentStores.Test
         public void Test_New_StringKey_DoesNotThrow(string key)
         {
             Assert.DoesNotThrow(
-                () => new AesEncryptionOptions(key: key)
+                () => EncryptionOptions.Aes.WithKey(key)
             );
         }
 
@@ -23,7 +23,7 @@ namespace DocumentStores.Test
         {
             var key = new string(Enumerable.Repeat((char)0, 1000).ToArray());
             Assert.DoesNotThrow(
-                () => new AesEncryptionOptions(key: key)
+                () => EncryptionOptions.Aes.WithKey(key)
             );
         }
 
@@ -32,7 +32,7 @@ namespace DocumentStores.Test
         {
             const string key = null;
             Assert.Throws<ArgumentNullException>(
-                () => new AesEncryptionOptions(key: key)
+                () => EncryptionOptions.Aes.WithKey(key)
             );
         }
 
@@ -42,7 +42,7 @@ namespace DocumentStores.Test
         public void Test_New_ByteKey_DoesNotThrow(byte[] key)
         {
             Assert.DoesNotThrow(
-                () => new AesEncryptionOptions(key: key)
+                () => EncryptionOptions.Aes.WithKey(key)
             );
         }
 
@@ -51,7 +51,7 @@ namespace DocumentStores.Test
         {
             var key = Enumerable.Repeat((byte)0, 1000);
             Assert.DoesNotThrow(
-                () => new AesEncryptionOptions(key: key)
+                () => EncryptionOptions.Aes.WithKey(key)
             );
         }
 
@@ -61,7 +61,7 @@ namespace DocumentStores.Test
         public void Test_New_IV_DoesNotThrow(byte[] iV)
         {
             Assert.DoesNotThrow(
-                () => new AesEncryptionOptions(iV: iV)
+                () => EncryptionOptions.Aes.WithIV(iV)
             );
         }
 
@@ -70,32 +70,8 @@ namespace DocumentStores.Test
         {
             var iV = Enumerable.Repeat((byte)0, 1000);
             Assert.DoesNotThrow(
-                () => new AesEncryptionOptions(iV: iV)
+                () => EncryptionOptions.Aes.WithIV(iV)
             );
-        }
-
-        [Test]
-        public void Test_ValidKey_ValidIV_Maintained()
-        {
-            var key = Enumerable.Range(0, 16).Select(i => (byte)i);
-            var iv = Enumerable.Range(0, 16).Select(i => (byte)i);
-
-            var options = new AesEncryptionOptions(key, iv);
-
-            Assert.That(key.SequenceEqual(options.Key));
-            Assert.That(iv.SequenceEqual(options.IV));
-        }
-
-        [Test]
-        public void Test_ValidKey_ValidIV_WithSyntax_Maintained()
-        {
-            var key = Enumerable.Range(0, 16).Select(i => (byte)i);
-            var iv = Enumerable.Range(0, 16).Select(i => (byte)i);
-
-            var options = EncryptionOptions.Aes.WithKey(key).WithIV(iv);
-
-            Assert.That(key.SequenceEqual(options.Key));
-            Assert.That(iv.SequenceEqual(options.IV));
         }
     }
 }

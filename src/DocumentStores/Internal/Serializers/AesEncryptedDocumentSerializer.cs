@@ -14,7 +14,7 @@ namespace DocumentStores.Internal
         {
             this.serializer = internalSerializer
                 ?? throw new System.ArgumentNullException(nameof(internalSerializer));
-            this.options = options ?? AesEncryptionOptions.Default;
+            this.options = options ?? (AesEncryptionOptions)AesEncryptionOptions.Default;
         }
 
         async Task IDocumentSerializer.SerializeAsync<T>(Stream stream, T data) where T : class
