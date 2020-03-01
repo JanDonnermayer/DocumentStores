@@ -3,7 +3,7 @@
 [![](https://github.com/JanDonnermayer/DocumentStores/workflows/UnitTests/badge.svg)](
 https://github.com/JanDonnermayer/DocumentStores/actions)
 
-[![](https://img.shields.io/badge/nuget-v0.1.2-blue.svg)](
+[![](https://img.shields.io/badge/nuget-v0.1.3-blue.svg)](
 https://www.nuget.org/packages/DocumentStores/)
 
 A file-based key-value-store, using the popular Newtonsoft.Json serialization library.  
@@ -109,8 +109,7 @@ To chose a different location for the store, initialize it like so:
 var store = new JsonFileDocumentStore(rootDirectory: "C:/Store");
 ```
 
-Since v0.1.3-preview3, encryption is supported.
-The provided password serves as key for Rijndael algorithm.
+Encryption is supported.
 
 ```csharp
 var store = new JsonFileDocumentStore(password: "myPassword");
