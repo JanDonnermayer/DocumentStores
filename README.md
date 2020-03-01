@@ -34,7 +34,7 @@ var result = await store.GetDocumentAsync<Person>("person1");
 
 You can process the result in various ways:
 
-Using the .Try method ...
+Using the _Try_-method,
 
 ```csharp
 if (result.Try(out Person? person, out Exception? ex))
@@ -43,22 +43,36 @@ else
     HandleError(ex!);
 ```
 
-... the .Handle method,
+... the _Handle_-method,
 
 ```csharp
 result.Handle(HandleData, HandleError);
 ```
 
-... or the .Validate method, which can throw exceptions.
+... or the _Validate_-method, which can throw exceptions.
 
 ```csharp
 Person person = result.Validate();
 ```
 
-If you are a fan of null-pointers, feel free to access the .Data property directly.
+Equivalent methods exist for result-tasks,
 
 ```csharp
-Person? person  = result.Data;
+await GetDocumentAsync(...).HandleAsync(HandleData, HandleError);
+```
+
+```csharp
+Person person = await GetDocumentAsync(...).ValidateAsync();
+```
+
+... as well as synchronous wrappers.
+
+```csharp
+GetDocumentAsync(...).Handle(HandleData, HandleError);
+```
+
+```csharp
+Person person = GetDocumentAsync(...).Validate();
 ```
 
 ## Optimized Usage
