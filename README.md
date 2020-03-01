@@ -110,7 +110,7 @@ var store = new JsonFileDocumentStore(rootDirectory: "C:/Store");
 ```
 
 Since v0.1.3-preview3, encryption is supported.
-The provided password serves as key for Rijndael algorithm. 
+The provided password serves as key for Rijndael algorithm.
 
 ```csharp
 var store = new JsonFileDocumentStore(password: "myPassword");
@@ -124,8 +124,8 @@ var options = JsonFileDocumentStoreOptions
     .WithRootDirectory("C:/Temp")
     .WithEncryptionOptions(
         EncryptionOptions.Aes
-            .WithKey(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 })
-            .WithIV(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 })
+            .WithKey(new byte[] { 1, 2, 3, 4 })
+            .WithIV(new byte[] { 1, 2, 3, 4 })
         )
     );
 
