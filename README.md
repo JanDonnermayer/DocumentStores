@@ -31,36 +31,35 @@ await store.PutDocumentAsync("person1", new Person { name = "Jan", age = 24 });
 // The store does not throw Exceptions (but ArgumentExceptions). All methods return results.
 var result = await store.GetDocumentAsync<Person>("person1");
 
-// Query the result, re-throwing any occurred exceptions
-var person = result.PassOrThrow();
+// Access the data or throw exception in case of errors.
+Person person = result.Validate();
 ```
 
-### You can process the result in more sophisticated ways
+You can process the result in more sophisticated ways.
 
-Using the .Try method
+Using the _Try_-method,
 
 ```csharp
-if (result.Try(out var person, out var ex))
-    Process(person)
+if (result.Try(out Person? person, out Exception? ex))
+    HandleData(person!)
 else
-    HandleError(ex);
+    HandleError(ex!);
 ```
 
-Or with C# 8.0 Recursive Patterns
+... or the _Handle_-method,
 
 ```csharp
-_ = result switch
-{
-    (Person person, _) => Process(person),
-    (_, Exception ex) => HandleError(ex)
-}
+result.Handle(HandleData, HandleError);
 ```
 
-If you are a fan of null-pointers, feel free to direct cast or use .Data property
+Similar methods exist for result-tasks.
 
 ```csharp
-Person? person = result;
-person = result.Data;
+Person person = await store.GetDocumentAsync(...).ValidateAsync();
+```
+
+```csharp
+await store.GetDocumentAsync(...).HandleAsync(HandleData, HandleError);
 ```
 
 ## Optimized Usage
@@ -70,8 +69,8 @@ You can define type-bound partitions within a store, so-called _Topics_.
 ```csharp
 var maintainerTopic = store.ToTopic<Person>("maintainers");
 
-await maintainerTopic.PutAsync("jan", new Person { name = "Jan", age = 24 });
-await maintainerTopic.PutAsync("elisa", new Person { name = "Elisa", age = 22 });
+await maintainerTopic.PutAsync("jan", new Person { name = "Jan", age = 24 }).ValidateAsync();
+await maintainerTopic.PutAsync("elisa", new Person { name = "Elisa", age = 22 }).ValidateAsync();
 
 var maintainers = await maintainerTopic.GetAllAsync();
 ```
@@ -82,7 +81,7 @@ a syntactic shortcut for omitting the key.
 ```csharp
 var ownerChannel = maintainerTopic.ToChannel("jan");
 
-Person owner = await ownerChannel.GetAsync();
+Person owner = await ownerChannel.GetAsync().ValidateAsync();
 owner.age += 1;
 await ownerChannel.PutAsync(owner);
 ```

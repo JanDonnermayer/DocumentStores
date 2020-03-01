@@ -17,7 +17,7 @@ namespace DocumentStores.Internal
             this.key = key;
         }
 
-        Task<Result<TData>> IDocumentChannel<TData>.AddOrUpdateAsync(
+        Task<IResult<TData>> IDocumentChannel<TData>.AddOrUpdateAsync(
             Func<Task<TData>> addDataAsync,
             Func<TData, Task<TData>> updateDataAsync) =>
                 topic.AddOrUpdateAsync(
@@ -25,17 +25,17 @@ namespace DocumentStores.Internal
                     addDataAsync: _ => addDataAsync(),
                     updateDataAsync: (_, data) => updateDataAsync(data));
 
-        Task<Result<Unit>> IDocumentChannel<TData>.DeleteAsync() =>
+        Task<IResult<Unit>> IDocumentChannel<TData>.DeleteAsync() =>
             topic.DeleteAsync(key);
 
-        Task<Result<TData>> IDocumentChannel<TData>.GetAsync() =>
+        Task<IResult<TData>> IDocumentChannel<TData>.GetAsync() =>
             topic.GetAsync(key);
 
-        Task<Result<TData>> IDocumentChannel<TData>.GetOrAddAsync(
+        Task<IResult<TData>> IDocumentChannel<TData>.GetOrAddAsync(
             Func<Task<TData>> addDataAsync) =>
                 topic.GetOrAddAsync(key, _ => addDataAsync());
 
-        Task<Result<Unit>> IDocumentChannel<TData>.PutAsync(TData data) =>
+        Task<IResult<Unit>> IDocumentChannel<TData>.PutAsync(TData data) =>
             topic.PutAsync(key, data);
     }
 }

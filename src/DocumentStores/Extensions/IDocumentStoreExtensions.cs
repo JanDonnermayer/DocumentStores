@@ -13,12 +13,12 @@ namespace DocumentStores
         /// <summary>
         /// If the document with the specified <paramref name="address"/> does not exist,
         /// adds the specified <paramref name="initialData"/>.
-        /// Else: Updates it using the specified <paramref name="updateData"/> delegate.
+        /// Else, Updates it using the specified <paramref name="updateData"/> delegate.
         /// </summary>
         /// <remarks>
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
         /// </remarks>
-        public static Task<Result<TData>> AddOrUpdateAsync<TData>(
+        public static Task<IResult<TData>> AddOrUpdateAsync<TData>(
             this IDocumentStore source, DocumentAddress address,
             TData initialData, Func<TData, TData> updateData) where TData : class
         {
@@ -35,9 +35,9 @@ namespace DocumentStores
         /// <summary>
         /// If the document with the specified <paramref name="address"/> does not exist,
         /// adds the specified <paramref name="initialData"/>.
-        /// Else: Returns it.
+        /// Else, returns it.
         /// </summary>
-        public static Task<Result<TData>> GetOrAddAsync<TData>(
+        public static Task<IResult<TData>> GetOrAddAsync<TData>(
             this IDocumentStore source, DocumentAddress address,
             TData initialData) where TData : class
         {
