@@ -58,11 +58,11 @@ Person person = result.Validate();
 Equivalent methods exist for result-tasks.
 
 ```csharp
-await GetDocumentAsync(...).HandleAsync(HandleData, HandleError);
+await store.GetDocumentAsync(...).HandleAsync(HandleData, HandleError);
 ```
 
 ```csharp
-Person person = await GetDocumentAsync(...).ValidateAsync();
+Person person = await store.GetDocumentAsync(...).ValidateAsync();
 ```
 
 ## Optimized Usage
