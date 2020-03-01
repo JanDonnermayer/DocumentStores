@@ -12,7 +12,7 @@ namespace DocumentStores
         private static string GetDefaultRootDirectory() =>
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                Assembly.GetEntryAssembly().GetName().Name,
+                (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly()).GetName().Name,
                 typeof(JsonFileDocumentStore).Name
             );
 
