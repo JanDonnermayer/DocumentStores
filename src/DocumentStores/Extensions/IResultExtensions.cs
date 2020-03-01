@@ -139,6 +139,25 @@ namespace DocumentStores
         }
 
         /// <summary>
+        /// Executes the specified <paramref name="resultTask"/> asynchronously,
+        /// and tests its result for success.
+        /// If successfull, invokes the specified <paramref name="dataHandler"/>
+        /// with the contained data.
+        /// Else, invokes the specified <paramref name="errorHandler"/> 
+        /// with the contained error.
+        /// </summary>
+        public static async Task HandleAsync<TData>(
+            this Task<IResult<TData>> resultTask,
+            Action<Task<TData>> dataHandler,
+            Action<Task<Exception>> errorHandler
+        ) where TData : class
+        {
+            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+
+            await HandleAsync(resultTask, dataHandler, errorHandler).ConfigureAwait(false) ;
+        }
+
+        /// <summary>
         /// Executes the specified <paramref name="resultTask"/> synchronously,
         /// and tests its result for success.
         /// If successfull, invokes the specified <paramref name="dataHandler"/>
@@ -197,6 +216,25 @@ namespace DocumentStores
             if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
 
             return Map(await resultTask.ConfigureAwait(false), dataMapper, errorMapper);
+        }
+
+        /// <summary>
+        /// Executes the specified <paramref name="resultTask"/> asynchronously,
+        /// and tests its result for success.
+        /// If successfull, invokes the specified <paramref name="dataMapper"/>
+        /// with the contained data, and returns its result.
+        /// Else, invokes the specified <paramref name="errorMapper"/> 
+        /// with the contained error, and returns its result.
+        /// </summary>
+        public static async Task<TResult> MapAsync<TData, TResult>(
+            this Task<IResult<TData>> resultTask,
+            Func<TData, Task<TResult>> dataMapper,
+            Func<Exception, Task<TResult>> errorMapper
+        ) where TData : class
+        {
+            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+
+            return await MapAsync(resultTask, dataMapper, errorMapper).ConfigureAwait(false);
         }
 
         /// <summary>
