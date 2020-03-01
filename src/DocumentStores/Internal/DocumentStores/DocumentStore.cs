@@ -21,19 +21,15 @@ namespace DocumentStores.Internal
         #region Private members
 
         private Func<Func<Task<T>>, Func<Task<IResult<T>>>> Catch<T>() where T : class =>
-            producer =>
-                producer.Catch(
-                    exceptionFilter: ex =>
-                        ex is IOException
-                        || ex is UnauthorizedAccessException
-                        || ex is DocumentException);
+            producer => producer.Catch(exceptionFilter: ex => !(ex is ArgumentException));
 
         private Func<Func<Task<IResult<T>>>, Func<Task<IResult<T>>>> Retry<T>() where T : class =>
             producer =>
                 producer.RetryIncrementally(
                     frequencySeed: TimeSpan.FromMilliseconds(50),
                     count: 5,
-                    exceptionFilter: ex => ex is IOException);
+                    exceptionFilter: ex => ex is IOException
+                );
 
         #endregion
 
