@@ -9,7 +9,7 @@ namespace DocumentStores
         /// <summary>
         /// If the document does not exist,
         /// adds the specified <paramref name="initialData"/>.
-        /// Else: Updates it using the specified <paramref name="updateData"/> delegate.
+        /// Else, Updates it using the specified <paramref name="updateData"/> delegate.
         /// </summary>
         /// <remarks>
         /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
@@ -25,7 +25,7 @@ namespace DocumentStores
         /// <summary>
         /// If the document does not exist,
         /// adds the specified <paramref name="initialData"/>.
-        /// Else: Returns it.
+        /// Else, returns it.
         /// </summary>
         public static Task<IResult<TData>> GetOrAddAsync<TData>(
             this IDocumentChannel<TData> source,

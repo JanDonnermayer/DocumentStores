@@ -19,7 +19,7 @@ namespace DocumentStores.Internal
         /// Executes the provided function within a try-catch-block,
         /// that catches exceptions for which the specified <paramref name="exceptionFilter"/> returns true.
         /// If an exception occurs, an error-result is returned, containing the exception.
-        /// Else: an ok-result is returned, containing <typeparamref name="T"/> data.
+        /// Else, an ok-result is returned, containing <typeparamref name="T"/> data.
         /// </summary>
         public static Func<Task<IResult<T>>> Catch<T>(this Func<Task<T>> source,
             Func<Exception, bool> exceptionFilter) where T : class
@@ -49,24 +49,25 @@ namespace DocumentStores.Internal
         /// Executes the provided function within a try-catch-block,
         /// that catches exceptions of type TException.
         /// If an exception occurs, an error-result is returned, containing the exception.
-        /// Else: an ok-result is returned, containing <typeparamref name="T"/> data.
+        /// Else, an ok-result is returned, containing <typeparamref name="T"/> data.
         /// </summary>
-        public static Func<Task<IResult<T>>> Catch<T, TException>(this Func<Task<T>> source) where T : class =>
-           Catch(source, ex => ex.GetType() == typeof(TException));
+        public static Func<Task<IResult<T>>> Catch<T, TException>(this Func<Task<T>> source)
+            where T : class where TException : Exception =>
+            Catch(source, ex => ex.GetType() == typeof(TException));
 
         /// <summary>
         /// Executes the provided function within a try-catch-block.
         /// If an exception occurs, an error-result is returned, containing the exception.
-        /// Else: an ok-result is returned, containing <typeparamref name="T"/> data.
+        /// Else, an ok-result is returned, containing <typeparamref name="T"/> data.
         /// </summary>
         public static Func<Task<IResult<T>>> Catch<T>(this Func<Task<T>> source) where T : class =>
-           Catch(source, _ => true);
+            Catch(source, _ => true);
 
         /// <summary>
         /// Executes the provided action within a try-catch-block,
         /// that catches exceptions for which the specified <paramref name="exceptionFilter"/> returns true.
         /// If an exception occurs, an error-result is returned, containing the exception.
-        /// Else: an ok-result is returned.
+        /// Else, an ok-result is returned.
         /// </summary>
         public static Func<Task<IResult<Unit>>> Catch(this Func<Task> source,
             Func<Exception, bool> exceptionFilter)
@@ -76,22 +77,23 @@ namespace DocumentStores.Internal
         /// Executes the provided function within a try-catch-block,
         /// that catches exceptions of type TException.
         /// If an exception occurs, an error-result is returned, containing the exception.
-        /// Else: an ok-result is returned.
+        /// Else, an ok-result is returned.
         /// </summary>
-        public static Func<Task<IResult<Unit>>> Catch<TException>(this Func<Task> source) =>
-           Catch(source, ex => ex.GetType() == typeof(TException));
+        public static Func<Task<IResult<Unit>>> Catch<TException>(this Func<Task> source)
+            where TException : Exception =>
+            Catch(source, ex => ex.GetType() == typeof(TException));
 
         /// <summary>
         /// Executes the provided function within a try-catch-block.
         /// If an exception occurs, an error-result is returned, containing the exception.
-        /// Else: an ok-result is returned.
+        /// Else, an ok-result is returned.
         /// </summary>
         public static Func<Task<IResult<Unit>>> Catch(this Func<Task> source) =>
-           Catch(source, _ => true);
+            Catch(source, _ => true);
 
         /// <summary>
         /// If the specified async result is successful, returns it.
-        /// Else: Retries the operation within intervals provided by the specified <paramref name="retrySpanProviders"/>
+        /// Else, retries the operation within intervals provided by the specified <paramref name="retrySpanProviders"/>
         /// until the result is successful or the sequence is exhausted.
         /// </summary>
         public static Func<Task<IResult<T>>> Retry<T>(
@@ -124,7 +126,7 @@ namespace DocumentStores.Internal
 
         /// <summary>
         /// If the specified async result is successful, returns it.
-        /// Else: Retries the operation within increasing intervals of length <paramref name="frequencySeed"/> * 2^[tryCount],
+        /// Else, retries the operation within increasing intervals of length <paramref name="frequencySeed"/> * 2^[tryCount],
         /// until the result is successful or <paramref name="count"/> is reached.
         /// </summary>
         public static Func<Task<IResult<T>>> RetryIncrementally<T>(
@@ -134,7 +136,7 @@ namespace DocumentStores.Internal
 
         /// <summary>
         /// If the specified async result is successful, returns it.
-        /// Else: Retries the operation within constant intervals of length <paramref name="frequency"/>,
+        /// Else, retries the operation within constant intervals of length <paramref name="frequency"/>,
         /// until the result is successful or <paramref name="count"/> is reached.
         /// </summary>
         public static Func<Task<IResult<T>>> RetryEquitemporal<T>(
@@ -144,7 +146,7 @@ namespace DocumentStores.Internal
 
         /// <summary>
         /// If the specified async result is successful, passes the specified <paramref name="dataMapper"/>;
-        /// Else: Returns a result containing the Error.
+        /// Else, returns a result containing the Error.
         /// </summary>
         public static Func<Task<IResult<V>>> Map<T, V>(
             this Func<Task<IResult<T>>> source,
@@ -159,6 +161,7 @@ namespace DocumentStores.Internal
             async Task<IResult<V>> GetResultAsync()
             {
                 var res = await source().ConfigureAwait(false);
+
                 if (res.Try(out var val, out var ex))
                     return await dataMapper(val!).ConfigureAwait(false);
                 else
@@ -171,7 +174,7 @@ namespace DocumentStores.Internal
         /// <summary>
         /// Returns the specified async result.
         /// If the async result is successful, invokes <paramref name="onOk"/>.
-        /// Else: Invokes <paramref name="onError"/>
+        /// Else, invokes <paramref name="onError"/>
         /// </summary>
         public static Func<Task<IResult<T>>> Do<T>(
             this Func<Task<IResult<T>>> source,
@@ -189,10 +192,12 @@ namespace DocumentStores.Internal
             async Task<IResult<T>> GetResultAsync()
             {
                 var res = await source().ConfigureAwait(false);
+
                 if (res.Try(out var val, out var ex))
                     onOk(val!);
                 else
                     onError(ex!);
+
                 return res;
             }
 

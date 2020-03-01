@@ -28,35 +28,37 @@ var store = new JsonFileDocumentStore();
 await store.PutDocumentAsync("person1", new Person { name = "Jan", age = 24 });
 
 // Read the data.
-// The store does not throw IO-Exceptions. All methods return results.
+// The store does not throw Exceptions (but ArgumentExceptions). All methods return results.
 var result = await store.GetDocumentAsync<Person>("person1");
-
-// Query the result, re-throwing any occurred exceptions
-var person = result.PassOrThrow();
 ```
 
-### You can process the result in more sophisticated ways
+You can process the result in various ways:
 
-Using the .Try method
+Using the .Try method ...
 
 ```csharp
-if (result.Try(out var person, out var ex))
-    HandleData(person)
+if (result.Try(out Person? person, out Exception? ex))
+    HandleData(person!)
 else
-    HandleError(ex);
+    HandleError(ex!);
 ```
 
-Or with Extension Methods
+... the .Handle method,
 
 ```csharp
 result.Handle(HandleData, HandleError);
 ```
 
-If you are a fan of null-pointers, feel free to direct cast or use .Data property
+... or the .Validate method, which can throw exceptions.
 
 ```csharp
-Person? person = result;
-person = result.Data;
+Person person = result.Validate();
+```
+
+If you are a fan of null-pointers, feel free to access the .Data property directly.
+
+```csharp
+Person? person  = result.Data;
 ```
 
 ## Optimized Usage

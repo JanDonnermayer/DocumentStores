@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using DocumentStores;
+using System;
 
-namespace System
+namespace DocumentStores
 {
     /// <summary>
     /// Provides extension methods for <see cref="Result{T}"/>
@@ -21,8 +21,8 @@ namespace System
 
         /// <summary>
         /// Tests the specified <paramref name="result"/> for success.
-        /// If the result is successful: Yields the contained <paramref name="data"/> (otherwise null).
-        /// Else: Yields the contained <paramref name="exception"/> (otherwise null).
+        /// If the result is successful, yields the contained <paramref name="data"/> (otherwise null).
+        /// Else, yields the contained <paramref name="exception"/> (otherwise null).
         /// </summary>
         public static bool Try<TData>(this IResult<TData> result, out TData? data, out Exception? exception) where TData : class
         {
@@ -35,7 +35,7 @@ namespace System
 
         /// <summary>
         /// Tests the specified <paramref name="result"/> for success.
-        /// If the result is successful: Yields the contained <paramref name="data"/> (otherwise null).
+        /// If the result is successful, yields the contained <paramref name="data"/> (otherwise null).
         /// </summary>
         public static bool Try<TData>(this IResult<TData> result, out TData? data) where TData : class
         {
@@ -46,7 +46,7 @@ namespace System
 
         /// <summary>
         /// Tests the specified <paramref name="result"/> for success.
-        /// If the result is not successful: Yields the contained <see cref="Exception"/> (otherwise null).
+        /// If the result is not successful, yields the contained <see cref="Exception"/> (otherwise null).
         /// </summary>
         public static bool Try<TData>(this IResult<TData> result, out Exception? ex) where TData : class
         {
@@ -57,8 +57,8 @@ namespace System
 
         /// <summary>
         /// Tests the specified <paramref name="result"/> for success.
-        /// If successful: Passes the contained data;
-        /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="System.Exception"/>
+        /// If successful, passes the contained data.
+        /// Else, throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
         /// </summary>
         public static TData Validate<TData>(this IResult<TData> result) where TData : class
         {
@@ -72,9 +72,9 @@ namespace System
 
         /// <summary>
         /// Executes the specified <paramref name="resultTask"/> asynchronously,
-        /// and test its result for success.
-        /// If successful: Passes the contained data;
-        /// else: throws an <see cref="ResultException"/> containing the underlying <see cref="System.Exception"/>
+        /// and tests its result for success.
+        /// If successful, passes the contained data;
+        /// Else, throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
         /// </summary>
         public static async Task<TData> ValidateAsync<TData>(this Task<IResult<TData>> resultTask) where TData : class
         {
@@ -84,10 +84,23 @@ namespace System
         }
 
         /// <summary>
+        /// Executes the specified <paramref name="resultTask"/> synchronously,
+        /// and tests its result for success.
+        /// If successful, passes the contained data;
+        /// Else, throws an <see cref="ResultException"/> containing the underlying <see cref="Exception"/>
+        /// </summary>
+        public static TData Validate<TData>(this Task<IResult<TData>> resultTask) where TData : class
+        {
+            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+
+            return Validate(resultTask.Result);
+        }
+
+        /// <summary>
         /// Tests the specified <paramref name="result"/> for success.
         /// If successfull, invokes the specified <paramref name="dataHandler"/>
         /// with the contained data.
-        /// Else: Invokes the specified <paramref name="errorHandler"/> 
+        /// Else, invokes the specified <paramref name="errorHandler"/> 
         /// with the contained error.
         /// </summary>
         public static void Handle<TData>(
@@ -107,10 +120,48 @@ namespace System
         }
 
         /// <summary>
+        /// Executes the specified <paramref name="resultTask"/> asynchronously,
+        /// and tests its result for success.
+        /// If successfull, invokes the specified <paramref name="dataHandler"/>
+        /// with the contained data.
+        /// Else, invokes the specified <paramref name="errorHandler"/> 
+        /// with the contained error.
+        /// </summary>
+        public static async Task HandleAsync<TData>(
+            this Task<IResult<TData>> resultTask,
+            Action<TData> dataHandler,
+            Action<Exception> errorHandler
+        ) where TData : class
+        {
+            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+
+            Handle(await resultTask.ConfigureAwait(false), dataHandler, errorHandler);
+        }
+
+        /// <summary>
+        /// Executes the specified <paramref name="resultTask"/> synchronously,
+        /// and tests its result for success.
+        /// If successfull, invokes the specified <paramref name="dataHandler"/>
+        /// with the contained data.
+        /// Else, invokes the specified <paramref name="errorHandler"/> 
+        /// with the contained error.
+        /// </summary>
+        public static void Handle<TData>(
+           this Task<IResult<TData>> resultTask,
+           Action<TData> dataHandler,
+           Action<Exception> errorHandler
+        ) where TData : class
+        {
+            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
+
+            Handle(resultTask.Result, dataHandler, errorHandler);
+        }
+
+        /// <summary>
         /// Tests the specified <paramref name="result"/> for success.
         /// If successfull, invokes the specified <paramref name="dataMapper"/>
         /// with the contained data, and returns its result.
-        /// Else: Invokes the specified <paramref name="errorMapper"/> 
+        /// Else, invokes the specified <paramref name="errorMapper"/> 
         /// with the contained error, and returns its result.
         /// </summary>
         public static TResult Map<TData, TResult>(
@@ -131,29 +182,10 @@ namespace System
 
         /// <summary>
         /// Executes the specified <paramref name="resultTask"/> asynchronously,
-        /// and test its result for success.
-        /// If successfull, invokes the specified <paramref name="dataHandler"/>
-        /// with the contained data.
-        /// Else: Invokes the specified <paramref name="errorHandler"/> 
-        /// with the contained error.
-        /// </summary>
-        public static async Task HandleAsync<TData>(
-            this Task<IResult<TData>> resultTask,
-            Action<TData> dataHandler,
-            Action<Exception> errorHandler
-        ) where TData : class
-        {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-
-            Handle(await resultTask.ConfigureAwait(false), dataHandler, errorHandler);
-        }
-
-        /// <summary>
-        /// Executes the specified <paramref name="resultTask"/> asynchronously,
-        /// and test its result for success.
+        /// and tests its result for success.
         /// If successfull, invokes the specified <paramref name="dataMapper"/>
         /// with the contained data, and returns its result.
-        /// Else: Invokes the specified <paramref name="errorMapper"/> 
+        /// Else, invokes the specified <paramref name="errorMapper"/> 
         /// with the contained error, and returns its result.
         /// </summary>
         public static async Task<TResult> MapAsync<TData, TResult>(
@@ -169,32 +201,13 @@ namespace System
 
         /// <summary>
         /// Executes the specified <paramref name="resultTask"/> synchronously,
-        /// and test its result for success.
-        /// If successfull, invokes the specified <paramref name="dataHandler"/>
-        /// with the contained data.
-        /// Else: Invokes the specified <paramref name="errorHandler"/> 
-        /// with the contained error.
-        /// </summary>
-        public static void HandleResult<TData>(
-           this Task<IResult<TData>> resultTask,
-           Action<TData> dataHandler,
-           Action<Exception> errorHandler
-       ) where TData : class
-        {
-            if (resultTask is null) throw new ArgumentNullException(nameof(resultTask));
-
-            Handle(resultTask.Result, dataHandler, errorHandler);
-        }
-
-        /// <summary>
-        /// Executes the specified <paramref name="resultTask"/> synchronously,
-        /// and test its result for success.
+        /// and tests its result for success.
         /// If successfull, invokes the specified <paramref name="dataMapper"/>
         /// with the contained data, and returns its result.
-        /// Else: Invokes the specified <paramref name="errorMapper"/> 
+        /// Else, invokes the specified <paramref name="errorMapper"/> 
         /// with the contained error, and returns its result.
         /// </summary>
-        public static TResult MapResult<TData, TResult>(
+        public static TResult Map<TData, TResult>(
             this Task<IResult<TData>> resultTask,
             Func<TData, TResult> dataMapper,
             Func<Exception, TResult> errorMapper

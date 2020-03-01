@@ -13,7 +13,7 @@ namespace DocumentStores
         /// <summary>
         /// If the documentdoes not exist,
         /// adds it using the <paramref name="addDataAsync"/> delegate.
-        /// Else: Updates it using the specified <paramref name="updateDataAsync"/> delegate.
+        /// Else, Updates it using the specified <paramref name="updateDataAsync"/> delegate.
         /// </summary>
         /// <remarks>
         /// Both <paramref name="addDataAsync"/> as well as <paramref name="updateDataAsync"/> are excecuted
@@ -26,7 +26,7 @@ namespace DocumentStores
         /// <summary>
         /// If the document does not exist,
         /// adds it using the <paramref name="addDataAsync"/> delegate.
-        /// Else: Returns it.
+        /// Else, returns it.
         /// </summary>
         /// <remarks>
         /// <paramref name="addDataAsync"/> is excecuted inside a lock on the specific document.
