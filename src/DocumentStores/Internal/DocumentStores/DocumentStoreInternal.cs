@@ -61,7 +61,7 @@ namespace DocumentStores.Internal
 
             var result = await Function
                 .ApplyArgs(serializer.DeserializeAsync<T>, stream)
-                .Catch<T, SerializationException>()
+                .Catch(ex => !(ex is ArgumentException))
                 .Invoke()
                 .ConfigureAwait(false);
 
@@ -78,7 +78,7 @@ namespace DocumentStores.Internal
 
             var result = await Function
                 .ApplyArgs(serializer.SerializeAsync, stream, data)
-                .Catch<SerializationException>()
+                .Catch(ex => !(ex is ArgumentException))
                 .Invoke()
                 .ConfigureAwait(false);
 

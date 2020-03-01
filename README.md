@@ -28,7 +28,7 @@ var store = new JsonFileDocumentStore();
 await store.PutDocumentAsync("person1", new Person { name = "Jan", age = 24 });
 
 // Read the data.
-// The store does not throw IO-Exceptions. All methods return results.
+// The store does not throw Exceptions (but ArgumentExceptions). All methods return results.
 var result = await store.GetDocumentAsync<Person>("person1");
 
 // Query the result, re-throwing any occurred exceptions
