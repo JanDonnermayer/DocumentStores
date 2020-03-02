@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using static System.Console;
 
 namespace DocumentStores.SampleApp
 {
@@ -15,13 +16,12 @@ namespace DocumentStores.SampleApp
 
             static Task<string> AddDataAsync(DocumentAddress address) => Task.FromResult(Prompt("Please enter secret!"));
 
-            static void HandleSuccess(string data) => Console.WriteLine(data);
+            static void HandleSuccess(string data) => WriteLines("The secret is:", data);
 
             void HandleError(Exception ex)
             {
                 store.DeleteAsync<string>(address).Validate();
-                Console.WriteLine(ex.Message);
-                Console.WriteLine("Secret deleted!");
+                WriteLines(ex.Message, "Secret deleted!");
             }
 
             await store
@@ -31,18 +31,24 @@ namespace DocumentStores.SampleApp
             PromptKey("Press any key");
         }
 
-        
+
+        private static void WriteLines(string firstLines, params string[] lines)
+        {
+            WriteLine(firstLines);
+            foreach (var line in lines) WriteLine(line);
+        }
+
 
         private static string Prompt(string message)
         {
-            Console.WriteLine(message);
-            return Console.ReadLine();
+            WriteLine(message);
+            return ReadLine();
         }
 
         private static void PromptKey(string message)
         {
-            Console.WriteLine(message);
-            Console.ReadKey();
+            WriteLine(message);
+            ReadKey();
         }
     }
 }
