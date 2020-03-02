@@ -11,18 +11,27 @@ namespace DocumentStores.SampleApp
                 password: Prompt("Please enter password!")
             );
 
+            var address = Environment.UserName + "_secrets";
+
+            static Task<string> AddDataAsync(DocumentAddress address) => Task.FromResult(Prompt("Please enter secret!"));
+
+            static void HandleSuccess(string data) => Console.WriteLine(data);
+
+            void HandleError(Exception ex)
+            {
+                store.DeleteAsync<string>(address).Validate();
+                Console.WriteLine(ex.Message);
+                Console.WriteLine("Secret deleted!");
+            }
+
             await store
-                .GetOrAddAsync(
-                    address: Environment.UserName + "_secrets",
-                    addDataAsync: _ => Task.FromResult(Prompt("Please enter secret!"))
-                )
-                .HandleAsync(
-                    dataHandler: Console.WriteLine,
-                    errorHandler: ex => Console.WriteLine(ex.Message)
-                );
+                .GetOrAddAsync<string>(address, AddDataAsync)
+                .HandleAsync(HandleSuccess, HandleError);
 
             PromptKey("Press any key");
         }
+
+        
 
         private static string Prompt(string message)
         {

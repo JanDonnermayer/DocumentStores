@@ -8,7 +8,7 @@
             "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build.app",
             "program": "${workspaceFolder}/app/DocumentStores.SampleApp/bin/Debug/netcoreapp3.1/DocumentStores.SampleApp.dll",
             "args": [],
             "cwd": "${workspaceFolder}/app/DocumentStores.SampleApp",

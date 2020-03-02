@@ -2,7 +2,19 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "build.app",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/app/DocumentStores.SampleApp/DocumentStores.SampleApp.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build.release",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -19,7 +31,7 @@
             "command": "nuget",
             "type": "process",
             "dependsOn": [
-                "build",
+                "build.release",
                 "test"
             ],
             "args": [
@@ -35,7 +47,7 @@
             "command": "nuget",
             "type": "process",
             "dependsOn": [
-                "build",
+                "build.release",
                 "test"
             ],
             "args": [
