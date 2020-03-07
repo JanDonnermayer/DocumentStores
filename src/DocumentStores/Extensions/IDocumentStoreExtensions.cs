@@ -15,19 +15,43 @@ namespace DocumentStores
         /// adds the specified <paramref name="initialData"/>.
         /// Else, Updates it using the specified <paramref name="updateData"/> delegate.
         /// </summary>
-        /// <remarks>
-        /// <paramref name="updateData"/> is excecuted inside a lock on the specific document.
-        /// </remarks>
         public static Task<IResult<TData>> AddOrUpdateAsync<TData>(
             this IDocumentStore source, DocumentAddress address,
             TData initialData, Func<TData, TData> updateData) where TData : class
         {
-            if (source == null)
+            if (source is null)
                 throw new ArgumentNullException(nameof(source));
+            if (initialData is null)
+                throw new ArgumentNullException(nameof(initialData));
+            if (updateData is null)
+                throw new ArgumentNullException(nameof(updateData));
 
             return source.AddOrUpdateAsync(
                 address: address,
                 addDataAsync: _ => Task.FromResult(initialData),
+                updateDataAsync: (_, data) => Task.FromResult(updateData(data))
+            );
+        }
+
+        /// <summary>
+        /// If the document with the specified <paramref name="address"/> does not exist,
+        /// adds it using the specified <paramref name="addData"/> delegate.
+        /// Else, Updates it using the specified <paramref name="updateData"/> delegate.
+        /// </summary>
+        public static Task<IResult<TData>> AddOrUpdateAsync<TData>(
+            this IDocumentStore source, DocumentAddress address,
+            Func<TData> addData, Func<TData, TData> updateData) where TData : class
+        {
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
+            if (addData is null)
+                throw new ArgumentNullException(nameof(addData));
+            if (updateData is null)
+                throw new ArgumentNullException(nameof(updateData));
+
+            return source.AddOrUpdateAsync(
+                address: address,
+                addDataAsync: _ => Task.FromResult(addData()),
                 updateDataAsync: (_, data) => Task.FromResult(updateData(data))
             );
         }
@@ -41,12 +65,34 @@ namespace DocumentStores
             this IDocumentStore source, DocumentAddress address,
             TData initialData) where TData : class
         {
-            if (source == null)
+            if (source is null)
                 throw new ArgumentNullException(nameof(source));
+            if (initialData is null)
+                throw new ArgumentNullException(nameof(initialData));
 
             return source.GetOrAddAsync(
                 address: address,
                 addDataAsync: _ => Task.FromResult(initialData)
+            );
+        }
+
+        /// <summary>
+        /// If the document with the specified <paramref name="address"/> does not exist,
+        /// adds it using the specified <paramref name="addData"/> delegate.
+        /// Else, returns it.
+        /// </summary>
+        public static Task<IResult<TData>> GetOrAddAsync<TData>(
+            this IDocumentStore source, DocumentAddress address,
+            Func<TData> addData) where TData : class
+        {
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
+            if (addData is null)
+                throw new ArgumentNullException(nameof(addData));
+
+            return source.GetOrAddAsync(
+                address: address,
+                addDataAsync: _ => Task.FromResult(addData())
             );
         }
 
