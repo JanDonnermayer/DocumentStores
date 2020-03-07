@@ -211,7 +211,7 @@ namespace DocumentStores.Test
 
 
         [Test]
-        public async Task AddOrUpdateExtensions_InvalidInitialData_ReturnsError()
+        public void AddOrUpdateExtensions_InvalidInitialData_ThrowsArgumentNullException()
         {
             var service = GetService();
 
@@ -219,16 +219,13 @@ namespace DocumentStores.Test
             object VALID_DATA = new object();
             object INVALID_DATA = null;
 
-            var res = await service
-                .AddOrUpdateAsync(
+            Assert.ThrowsAsync<ArgumentNullException>(
+                () => service.AddOrUpdateAsync(
                     address: VALID_KEY,
                     initialData: INVALID_DATA,
                     updateData: _ => VALID_DATA
                 )
-                .ConfigureAwait(false);
-
-            Assert.IsFalse(res.Try(out var _, out Exception ex));
-            Assert.IsInstanceOf<DocumentException>(ex);
+            );
         }
 
 
