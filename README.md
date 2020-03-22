@@ -28,7 +28,7 @@ var store = new JsonFileDocumentStore();
 await store.PutDocumentAsync("person1", new Person { name = "Jan", age = 24 });
 
 // Read the data.
-// The store does not throw Exceptions (but ArgumentExceptions). All methods return results.
+// All methods return results.
 var result = await store.GetDocumentAsync<Person>("person1");
 
 // Access the data or throw exception in case of errors.
