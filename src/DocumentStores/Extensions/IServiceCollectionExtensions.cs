@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace DocumentStores
 {
-    /// <inheritdoc/> 
+    /// <inheritdoc/>
     public static class IServiceCollectionExtensions
     {
         /// <summary>
@@ -18,8 +18,8 @@ namespace DocumentStores
         /// <returns></returns>
         public static IDocumentTopicBuilderServiceCollection AddJsonFileDocumentStore(this IServiceCollection services, string directory)
         {
-            if (services is null) throw new System.ArgumentNullException(nameof(services));
-            if (string.IsNullOrEmpty(directory)) throw new System.ArgumentException("Value cannot be null or empty.", nameof(directory));
+            if (services is null) throw new ArgumentNullException(nameof(services));
+            if (string.IsNullOrEmpty(directory)) throw new ArgumentException("Value cannot be null or empty.", nameof(directory));
 
             services.AddSingleton<IDocumentStore>(_ => new JsonFileDocumentStore(directory));
             return new DocumentTopicBuilder(services);
@@ -27,7 +27,7 @@ namespace DocumentStores
 
         #region Private Types
 
-        private class DocumentTopicBuilder : IServiceCollection, IDocumentTopicBuilderServiceCollection
+        private class DocumentTopicBuilder : IDocumentTopicBuilderServiceCollection
         {
             private readonly IServiceCollection services;
 
@@ -48,55 +48,25 @@ namespace DocumentStores
 
             public bool IsReadOnly => services.IsReadOnly;
 
-            public void Add(ServiceDescriptor item)
-            {
-                services.Add(item);
-            }
+            public void Add(ServiceDescriptor item) => services.Add(item);
 
-            public void Clear()
-            {
-                services.Clear();
-            }
+            public void Clear() => services.Clear();
 
-            public bool Contains(ServiceDescriptor item)
-            {
-                return services.Contains(item);
-            }
+            public bool Contains(ServiceDescriptor item) => services.Contains(item);
 
-            public void CopyTo(ServiceDescriptor[] array, int arrayIndex)
-            {
-                services.CopyTo(array, arrayIndex);
-            }
+            public void CopyTo(ServiceDescriptor[] array, int arrayIndex) => services.CopyTo(array, arrayIndex);
 
-            public IEnumerator<ServiceDescriptor> GetEnumerator()
-            {
-                return services.GetEnumerator();
-            }
+            public IEnumerator<ServiceDescriptor> GetEnumerator() => services.GetEnumerator();
 
-            public int IndexOf(ServiceDescriptor item)
-            {
-                return services.IndexOf(item);
-            }
+            public int IndexOf(ServiceDescriptor item) => services.IndexOf(item);
 
-            public void Insert(int index, ServiceDescriptor item)
-            {
-                services.Insert(index, item);
-            }
+            public void Insert(int index, ServiceDescriptor item) => services.Insert(index, item);
 
-            public bool Remove(ServiceDescriptor item)
-            {
-                return services.Remove(item);
-            }
+            public bool Remove(ServiceDescriptor item) => services.Remove(item);
 
-            public void RemoveAt(int index)
-            {
-                services.RemoveAt(index);
-            }
+            public void RemoveAt(int index) => services.RemoveAt(index);
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return services.GetEnumerator();
-            }
+            IEnumerator IEnumerable.GetEnumerator() => services.GetEnumerator();
 
             #endregion
         }

@@ -7,7 +7,7 @@ using DocumentStores.Internal;
 
 namespace DocumentStores
 {
-    /// <inheritdoc/> 
+    /// <inheritdoc/>
     public static class IDocumentStoreExtensions
     {
         /// <summary>

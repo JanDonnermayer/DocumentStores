@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace DocumentStores
 {
-    /// <inheritdoc/> 
+    /// <inheritdoc/>
     public sealed class JsonFileDocumentStore : IDocumentStore
     {
         private readonly IDocumentStore documentStore;
