@@ -27,9 +27,6 @@ namespace DocumentStores.Test
             // Arrange
             const string rootDirectory = "Some directory";
 
-            Mock.Get(enumeratorMock)
-                .SetReturnsDefault(false);
-
             // Act
             _ = serviceCollectionMock.AddJsonFileDocumentStore(rootDirectory);
 
@@ -50,9 +47,6 @@ namespace DocumentStores.Test
         {
             // Arrange
             var options = JsonFileDocumentStoreOptions.Default;
-
-            Mock.Get(enumeratorMock)
-                .SetReturnsDefault(false);
 
             // Act
             _ = serviceCollectionMock.AddJsonFileDocumentStore(options);

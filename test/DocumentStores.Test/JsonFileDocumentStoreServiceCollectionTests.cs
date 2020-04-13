@@ -28,9 +28,6 @@ namespace DocumentStores.Test
             // Arrange
             var options = JsonFileDocumentStoreOptions.Default;
 
-            Mock.Get(enumeratorMock)
-                .SetReturnsDefault(false);
-
             // Act
             _ = new JsonFileDocumentStoreServiceCollection(
                 serviceCollectionMock,
