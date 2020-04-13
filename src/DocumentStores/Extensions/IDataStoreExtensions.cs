@@ -28,6 +28,4 @@ namespace DocumentStores
             store.Delete(sourceAddress);
         }
     }
-
-
 }

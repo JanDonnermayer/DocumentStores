@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Globalization;
+using static System.String;
 
 namespace DocumentStores.Internal
 {
@@ -25,14 +25,15 @@ namespace DocumentStores.Internal
 
         private string GetDirectoryPath(DocumentRoute route)
         {
-            var relativePath = string.Join(
-                Path.DirectorySeparatorChar.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                route.Encode().Segments.Append(string.Empty).ToArray()
+            var relativePath = Join(
+                Path.DirectorySeparatorChar.ToString(CultureInfo.InvariantCulture),
+                route.Encode().Segments.Append(Empty).ToArray()
             );
 
             return Path.Combine(
                 GetRootDirectory(),
-                relativePath);
+                relativePath
+            );
         }
 
         private string GetFilePath(DocumentAddress address)
@@ -52,7 +53,7 @@ namespace DocumentStores.Internal
 
             var segments = path
                 .Split(Path.DirectorySeparatorChar)
-                .Except(new[] { string.Empty, fileName })
+                .Except(new[] { Empty, fileName })
                 .ToArray();
 
             var route = DocumentRoute
@@ -95,12 +96,15 @@ namespace DocumentStores.Internal
                     searchPattern: "*" + fileExtension,
                     searchOption: searchOption
                 )
-                .Select(path => // abs -> rel
-                    path.Replace(directory, String.Empty))
+                .Select( // abs -> rel
+                    path => path.Replace(directory, String.Empty)
+                )
                 .Select(GetAddress)
-                .Select(relAddress => // rel -> abs
-                    relAddress.MapRoute(relRoute =>
-                        relRoute.Prepend(route)));
+                .Select( // rel -> abs
+                    relAddress => relAddress.MapRoute(
+                        relRoute => relRoute.Prepend(route)
+                    )
+                );
         }
 
         public Stream GetReadStream(DocumentAddress address)

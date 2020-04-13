@@ -41,7 +41,8 @@ namespace DocumentStores.Internal
                 .GetOrAdd(
                     location: ref store,
                     key: address,
-                    valueFactory: _ => new DataContainer())
+                    valueFactory: _ => new DataContainer()
+                )
                 .GetWriteStream();
 
         void IDataStore.Clear() =>
