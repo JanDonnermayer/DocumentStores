@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using NUnit.Framework;
 
 namespace DocumentStores.Test
@@ -6,60 +8,65 @@ namespace DocumentStores.Test
     [TestFixture]
     public class IServiceCollectionExtensionTests
     {
-        private IServiceCollection serviceCollection;
+        private IEnumerator<ServiceDescriptor> enumeratorMock;
+
+        private IServiceCollection serviceCollectionMock;
 
         [SetUp]
         public void SetUp()
         {
-            serviceCollection = new ServiceCollection();
-        }
-
-        [Test]
-        public void Test_AddJsonFileDocumentStore_WithRootDirectory_ReturnsIDocumentStoreSC()
-        {
-            // Arrange
-            const string ROOT_DIRECTORY = "C:/Temp";
-
-            // Act
-            var result = serviceCollection.AddJsonFileDocumentStore(ROOT_DIRECTORY);
-
-            // Assert
-            Assert.IsNotNull(result);
-        }
-
-        [Test]
-        public void Test_AddJsonFileDocumentStore_WithRootDirectory_CanCreateIDocumentStore()
-        {
-            // Arrange
-            const string ROOT_DIRECTORY = "C:/Temp";
-
-            // Act
-            serviceCollection.AddJsonFileDocumentStore(ROOT_DIRECTORY);
-
-            // Assert
-            Assert.DoesNotThrow(
-                () => serviceCollection
-                    .BuildServiceProvider()
-                    .GetRequiredService<IDocumentStore>()
+            enumeratorMock = Mock.Of<IEnumerator<ServiceDescriptor>>();
+            serviceCollectionMock = Mock.Of<IServiceCollection>(
+                sc => sc.GetEnumerator() == enumeratorMock
             );
         }
 
         [Test]
-        public void Test_AddJsonFileDocumentStore_WithOptions_CanCreateIDocumentStore()
+        public void Test_AddJsonFileDocumentStore_WithRootDirectory_AddsIDocumentStore()
+        {
+            // Arrange
+            const string rootDirectory = "Some directory";
+
+            Mock.Get(enumeratorMock)
+                .SetReturnsDefault(false);
+
+            // Act
+            _ = serviceCollectionMock.AddJsonFileDocumentStore(rootDirectory);
+
+            // Assert
+            Mock.Get(serviceCollectionMock)
+                .Verify(
+                    sc => sc.Add(
+                        It.Is<ServiceDescriptor>(
+                            sd => sd.ServiceType == typeof(IDocumentStore)
+                        )
+                    ),
+                    Times.Once
+                );
+        }
+
+        [Test]
+        public void Test_AddJsonFileDocumentStore_WithOptions_AddsIDocumentStore()
         {
             // Arrange
             var options = JsonFileDocumentStoreOptions.Default;
 
+            Mock.Get(enumeratorMock)
+                .SetReturnsDefault(false);
+
             // Act
-            serviceCollection.AddJsonFileDocumentStore(options);
+            _ = serviceCollectionMock.AddJsonFileDocumentStore(options);
 
             // Assert
-            Assert.DoesNotThrow(
-                () => serviceCollection
-                    .BuildServiceProvider()
-                    .GetRequiredService<IDocumentStore>()
-            );
+            Mock.Get(serviceCollectionMock)
+                .Verify(
+                    sc => sc.Add(
+                        It.Is<ServiceDescriptor>(
+                            sd => sd.ServiceType == typeof(IDocumentStore)
+                        )
+                    ),
+                    Times.Once
+                );
         }
     }
-
 }

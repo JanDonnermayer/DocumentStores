@@ -23,7 +23,8 @@ namespace Microsoft.Extensions.DependencyInjection
             if (string.IsNullOrEmpty(rootDirectory))
                 throw new ArgumentException("Value cannot be null or empty.", nameof(rootDirectory));
 
-            return services.AddJsonFileDocumentStore(
+            return new JsonFileDocumentStoreServiceCollection(
+                services,
                 JsonFileDocumentStoreOptions.Default.WithRootDirectory(rootDirectory)
             );
         }
