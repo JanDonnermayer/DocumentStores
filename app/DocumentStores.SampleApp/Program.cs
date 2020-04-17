@@ -19,7 +19,8 @@ namespace DocumentStores.SampleApp
                 .HandleAsync(
                     dataHandler: Console.WriteLine,
                     errorHandler: ex => Console.WriteLine(ex.Message)
-                );
+                )
+                .ConfigureAwait(false);
 
             PromptKey("Press any key");
         }

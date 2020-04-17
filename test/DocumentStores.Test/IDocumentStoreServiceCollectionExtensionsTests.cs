@@ -27,6 +27,7 @@ namespace DocumentStores.Test
                     sc => sc.Add(
                         It.Is<ServiceDescriptor>(
                             sd => sd.ServiceType == typeof(IDocumentTopic<string>)
+                            && sd.Lifetime == ServiceLifetime.Singleton
                         )
                     ),
                     Times.Once
