@@ -14,12 +14,17 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="services">The services to which the <see cref="JsonFileDocumentStore"/> is added.</param>
         /// <param name="rootDirectory">The directory that is used to store documents</param>
-        /// <returns></returns>
-        public static IGenericServiceCollection<IDocumentStore> AddJsonFileDocumentStore(
-            this IServiceCollection services, string rootDirectory
-        ) => services.AddJsonFileDocumentStore(
-                JsonFileDocumentStoreOptions.Default.WithRootDirectory(rootDirectory)
-            );
+        public static IServiceCollection AddJsonFileDocumentStore(
+            this IServiceCollection services,
+            string rootDirectory,
+            Action<IDocumentTopicBuilder>? configureTopics = null
+        )
+        {
+            return services.AddJsonFileDocumentStore(
+                 JsonFileDocumentStoreOptions.Default.WithRootDirectory(rootDirectory),
+                 configureTopics
+             );
+        }
 
         /// <summary>
         /// Adds an <see cref="JsonFileDocumentStore"/> as <see cref="IDocumentStore"/>
@@ -27,11 +32,17 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="services">The services to which the <see cref="JsonFileDocumentStore"/> is added.</param>
         /// <param name="options">The options to use.</param>
-        /// <returns></returns>
-        public static IGenericServiceCollection<IDocumentStore> AddJsonFileDocumentStore(
-            this IServiceCollection services, JsonFileDocumentStoreOptions options
-        ) => services.AddSingletonGeneric<IDocumentStore>(
+        public static IServiceCollection AddJsonFileDocumentStore(
+            this IServiceCollection services,
+            JsonFileDocumentStoreOptions options,
+            Action<IDocumentTopicBuilder>? configureTopics = null
+        )
+        {
+            configureTopics?.Invoke(new DocumentTopicBuilder(services));
+
+            return services.AddSingleton<IDocumentStore>(
                 _ => new JsonFileDocumentStore(options)
             );
+        }
     }
 }
