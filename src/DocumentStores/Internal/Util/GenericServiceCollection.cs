@@ -12,24 +12,20 @@ namespace DocumentStores.Internal
         : ServiceCollection, IGenericServiceCollection<TService>  where TService : class
     {
         public GenericServiceCollection(
-            IServiceCollection serviceCollection,
-            TService service
-        ) : this(serviceCollection, _ => service) {}
-
-        public GenericServiceCollection(
-            IServiceCollection serviceCollection,
-            Func<IServiceProvider, TService> serviceFactory
+            IServiceCollection collection,
+            Func<IServiceProvider, TService> factory,
+            ServiceLifetime lifetime
         )
         {
-            if (serviceCollection is null)
-                throw new ArgumentNullException(nameof(serviceCollection));
+            if (collection is null)
+                throw new ArgumentNullException(nameof(collection));
 
-            if (serviceFactory is null)
-                throw new ArgumentNullException(nameof(serviceFactory));
+            if (factory is null)
+                throw new ArgumentNullException(nameof(factory));
 
-            serviceCollection.AddSingleton(serviceFactory);
-            var thisAsIServiceCollection = (IServiceCollection)this;
-            foreach (var descriptor in serviceCollection) thisAsIServiceCollection.Add(descriptor);
+            collection.Add(new ServiceDescriptor(typeof(TService), factory, lifetime));
+            var thisCollection = (IServiceCollection)this;
+            foreach (var descriptor in collection) thisCollection.Add(descriptor);
         }
     }
 }

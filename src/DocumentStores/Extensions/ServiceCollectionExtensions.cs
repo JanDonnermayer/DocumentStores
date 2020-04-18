@@ -1,6 +1,7 @@
 ﻿using System;
 using DocumentStores;
 using DocumentStores.Internal;
+using static Microsoft.Extensions.DependencyInjection.ServiceLifetime;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -16,18 +17,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static IGenericServiceCollection<IDocumentStore> AddJsonFileDocumentStore(
             this IServiceCollection services, string rootDirectory
-        )
-        {
-            if (services is null)
-                throw new ArgumentNullException(nameof(services));
-
-            return new GenericServiceCollection<IDocumentStore>(
-                serviceCollection: services,
-                service: new JsonFileDocumentStore(
-                    JsonFileDocumentStoreOptions.Default.WithRootDirectory(rootDirectory)
-                )
+        ) => services.AddJsonFileDocumentStore(
+                JsonFileDocumentStoreOptions.Default.WithRootDirectory(rootDirectory)
             );
-        }
 
         /// <summary>
         /// Adds an <see cref="JsonFileDocumentStore"/> as <see cref="IDocumentStore"/>
@@ -38,31 +30,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns></returns>
         public static IGenericServiceCollection<IDocumentStore> AddJsonFileDocumentStore(
             this IServiceCollection services, JsonFileDocumentStoreOptions options
-        )
-        {
-            if (services is null)
-                throw new ArgumentNullException(nameof(services));
-
-            if (options is null)
-                throw new ArgumentNullException(nameof(options));
-
-            return new GenericServiceCollection<IDocumentStore>(
-                serviceCollection: services,
-                service: new JsonFileDocumentStore(options)
+        ) => services.AddSingletonGeneric<IDocumentStore>(
+                _ => new JsonFileDocumentStore(options)
             );
-        }
-
-        internal static IGenericServiceCollection<TService> AddSingletonGeneric<TService>(
-            this IServiceCollection services, Func<IServiceProvider, TService> instanceProvider
-        ) where TService : class
-        {
-            if (services is null)
-                throw new ArgumentNullException(nameof(services));
-
-            return new GenericServiceCollection<TService>(
-                services,
-                instanceProvider
-            );
-        }
     }
 }

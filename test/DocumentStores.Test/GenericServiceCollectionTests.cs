@@ -26,16 +26,19 @@ namespace DocumentStores.Test
             );
         }
 
-        [Test]
-        public void Test_Constructor_AddsServiceToSpecifiedCollection()
+        [TestCase(ServiceLifetime.Singleton)]
+        [TestCase(ServiceLifetime.Scoped)]
+        [TestCase(ServiceLifetime.Transient)]
+        public void Test_Constructor_AddsServiceToSpecifiedCollection(ServiceLifetime lifetime)
         {
             // Arrange
             var options = JsonFileDocumentStoreOptions.Default;
 
             // Act
             _ = new GenericServiceCollection<ITestService>(
-               serviceCollection: serviceCollectionMock,
-               service: serviceMock
+               collection: serviceCollectionMock,
+               factory: _ => serviceMock,
+               lifetime: lifetime
             );
 
             // Assert
@@ -44,7 +47,7 @@ namespace DocumentStores.Test
                     sc => sc.Add(
                         It.Is<ServiceDescriptor>(
                             sd => sd.ServiceType == typeof(ITestService)
-                            && sd.Lifetime == ServiceLifetime.Singleton
+                            && sd.Lifetime == lifetime
                         )
                     ),
                     Times.Once
