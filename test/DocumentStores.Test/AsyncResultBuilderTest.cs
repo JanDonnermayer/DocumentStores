@@ -65,5 +65,4 @@ namespace DocumentStores.Test
             Assert.Pass();
         }
     }
-
 }

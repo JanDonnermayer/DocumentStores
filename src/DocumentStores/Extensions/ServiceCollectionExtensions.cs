@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using DocumentStores;
+using DocumentStores.Internal;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <inheritdoc/>
-    public static class IServiceCollectionExtensions
+    public static class ServiceCollectionExtensions
     {
         /// <summary>
         /// Adds an <see cref="JsonFileDocumentStore"/> as <see cref="IDocumentStore"/>
@@ -13,19 +14,18 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">The services to which the <see cref="JsonFileDocumentStore"/> is added.</param>
         /// <param name="rootDirectory">The directory that is used to store documents</param>
         /// <returns></returns>
-        public static IDocumentStoreServiceCollection AddJsonFileDocumentStore(
+        public static IGenericServiceCollection<IDocumentStore> AddJsonFileDocumentStore(
             this IServiceCollection services, string rootDirectory
         )
         {
             if (services is null)
                 throw new ArgumentNullException(nameof(services));
 
-            if (string.IsNullOrEmpty(rootDirectory))
-                throw new ArgumentException("Value cannot be null or empty.", nameof(rootDirectory));
-
-            return new JsonFileDocumentStoreServiceCollection(
-                services,
-                JsonFileDocumentStoreOptions.Default.WithRootDirectory(rootDirectory)
+            return new GenericServiceCollection<IDocumentStore>(
+                serviceCollection: services,
+                service: new JsonFileDocumentStore(
+                    JsonFileDocumentStoreOptions.Default.WithRootDirectory(rootDirectory)
+                )
             );
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">The services to which the <see cref="JsonFileDocumentStore"/> is added.</param>
         /// <param name="options">The options to use.</param>
         /// <returns></returns>
-        public static IDocumentStoreServiceCollection AddJsonFileDocumentStore(
+        public static IGenericServiceCollection<IDocumentStore> AddJsonFileDocumentStore(
             this IServiceCollection services, JsonFileDocumentStoreOptions options
         )
         {
@@ -46,7 +46,23 @@ namespace Microsoft.Extensions.DependencyInjection
             if (options is null)
                 throw new ArgumentNullException(nameof(options));
 
-            return new JsonFileDocumentStoreServiceCollection(services, options);
+            return new GenericServiceCollection<IDocumentStore>(
+                serviceCollection: services,
+                service: new JsonFileDocumentStore(options)
+            );
+        }
+
+        internal static IGenericServiceCollection<TService> AddSingletonGeneric<TService>(
+            this IServiceCollection services, Func<IServiceProvider, TService> instanceProvider
+        ) where TService : class
+        {
+            if (services is null)
+                throw new ArgumentNullException(nameof(services));
+
+            return new GenericServiceCollection<TService>(
+                services,
+                instanceProvider
+            );
         }
     }
 }

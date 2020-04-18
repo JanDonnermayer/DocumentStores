@@ -1,37 +1,41 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using DocumentStores.Internal;
 
 namespace DocumentStores.Test
 {
     [TestFixture]
-    public class JsonFileDocumentStoreServiceCollectionTests
+    public class GenericServiceCollectionTests
     {
         private IEnumerator<ServiceDescriptor> enumeratorMock;
 
         private IServiceCollection serviceCollectionMock;
 
+        private ITestService serviceMock;
+
         [SetUp]
         public void SetUp()
         {
             enumeratorMock = Mock.Of<IEnumerator<ServiceDescriptor>>();
+            serviceMock = Mock.Of<ITestService>();
             serviceCollectionMock = Mock.Of<IServiceCollection>(
                 sc => sc.GetEnumerator() == enumeratorMock
             );
         }
 
         [Test]
-        public void Test_Constructor_AddsIDocumentStore()
+        public void Test_Constructor_AddsServiceToSpecifiedCollection()
         {
             // Arrange
             var options = JsonFileDocumentStoreOptions.Default;
 
             // Act
-            _ = new JsonFileDocumentStoreServiceCollection(
-                serviceCollectionMock,
-                options
+            _ = new GenericServiceCollection<ITestService>(
+               serviceCollection: serviceCollectionMock,
+               service: serviceMock
             );
 
             // Assert
@@ -39,7 +43,7 @@ namespace DocumentStores.Test
                 .Verify(
                     sc => sc.Add(
                         It.Is<ServiceDescriptor>(
-                            sd => sd.ServiceType == typeof(IDocumentStore)
+                            sd => sd.ServiceType == typeof(ITestService)
                             && sd.Lifetime == ServiceLifetime.Singleton
                         )
                     ),
@@ -47,4 +51,6 @@ namespace DocumentStores.Test
                 );
         }
     }
+
+    public interface ITestService { }
 }
