@@ -4,10 +4,7 @@ using System.Collections.Generic;
 
 namespace DocumentStores.Internal
 {
-    /// <summary>
-    /// An instance of <see cref="IServiceCollection"/>
-    /// containing a singleton instance of <typeparam name="TService"/>
-    /// </summary>
+    /// <inheritdoc />
     internal class GenericServiceCollection<TService>
         : ServiceCollection, IGenericServiceCollection<TService>  where TService : class
     {

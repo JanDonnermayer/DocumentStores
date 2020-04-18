@@ -4,7 +4,7 @@ namespace DocumentStores
 {
     /// <summary>
     /// An instance of <see cref="IServiceCollection"/>
-    /// containing a singleton instance of <typeparam name="TService"/>
+    /// containing a service descriptor for <typeparam name="TService"/>
     /// </summary>
     public interface IGenericServiceCollection<out TService> : IServiceCollection { }
 }
